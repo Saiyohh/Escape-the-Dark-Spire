@@ -1,0 +1,507 @@
+fileFormatVersion: 2
+guid: 28ebf31853491bf46bf57377161a0e6c
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3803132133284260705
+    second: gate-vertical-table-20-60_0
+  - first:
+      213: 6640315610542178502
+    second: gate-vertical-table-20-60_1
+  - first:
+      213: -7693568190536528718
+    second: gate-vertical-table-20-60_2
+  - first:
+      213: -1439825992144474541
+    second: gate-vertical-table-20-60_3
+  - first:
+      213: -4614311865090807332
+    second: gate-vertical-table-20-60_4
+  - first:
+      213: -5569828777212339351
+    second: gate-vertical-table-20-60_5
+  - first:
+      213: -792565012248100959
+    second: gate-vertical-table-20-60_6
+  - first:
+      213: -1659978770789742789
+    second: gate-vertical-table-20-60_7
+  - first:
+      213: 7806312124386027935
+    second: gate-vertical-table-20-60_8
+  - first:
+      213: 5645389813328920738
+    second: gate-vertical-table-20-60_9
+  - first:
+      213: -4034495603832549866
+    second: gate-vertical-table-20-60_10
+  - first:
+      213: -6959175497651409306
+    second: gate-vertical-table-20-60_11
+  - first:
+      213: 5520575728503804859
+    second: gate-vertical-table-20-60_12
+  - first:
+      213: 3423422452040976571
+    second: gate-vertical-table-20-60_13
+  - first:
+      213: -7185745900930376346
+    second: gate-vertical-table-20-60_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_0
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 8
+        width: 12
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f94d7b1897f883bc0800000000000000
+      internalID: -3803132133284260705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_1
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 30
+        width: 12
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c009daadd3272c50800000000000000
+      internalID: 6640315610542178502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_2
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 31
+        width: 12
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bc43d33e74fa3590800000000000000
+      internalID: -7693568190536528718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_3
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 32
+        width: 12
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35eaadf73e5b40ce0800000000000000
+      internalID: -1439825992144474541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_4
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 33
+        width: 12
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd9646e6ecba6ffb0800000000000000
+      internalID: -4614311865090807332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_5
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 35
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96b9282cc3ef3b2b0800000000000000
+      internalID: -5569828777212339351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_6
+      rect:
+        serializedVersion: 2
+        x: 124
+        y: 37
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1af7c8f025e3005f0800000000000000
+      internalID: -792565012248100959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_7
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 38
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3743685a1296f8e0800000000000000
+      internalID: -1659978770789742789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_8
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 8
+        width: 12
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f99aadb7487955c60800000000000000
+      internalID: 7806312124386027935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_9
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 8
+        width: 12
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2a0441aef14785e40800000000000000
+      internalID: 5645389813328920738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_10
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 8
+        width: 12
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61e8fadbf979208c0800000000000000
+      internalID: -4034495603832549866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_11
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 8
+        width: 12
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66ea2e491ca0c6f90800000000000000
+      internalID: -6959175497651409306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_12
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 8
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb3dc1530660d9c40800000000000000
+      internalID: 5520575728503804859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_13
+      rect:
+        serializedVersion: 2
+        x: 124
+        y: 8
+        width: 12
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb8cff10590728f20800000000000000
+      internalID: 3423422452040976571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gate-vertical-table-20-60_14
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 8
+        width: 12
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66d53d0cc2a174c90800000000000000
+      internalID: -7185745900930376346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      gate-vertical-table-20-60_0: -3803132133284260705
+      gate-vertical-table-20-60_1: 6640315610542178502
+      gate-vertical-table-20-60_10: -4034495603832549866
+      gate-vertical-table-20-60_11: -6959175497651409306
+      gate-vertical-table-20-60_12: 5520575728503804859
+      gate-vertical-table-20-60_13: 3423422452040976571
+      gate-vertical-table-20-60_14: -7185745900930376346
+      gate-vertical-table-20-60_2: -7693568190536528718
+      gate-vertical-table-20-60_3: -1439825992144474541
+      gate-vertical-table-20-60_4: -4614311865090807332
+      gate-vertical-table-20-60_5: -5569828777212339351
+      gate-vertical-table-20-60_6: -792565012248100959
+      gate-vertical-table-20-60_7: -1659978770789742789
+      gate-vertical-table-20-60_8: 7806312124386027935
+      gate-vertical-table-20-60_9: 5645389813328920738
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

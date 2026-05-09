@@ -1,0 +1,467 @@
+// UnitWorldHUD.cs
+// -----------------------------------------------------------------------------
+// World-space player HUD pinned under each player unit. Rendered by a UGUI
+// Canvas (World Space) sitting as a child of the UnitDisplay prefab. Shows:
+//   • HP bar (foreground fill + text "12 / 20")
+//   • SP bar (foreground fill + text "5 / 10")
+//   • Condition icon strip (HorizontalLayoutGroup filled with ConditionIconUI children)
+//
+// Lives per-unit → automatically follows the unit via transform parenting.
+// Automatically hidden by UnitDisplay.PlayDeathAnimationImmediate via Hide().
+//
+// Prefab setup (do once, drag onto UnitDisplay.unitWorldHUDPrefab):
+//   HUD_Player (GameObject)
+//     Canvas (RenderMode = World Space, Sort Order = 10, Scale = 0.01)
+//     + CanvasScaler (Constant Pixel Size, Scale Factor 1)
+//     + GraphicRaycaster (uncheck "Blocking Mask" so clicks pass through to units)
+//     RectTransform width 300, height 120
+//     ├─ HpBar (Slider; Background + Fill Area/Fill)
+//     │   └─ HpText (TMP)
+//     ├─ SpBar (Slider)
+//     │   └─ SpText (TMP)
+//     └─ ConditionsContainer (RectTransform with HorizontalLayoutGroup)
+//         (ConditionIconUI children spawn at runtime)
+//
+// Wire the Slider + TMP_Text + RectTransform + conditionIconPrefab fields on
+// this component, save prefab. Drop the prefab into UnitDisplay.unitWorldHUDPrefab.
+// -----------------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace DarkSpire
+{
+    public class UnitWorldHUD : MonoBehaviour
+    {
+        [Header("HP")]
+        [SerializeField] private Slider hpBar;
+        [SerializeField] private TMP_Text hpText;
+        [Tooltip("Seconds the HP fill takes to lerp to the new value. Set to 0 to snap.")]
+        [SerializeField] private float hpTweenDuration = 0.3f;
+        private Coroutine hpTweenCo;
+
+        [Header("SP")]
+        [SerializeField] private Slider spBar;
+        [SerializeField] private TMP_Text spText;
+
+        [Header("Conditions")]
+        [Tooltip("RectTransform with a HorizontalLayoutGroup — condition icons are spawned as children.")]
+        [SerializeField] private RectTransform conditionsContainer;
+        [Tooltip("Prefab for each condition (needs a ConditionIconUI component).")]
+        [SerializeField] private GameObject conditionIconPrefab;
+
+        [Header("Death Fade")]
+        [SerializeField] private float deathFadeOutDuration = 0.25f;
+
+        [Header("Hover Name Overlay")]
+        [Tooltip("Wrap HP / SP / text under one CanvasGroup so they fade together " +
+                 "when the player hovers this unit. Leave null to disable the fade.")]
+        [SerializeField] private CanvasGroup statsGroup;
+        [Tooltip("CanvasGroup containing the name label + drop-shadow image. Fades " +
+                 "in while hovered, out otherwise. Leave null to disable.")]
+        [SerializeField] private CanvasGroup nameGroup;
+        [Tooltip("Optional text label inside nameGroup. Auto-populated from " +
+                 "linkedUnit.unitName at Initialize.")]
+        [SerializeField] private TMP_Text nameLabel;
+        [Tooltip("Seconds for the hover fade between bars and name overlay.")]
+        [SerializeField] private float hoverFadeDuration = 0.18f;
+        private Coroutine hoverFadeCo;
+        private bool isHovered;
+
+        private Unit linkedUnit;
+        private readonly Dictionary<ConditionID, ConditionIconUI> conditionIcons = new();
+
+        // Stored delegate refs so OnDestroy can unsubscribe cleanly.
+        private Action<int> onDamageTakenHandler;
+        private Action<int> onHealReceivedHandler;
+        private Action onStatsChangedHandler;
+        private Action onDeathHandler;
+        private Action<ConditionID, int> onConditionAppliedHandler;
+        private Action<ConditionID> onConditionRemovedHandler;
+        private Action<ConditionID, int> onConditionChangedHandler;
+
+        public void Initialize(Unit unit)
+        {
+            linkedUnit = unit;
+            if (unit == null) return;
+
+            // Initial paint
+            RefreshHP();
+            RefreshSP();
+            RebuildConditions();
+            InitializeHoverOverlay(unit);
+
+            // Subscriptions (store delegates so we can unsub later). All
+            // refresh paths route through the IsSuppressed gate so HP / SP /
+            // condition-icon updates wait for the attacker's animation to
+            // finish before they paint.
+            onDamageTakenHandler       = _ => { if (!IsSuppressed) RefreshHP(); };
+            onHealReceivedHandler      = _ => { if (!IsSuppressed) RefreshHP(); };
+            onStatsChangedHandler      = () => { if (!IsSuppressed) RefreshAll(); };
+            onDeathHandler             = FadeOutAndHide;
+            onConditionAppliedHandler  = HandleConditionApplied;
+            onConditionRemovedHandler  = HandleConditionRemoved;
+            onConditionChangedHandler  = HandleConditionChanged;
+
+            unit.OnDamageTaken  += onDamageTakenHandler;
+            unit.OnHealReceived += onHealReceivedHandler;
+            unit.OnStatsChanged += onStatsChangedHandler;
+            unit.OnDeath        += onDeathHandler;
+
+            unit.conditions.OnConditionApplied += onConditionAppliedHandler;
+            unit.conditions.OnConditionRemoved += onConditionRemovedHandler;
+            unit.conditions.OnConditionChanged += onConditionChangedHandler;
+
+            // Hook the linked UnitDisplay so we can do a single catch-up
+            // refresh the moment suppression lifts. HP/SP/Defense ride
+            // OnUISuppressionLifted (after the lunge); condition icons ride
+            // OnConditionUISuppressionLifted (later, after damage feedback)
+            // so the icon paints with the condition floater rather than with
+            // the HP drop.
+            var display = UnitDisplay.GetDisplay(unit);
+            if (display != null)
+            {
+                display.OnUISuppressionLifted          += HandleSuppressionLifted;
+                display.OnConditionUISuppressionLifted += HandleConditionUISuppressionLifted;
+            }
+        }
+
+        // True when the attached UnitDisplay is suppressing HP/SP/Defense
+        // refreshes during an animation window. Read fresh on each event so
+        // a late-spawned HUD still picks up the current state.
+        private bool IsSuppressed
+        {
+            get
+            {
+                if (linkedUnit == null) return false;
+                var d = UnitDisplay.GetDisplay(linkedUnit);
+                return d != null && d.SuppressUIUpdates;
+            }
+        }
+
+        // True when condition-icon updates are deferred during ordered
+        // playback (separate flag from IsSuppressed so the HP tween and the
+        // condition icon can paint at different beats).
+        private bool IsConditionUISuppressed
+        {
+            get
+            {
+                if (linkedUnit == null) return false;
+                var d = UnitDisplay.GetDisplay(linkedUnit);
+                return d != null && d.SuppressConditionUI;
+            }
+        }
+
+        private void HandleSuppressionLifted()
+        {
+            if (linkedUnit == null) return;
+            // HP/SP/Defense catch-up. Condition icons are handled separately
+            // via HandleConditionUISuppressionLifted.
+            RefreshAll();
+        }
+
+        private void HandleConditionUISuppressionLifted()
+        {
+            if (linkedUnit == null) return;
+            // One-pass condition rebuild covering every apply/change/remove
+            // that fired while the flag was up.
+            RebuildConditions();
+        }
+
+        public void Hide() => gameObject.SetActive(false);
+        public void Show() => gameObject.SetActive(true);
+
+        private void FadeOutAndHide()
+        {
+            if (!gameObject.activeInHierarchy) { gameObject.SetActive(false); return; }
+            StartCoroutine(FadeOutAndHideCo());
+        }
+
+        private System.Collections.IEnumerator FadeOutAndHideCo()
+        {
+            var cg = GetComponent<CanvasGroup>();
+            if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = false;
+            cg.interactable = false;
+
+            float t = 0f;
+            float dur = Mathf.Max(0.0001f, deathFadeOutDuration);
+            float startAlpha = cg.alpha;
+            while (t < dur)
+            {
+                t += Time.deltaTime;
+                cg.alpha = Mathf.Lerp(startAlpha, 0f, Mathf.Clamp01(t / dur));
+                yield return null;
+            }
+            cg.alpha = 0f;
+            gameObject.SetActive(false);
+        }
+
+        // ─── Refresh helpers ────────────────────────────────────────────────
+
+        private void RefreshAll()
+        {
+            RefreshHP();
+            RefreshSP();
+        }
+
+        private void RefreshHP()
+        {
+            if (linkedUnit == null) return;
+            if (hpBar != null)
+            {
+                hpBar.maxValue = Mathf.Max(1, linkedUnit.maxHP);
+                float target = linkedUnit.currentHP;
+                if (hpTweenDuration <= 0f || !gameObject.activeInHierarchy)
+                {
+                    if (hpTweenCo != null) { StopCoroutine(hpTweenCo); hpTweenCo = null; }
+                    hpBar.value = target;
+                }
+                else
+                {
+                    if (hpTweenCo != null) StopCoroutine(hpTweenCo);
+                    hpTweenCo = StartCoroutine(TweenHpBar(hpBar.value, target, hpTweenDuration));
+                }
+            }
+            if (hpText != null)
+                hpText.text = $"{linkedUnit.currentHP}";
+        }
+
+        private System.Collections.IEnumerator TweenHpBar(float from, float to, float duration)
+        {
+            float t = 0f;
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / duration);
+                if (hpBar != null) hpBar.value = Mathf.Lerp(from, to, k);
+                yield return null;
+            }
+            if (hpBar != null) hpBar.value = to;
+            hpTweenCo = null;
+        }
+
+        private void RefreshSP()
+        {
+            if (linkedUnit == null) return;
+            if (spBar != null)
+            {
+                spBar.maxValue = Mathf.Max(1, linkedUnit.maxSP);
+                spBar.value = linkedUnit.currentSP;
+            }
+            if (spText != null)
+                spText.text = $"{linkedUnit.currentSP}";
+        }
+
+        // ─── Condition icon strip ───────────────────────────────────────────
+
+        private void HandleConditionApplied(ConditionID id, int stacks)
+        {
+            if (IsConditionUISuppressed) return; // catch-up via HandleConditionUISuppressionLifted
+            if (!conditionIcons.TryGetValue(id, out var icon))
+            {
+                icon = SpawnIcon(id);
+                if (icon != null) conditionIcons[id] = icon;
+            }
+            if (icon != null) icon.SetStacks(stacks);
+        }
+
+        private void HandleConditionChanged(ConditionID id, int stacks)
+        {
+            if (IsConditionUISuppressed) return;
+            if (conditionIcons.TryGetValue(id, out var icon))
+                icon.SetStacks(stacks);
+        }
+
+        private void HandleConditionRemoved(ConditionID id)
+        {
+            if (IsConditionUISuppressed) return;
+            if (conditionIcons.TryGetValue(id, out var icon) && icon != null)
+            {
+                Destroy(icon.gameObject);
+                conditionIcons.Remove(id);
+            }
+        }
+
+        /// <summary>Full rebuild — used on Initialize (unit may enter combat with pre-applied conditions).</summary>
+        private void RebuildConditions()
+        {
+            if (conditionsContainer == null) return;
+
+            for (int i = conditionsContainer.childCount - 1; i >= 0; i--)
+                Destroy(conditionsContainer.GetChild(i).gameObject);
+            conditionIcons.Clear();
+
+            if (linkedUnit == null) return;
+            var all = linkedUnit.conditions.GetAllConditions();
+            for (int i = 0; i < all.Count; i++)
+            {
+                var inst = all[i];
+                var icon = SpawnIcon(inst.data.conditionID);
+                if (icon == null) continue;
+                icon.SetStacks(inst.stacks);
+                conditionIcons[inst.data.conditionID] = icon;
+            }
+        }
+
+        private ConditionIconUI SpawnIcon(ConditionID id)
+        {
+            if (conditionIconPrefab == null || conditionsContainer == null) return null;
+
+            var data = ConditionLibrary.Instance != null
+                ? ConditionLibrary.Instance.Get(id)
+                : null;
+            if (data == null) return null;
+
+            var go = Instantiate(conditionIconPrefab, conditionsContainer);
+            var ui = go.GetComponent<ConditionIconUI>();
+            if (ui != null) ui.Bind(data);
+            return ui;
+        }
+
+        private void OnDestroy()
+        {
+            if (linkedUnit == null) return;
+            if (onDamageTakenHandler != null)  linkedUnit.OnDamageTaken  -= onDamageTakenHandler;
+            if (onHealReceivedHandler != null) linkedUnit.OnHealReceived -= onHealReceivedHandler;
+            if (onStatsChangedHandler != null) linkedUnit.OnStatsChanged -= onStatsChangedHandler;
+            if (onDeathHandler != null)        linkedUnit.OnDeath        -= onDeathHandler;
+            if (linkedUnit.conditions != null)
+            {
+                if (onConditionAppliedHandler != null) linkedUnit.conditions.OnConditionApplied -= onConditionAppliedHandler;
+                if (onConditionRemovedHandler != null) linkedUnit.conditions.OnConditionRemoved -= onConditionRemovedHandler;
+                if (onConditionChangedHandler != null) linkedUnit.conditions.OnConditionChanged -= onConditionChangedHandler;
+            }
+        }
+
+        // ─── Combat-start intro fade ────────────────────────────────────────
+
+        private CanvasGroup rootCanvasGroup;
+        private Coroutine introFadeCo;
+
+        private CanvasGroup GetOrAddRootCanvasGroup()
+        {
+            if (rootCanvasGroup != null) return rootCanvasGroup;
+            rootCanvasGroup = GetComponent<CanvasGroup>();
+            if (rootCanvasGroup == null) rootCanvasGroup = gameObject.AddComponent<CanvasGroup>();
+            return rootCanvasGroup;
+        }
+
+        /// <summary>
+        /// Snap the HUD invisible (and non-blocking) for the combat-start
+        /// intro. Pair with FadeIn after the unit has slid into position.
+        /// </summary>
+        public void PrepareForIntro()
+        {
+            var cg = GetOrAddRootCanvasGroup();
+            cg.alpha = 0f;
+            cg.blocksRaycasts = false;
+            cg.interactable = false;
+        }
+
+        /// <summary>
+        /// Fade the HUD root from alpha 0 → 1 over <paramref name="duration"/>
+        /// seconds, optionally after a short delay. Restores raycast / input
+        /// when fully visible.
+        /// </summary>
+        public Coroutine FadeIn(float duration, float startDelay = 0f)
+        {
+            if (introFadeCo != null) StopCoroutine(introFadeCo);
+            introFadeCo = StartCoroutine(IntroFadeInCo(duration, startDelay));
+            return introFadeCo;
+        }
+
+        private System.Collections.IEnumerator IntroFadeInCo(float duration, float startDelay)
+        {
+            var cg = GetOrAddRootCanvasGroup();
+            if (startDelay > 0f)
+            {
+                float d = 0f;
+                while (d < startDelay) { d += Time.deltaTime; yield return null; }
+            }
+            float dur = Mathf.Max(0.0001f, duration);
+            float from = cg.alpha;
+            float t = 0f;
+            while (t < dur)
+            {
+                t += Time.deltaTime;
+                cg.alpha = Mathf.Lerp(from, 1f, Mathf.Clamp01(t / dur));
+                yield return null;
+            }
+            cg.alpha = 1f;
+            cg.blocksRaycasts = true;
+            cg.interactable = true;
+            introFadeCo = null;
+        }
+
+        // ─── Hover name overlay ─────────────────────────────────────────────
+
+        /// <summary>
+        /// Pre-fill the name label and snap statsGroup / nameGroup alphas so
+        /// the rest pose is "bars visible, name hidden". Called from
+        /// Initialize so the overlay starts in a known state regardless of
+        /// what the prefab authored on the CanvasGroup alphas.
+        /// </summary>
+        private void InitializeHoverOverlay(Unit unit)
+        {
+            if (nameLabel != null && unit != null)
+                nameLabel.text = unit.unitName;
+            if (statsGroup != null) statsGroup.alpha = 1f;
+            if (nameGroup  != null) nameGroup.alpha  = 0f;
+            isHovered = false;
+        }
+
+        /// <summary>
+        /// Pointer entered the unit's hitbox — fade bars out and the name
+        /// label in. Called by UnitDisplay's hover handler.
+        /// </summary>
+        public void OnUnitHoverEnter()
+        {
+            if (isHovered) return;
+            isHovered = true;
+            StartHoverFade(targetBars: 0f, targetName: 1f);
+        }
+
+        /// <summary>Pointer left — restore bars-visible / name-hidden.</summary>
+        public void OnUnitHoverExit()
+        {
+            if (!isHovered) return;
+            isHovered = false;
+            StartHoverFade(targetBars: 1f, targetName: 0f);
+        }
+
+        private void StartHoverFade(float targetBars, float targetName)
+        {
+            if (statsGroup == null && nameGroup == null) return;
+            if (hoverFadeCo != null) StopCoroutine(hoverFadeCo);
+            if (!gameObject.activeInHierarchy)
+            {
+                if (statsGroup != null) statsGroup.alpha = targetBars;
+                if (nameGroup  != null) nameGroup.alpha  = targetName;
+                return;
+            }
+            hoverFadeCo = StartCoroutine(HoverFadeCo(targetBars, targetName));
+        }
+
+        private System.Collections.IEnumerator HoverFadeCo(float targetBars, float targetName)
+        {
+            float fromBars = statsGroup != null ? statsGroup.alpha : 0f;
+            float fromName = nameGroup  != null ? nameGroup.alpha  : 0f;
+            float dur = Mathf.Max(0.0001f, hoverFadeDuration);
+            float t = 0f;
+            while (t < dur)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Clamp01(t / dur);
+                if (statsGroup != null) statsGroup.alpha = Mathf.Lerp(fromBars, targetBars, k);
+                if (nameGroup  != null) nameGroup.alpha  = Mathf.Lerp(fromName, targetName, k);
+                yield return null;
+            }
+            if (statsGroup != null) statsGroup.alpha = targetBars;
+            if (nameGroup  != null) nameGroup.alpha  = targetName;
+            hoverFadeCo = null;
+        }
+    }
+}

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 651df54e227926640a7eabd455cf7b9d, type: 3}
+  m_Name: KeywordGlossary
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.KeywordGlossary
+  entries:
+  - key: Attack
+    displayName: Attack
+    description: Make a d20 roll and add your DEX to the outcome. Weighed against
+      the target's DEF.
+    icon: {fileID: 0}
+    colorOverride: {r: 0, g: 0, b: 0, a: 0}
+    linkedCondition: 0
+    isConditionLinked: 0

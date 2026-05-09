@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 3
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 1978811833
+    locked: 0
+  - name: Back VFX
+    uniqueID: 4253926471
+    locked: 0
+  - name: Units
+    uniqueID: 2699115175
+    locked: 0
+  - name: Companions
+    uniqueID: 222589697
+    locked: 0
+  - name: Front VFX
+    uniqueID: 3095577889
+    locked: 0
+  - name: Unit Overlays
+    uniqueID: 1632157105
+    locked: 0
+  - name: Combat HUD
+    uniqueID: 456308139
+    locked: 0
+  - name: Dungeon HUD
+    uniqueID: 216881229
+    locked: 0
+  - name: HUD
+    uniqueID: 2148196169
+    locked: 0
+  - name: Icons
+    uniqueID: 616784983
+    locked: 0
+  - name: Targeting Reticle
+    uniqueID: 886873207
+    locked: 0
+  - name: Overlay HUD
+    uniqueID: 2487633041
+    locked: 0
+  m_RenderingLayers:
+  - Default
+  m_MigratedRenderPipelines: []

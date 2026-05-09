@@ -1,0 +1,175 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8358920df88b40f4b9b99988798333a5, type: 3}
+  m_Name: EnemyData_Nibbit
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.EnemyData
+  enemyName: Nibbit
+  combatSprite: {fileID: 21300000, guid: ecb965a4377279c4da471ea5519aa8bf, type: 3}
+  enemyType: 0
+  mapIcon: {fileID: 0}
+  displayPrefab: {fileID: 0}
+  minHP: 38
+  maxHP: 44
+  pow: 0
+  atk: 2
+  def: 11
+  spd: 2
+  wil: 0
+  bwGrayscale: 0
+  bwReds: 0.4
+  bwYellows: 0.6
+  bwGreens: 0.4
+  bwCyans: 0.6
+  bwBlues: 0.2
+  bwMagentas: 0.8
+  startingConditions: []
+  movePatternMode: 0
+  movePattern:
+  - name: Butt
+    weight: 2
+    intents:
+    - intentType: 0
+      rangeMin: 1
+      rangeMax: 4
+      targetPreference: 0
+      preferredCondition: 0
+      effects:
+      - effectType: 0
+        applyKind: 0
+        gate: 0
+        sameTargetAsGate: 1
+        loopLinkIndex: -1
+        targetMode: 0
+        targetPickIndex: 0
+        magnitude: 10
+        damageStat: 1
+        hitCount: 1
+        conditionID: 0
+        conditionStacks: 0
+        stackCountKind: 0
+        stackPer: 1
+        saveDC: 0
+        movementKind: 0
+        movementMagnitude: 1
+        orbType: 0
+        orbCount: 1
+        orbSource: 0
+        evokeKind: 0
+        evokeCount: 1
+        companionTarget: 0
+        bindDuration: 1
+        pouchItemType: 0
+        itemSO: {fileID: 0}
+        itemQuantity: 1
+        resourceAmount: 1
+        sealTarget: 0
+        sealDuration: 1
+        extraActionKind: 0
+        triggerDuration: 1
+        retaliateDamage: 0
+        scalingMultiplier: 1
+        saveType: 0
+  - name: Hesitant Swipe
+    weight: 1
+    intents:
+    - intentType: 0
+      rangeMin: 1
+      rangeMax: 4
+      targetPreference: 0
+      preferredCondition: 0
+      effects:
+      - effectType: 0
+        applyKind: 0
+        gate: 0
+        sameTargetAsGate: 1
+        loopLinkIndex: -1
+        targetMode: 1
+        targetPickIndex: 0
+        magnitude: 4
+        damageStat: 1
+        hitCount: 1
+        conditionID: 0
+        conditionStacks: 0
+        stackCountKind: 0
+        stackPer: 1
+        saveDC: 0
+        movementKind: 0
+        movementMagnitude: 1
+        orbType: 0
+        orbCount: 1
+        orbSource: 0
+        evokeKind: 0
+        evokeCount: 1
+        companionTarget: 0
+        bindDuration: 1
+        pouchItemType: 0
+        itemSO: {fileID: 0}
+        itemQuantity: 1
+        resourceAmount: 1
+        sealTarget: 0
+        sealDuration: 1
+        extraActionKind: 0
+        triggerDuration: 1
+        retaliateDamage: 0
+        scalingMultiplier: 1
+        saveType: 0
+  - name: Hiss
+    weight: 1
+    intents:
+    - intentType: 2
+      rangeMin: 1
+      rangeMax: 4
+      targetPreference: 0
+      preferredCondition: 0
+      effects:
+      - effectType: 20
+        applyKind: 1
+        gate: 0
+        sameTargetAsGate: 1
+        loopLinkIndex: -1
+        targetMode: 3
+        targetPickIndex: 0
+        magnitude: 0
+        damageStat: 0
+        hitCount: 1
+        conditionID: 0
+        conditionStacks: 1
+        stackCountKind: 0
+        stackPer: 1
+        saveDC: 0
+        movementKind: 0
+        movementMagnitude: 1
+        orbType: 0
+        orbCount: 1
+        orbSource: 0
+        evokeKind: 0
+        evokeCount: 1
+        companionTarget: 0
+        bindDuration: 1
+        pouchItemType: 0
+        itemSO: {fileID: 0}
+        itemQuantity: 1
+        resourceAmount: 1
+        sealTarget: 0
+        sealDuration: 1
+        extraActionKind: 0
+        triggerDuration: 1
+        retaliateDamage: 0
+        scalingMultiplier: 1
+        saveType: 0
+  conditionalMoves: []
+  hasTurn1MoveOverride: 0
+  turn1MoveOverride:
+    name: 
+    weight: 1
+    intents: []
+  expValue: 0

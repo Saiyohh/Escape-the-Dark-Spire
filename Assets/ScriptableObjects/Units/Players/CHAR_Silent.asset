@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 662835b274ebed447b3af2461335b3ab, type: 3}
+  m_Name: CHAR_Silent
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.CharacterData
+  characterName: The Silent
+  description: 
+  headIcon: {fileID: 0}
+  combatSprite: {fileID: 21300000, guid: 88af1b5469e5c144d8d01cad80f0d319, type: 3}
+  alignment: 1
+  maxHP: 75
+  maxSP: 30
+  pow: 2
+  dex: 4
+  def: 12
+  wil: 3
+  displayPrefab: {fileID: 0}
+  partyTrayPortraitScale: 2.7
+  partyTrayPortraitOffset: {x: -22, y: -74}
+  signatureColor: {r: 0.36285156, g: 0.509434, b: 0.41339725, a: 1}
+  highlightColor: {r: 0.77254903, g: 0.827451, b: 0.48235294, a: 1}
+  startingWeapon: {fileID: 11400000, guid: 87a00b5233622f9498aff8d4b98ed291, type: 2}
+  startingSkills:
+  - {fileID: 11400000, guid: ee925001b46f7ec4f9834bc628e865b8, type: 2}
+  - {fileID: 11400000, guid: cb29477d7d1539446854b3531b70ef73, type: 2}
+  - {fileID: 11400000, guid: a420fce149f04e444b13a34c4ff204b8, type: 2}
+  hasOrbSystem: 0
+  hasSpellbook: 0
+  hasPotionSack: 0
+  hasStanceSystem: 0
+  startingOrb: {fileID: 0}
+  startingStars: 0
+  refusalLine_NoAction: That blade's spent...
+  refusalLine_NoFreeAction: No more shadows...
+  refusalLine_NotEnoughSP: Nothing up my sleeve...
+  refusalLine_NotEnoughStars: 
+  refusalLine_Immobilized: I've been...pinned...
+  startingLevel: 1
+  hpPerLevel: 4

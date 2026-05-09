@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa51d44a38eef684485989d147fe038b, type: 3}
+  m_Name: WPN_OrbBeam
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.WeaponData
+  weaponName: Orb Beam
+  description: 
+  icon: {fileID: 0}
+  baseDamage: 4
+  attackBonus: 2
+  hitCount: 1
+  critThreshold: 20
+  targetMode: 0
+  rangeMin: 2
+  rangeMax: 5
+  hasOnHit: 0
+  onHitConditionID: 3
+  onHitConditionStacks: 1
+  onHitConditionChance: 1
+  hasOnMiss: 0
+  onMissConditionID: 0
+  onMissConditionStacks: 1
+  channelOrbOnAttack: 1
+  alignment: 2
+  rarity: 0
+  upgradedVersion: {fileID: 0}
+  maxUpgradeTier: 1
+  shopCost: 0

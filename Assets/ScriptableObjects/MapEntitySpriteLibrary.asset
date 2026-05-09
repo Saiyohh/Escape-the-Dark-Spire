@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50547abb585eb93418a94cf5e9ef886f, type: 3}
+  m_Name: MapEntitySpriteLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.MapEntitySpriteLibrary
+  standardMonster: {fileID: 21300000, guid: c7eaace2f00c94e42b720bd0a9fb3f13, type: 3}
+  eliteMonster: {fileID: 21300000, guid: 59007d5d58df32f4ca39d128b6ce57aa, type: 3}
+  boss: {fileID: 0}
+  campsite: {fileID: 21300000, guid: e75088e2f47414a40a564d7b18b4ce10, type: 3}
+  eventTile: {fileID: 21300000, guid: 089250e8105a0e348bac5dd542b68dcc, type: 3}
+  shrine: {fileID: 21300000, guid: 609cc4cdca2186b4e9fa0e53877a4508, type: 3}
+  key: {fileID: -1191033085250855701, guid: b2936bb0fd7bd1f40b80d1d1ea68ad11, type: 3}
+  chest: {fileID: 244765665826304046, guid: b2936bb0fd7bd1f40b80d1d1ea68ad11, type: 3}
+  chestOpen: {fileID: -3083205697992774611, guid: b2936bb0fd7bd1f40b80d1d1ea68ad11, type: 3}
+  goldPile: {fileID: 21300000, guid: 4e0ec339e69957d49bad5c445a1c2f7e, type: 3}
+  stairway: {fileID: -1993265122, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  stairwayLocked: {fileID: 210505854, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGate: {fileID: 1382765479, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateOpen: {fileID: -1075571954, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  floorTile: {fileID: 405056698, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  wallTile: {fileID: 5139769989838995918, guid: b2936bb0fd7bd1f40b80d1d1ea68ad11, type: 3}
+  emptyTile: {fileID: 87412315, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  startTile: {fileID: 869816493, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  alertIndicator: {fileID: 0}
+  chaseIndicator: {fileID: 0}
+  partyToken: {fileID: 21300000, guid: bebe4a81b4c0f9742a9a1877e6c0e846, type: 3}

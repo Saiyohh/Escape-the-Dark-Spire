@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e332c2d5db1dd9c48aafeb9e67f92769, type: 3}
+  m_Name: FED_Floor1
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.FloorEncounterDataSO
+  monsters: {fileID: 11400000, guid: 0d8b203cb1d749c42aaef675a3302006, type: 2}
+  elites: {fileID: 0}
+  bosses: {fileID: 0}
+  campsites: {fileID: 11400000, guid: bbce2af75c8e9284c89aad16fec8643a, type: 2}
+  events: {fileID: 11400000, guid: bbce2af75c8e9284c89aad16fec8643a, type: 2}
+  shrines: {fileID: 11400000, guid: bbce2af75c8e9284c89aad16fec8643a, type: 2}
+  annotations: {fileID: 11400000, guid: e95a8087dfaccac4a80198e3162b0e41, type: 2}

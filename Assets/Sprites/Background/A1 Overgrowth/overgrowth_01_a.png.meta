@@ -1,0 +1,793 @@
+fileFormatVersion: 2
+guid: 02370bc556e817749b2d993769acb906
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5214532368566855244
+    second: overgrowth_01_a_0
+  - first:
+      213: -5052741050245409150
+    second: overgrowth_01_a_1
+  - first:
+      213: 2138312682513978948
+    second: overgrowth_01_a_2
+  - first:
+      213: 4212098263716764338
+    second: overgrowth_01_a_3
+  - first:
+      213: -5628964571836900356
+    second: overgrowth_01_a_4
+  - first:
+      213: 4511979513409853533
+    second: overgrowth_01_a_5
+  - first:
+      213: -5445560362468509697
+    second: overgrowth_01_a_6
+  - first:
+      213: 5006132701097749306
+    second: overgrowth_01_a_7
+  - first:
+      213: 4150933050077120
+    second: overgrowth_01_a_8
+  - first:
+      213: 5082531264405410290
+    second: overgrowth_01_a_9
+  - first:
+      213: -8346259730270709787
+    second: overgrowth_01_a_10
+  - first:
+      213: 6756098699340577753
+    second: overgrowth_01_a_11
+  - first:
+      213: -5633928933307480875
+    second: overgrowth_01_a_12
+  - first:
+      213: -5746092962031467692
+    second: overgrowth_01_a_13
+  - first:
+      213: 4454074064975069315
+    second: overgrowth_01_a_14
+  - first:
+      213: -6508243507896456195
+    second: overgrowth_01_a_15
+  - first:
+      213: 6532814911658948404
+    second: overgrowth_01_a_16
+  - first:
+      213: 3811098869066058399
+    second: overgrowth_01_a_17
+  - first:
+      213: -7787899237970394945
+    second: overgrowth_01_a_18
+  - first:
+      213: -6960760409242995176
+    second: overgrowth_01_a_19
+  - first:
+      213: 2217474380883840387
+    second: overgrowth_01_a_20
+  - first:
+      213: 8516382747423869275
+    second: overgrowth_01_a_21
+  - first:
+      213: 8795257876721588718
+    second: overgrowth_01_a_22
+  - first:
+      213: 5318403620409958599
+    second: overgrowth_01_a_23
+  - first:
+      213: -5522987050400881034
+    second: overgrowth_01_a_24
+  - first:
+      213: -2287599483172922295
+    second: overgrowth_01_a_25
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 90
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: overgrowth_01_a_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 625
+        width: 335
+        height: 335
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c46243abf8dbd5840800000000000000
+      internalID: 5214532368566855244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_1
+      rect:
+        serializedVersion: 2
+        x: 331
+        y: 639
+        width: 330
+        height: 321
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 286961e09ce01e9b0800000000000000
+      internalID: -5052741050245409150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_2
+      rect:
+        serializedVersion: 2
+        x: 839
+        y: 947
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44655f33e00dcad10800000000000000
+      internalID: 2138312682513978948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_3
+      rect:
+        serializedVersion: 2
+        x: 841
+        y: 895
+        width: 20
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ba90efdd01647a30800000000000000
+      internalID: 4212098263716764338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_4
+      rect:
+        serializedVersion: 2
+        x: 868
+        y: 733
+        width: 60
+        height: 227
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfb1762ab86e1e1b0800000000000000
+      internalID: -5628964571836900356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_5
+      rect:
+        serializedVersion: 2
+        x: 931
+        y: 625
+        width: 205
+        height: 335
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5852a24675cd9e30800000000000000
+      internalID: 4511979513409853533
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_6
+      rect:
+        serializedVersion: 2
+        x: 1195
+        y: 836
+        width: 50
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff7fd10c3bb7d64b0800000000000000
+      internalID: -5445560362468509697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_7
+      rect:
+        serializedVersion: 2
+        x: 1248
+        y: 887
+        width: 38
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3be5630b2b597540800000000000000
+      internalID: 5006132701097749306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_8
+      rect:
+        serializedVersion: 2
+        x: 1381
+        y: 631
+        width: 218
+        height: 329
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0cfafe9604fbe0000800000000000000
+      internalID: 4150933050077120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_9
+      rect:
+        serializedVersion: 2
+        x: 1598
+        y: 631
+        width: 43
+        height: 329
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f193bea147c88640800000000000000
+      internalID: 5082531264405410290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_10
+      rect:
+        serializedVersion: 2
+        x: 1650
+        y: 623
+        width: 150
+        height: 337
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e71116eef02c2c80800000000000000
+      internalID: -8346259730270709787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_11
+      rect:
+        serializedVersion: 2
+        x: 1770
+        y: 627
+        width: 278
+        height: 333
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9db7ca1c8fb72cd50800000000000000
+      internalID: 6756098699340577753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_12
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 879
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d489682c7340d1b0800000000000000
+      internalID: -5633928933307480875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_13
+      rect:
+        serializedVersion: 2
+        x: 1227
+        y: 835
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4530eb725e6c140b0800000000000000
+      internalID: -5746092962031467692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_14
+      rect:
+        serializedVersion: 2
+        x: 658
+        y: 644
+        width: 65
+        height: 169
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3808e1e63cc00dd30800000000000000
+      internalID: 4454074064975069315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_15
+      rect:
+        serializedVersion: 2
+        x: 819
+        y: 635
+        width: 52
+        height: 188
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfbe61003031ea5a0800000000000000
+      internalID: -6508243507896456195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_16
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 803
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4377ec0cc8839aa50800000000000000
+      internalID: 6532814911658948404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_17
+      rect:
+        serializedVersion: 2
+        x: 1197
+        y: 634
+        width: 112
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9a4396ba3eb3e430800000000000000
+      internalID: 3811098869066058399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_18
+      rect:
+        serializedVersion: 2
+        x: 365
+        y: 637
+        width: 33
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb04d36b7e2dbe390800000000000000
+      internalID: -7787899237970394945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_19
+      rect:
+        serializedVersion: 2
+        x: 765
+        y: 637
+        width: 77
+        height: 157
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 816f7789949666f90800000000000000
+      internalID: -6960760409242995176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_20
+      rect:
+        serializedVersion: 2
+        x: 1307
+        y: 759
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38d4c13633d06ce10800000000000000
+      internalID: 2217474380883840387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_21
+      rect:
+        serializedVersion: 2
+        x: 691
+        y: 643
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b59077facf4403670800000000000000
+      internalID: 8516382747423869275
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_22
+      rect:
+        serializedVersion: 2
+        x: 853
+        y: 640
+        width: 47
+        height: 115
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee952f980780f0a70800000000000000
+      internalID: 8795257876721588718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_23
+      rect:
+        serializedVersion: 2
+        x: 1267
+        y: 631
+        width: 6
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c0efa62ae3cec940800000000000000
+      internalID: 5318403620409958599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_24
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 591
+        width: 59
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 676e5c92a886a53b0800000000000000
+      internalID: -5522987050400881034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: overgrowth_01_a_25
+      rect:
+        serializedVersion: 2
+        x: 1743
+        y: 623
+        width: 10
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94c5c19e360d040e0800000000000000
+      internalID: -2287599483172922295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      overgrowth_01_a_0: 5214532368566855244
+      overgrowth_01_a_1: -5052741050245409150
+      overgrowth_01_a_10: -8346259730270709787
+      overgrowth_01_a_11: 6756098699340577753
+      overgrowth_01_a_12: -5633928933307480875
+      overgrowth_01_a_13: -5746092962031467692
+      overgrowth_01_a_14: 4454074064975069315
+      overgrowth_01_a_15: -6508243507896456195
+      overgrowth_01_a_16: 6532814911658948404
+      overgrowth_01_a_17: 3811098869066058399
+      overgrowth_01_a_18: -7787899237970394945
+      overgrowth_01_a_19: -6960760409242995176
+      overgrowth_01_a_2: 2138312682513978948
+      overgrowth_01_a_20: 2217474380883840387
+      overgrowth_01_a_21: 8516382747423869275
+      overgrowth_01_a_22: 8795257876721588718
+      overgrowth_01_a_23: 5318403620409958599
+      overgrowth_01_a_24: -5522987050400881034
+      overgrowth_01_a_25: -2287599483172922295
+      overgrowth_01_a_3: 4212098263716764338
+      overgrowth_01_a_4: -5628964571836900356
+      overgrowth_01_a_5: 4511979513409853533
+      overgrowth_01_a_6: -5445560362468509697
+      overgrowth_01_a_7: 5006132701097749306
+      overgrowth_01_a_8: 4150933050077120
+      overgrowth_01_a_9: 5082531264405410290
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

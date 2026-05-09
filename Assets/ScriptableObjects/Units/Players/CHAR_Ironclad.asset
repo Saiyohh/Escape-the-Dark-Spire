@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 662835b274ebed447b3af2461335b3ab, type: 3}
+  m_Name: CHAR_Ironclad
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.CharacterData
+  characterName: The Ironclad
+  description: 
+  headIcon: {fileID: 0}
+  combatSprite: {fileID: 21300000, guid: 86e53b02d5f76ee41a59df421705db7b, type: 3}
+  alignment: 0
+  maxHP: 80
+  maxSP: 25
+  pow: 4
+  dex: 2
+  def: 14
+  wil: 1
+  displayPrefab: {fileID: 0}
+  partyTrayPortraitScale: 3
+  partyTrayPortraitOffset: {x: -95, y: -121}
+  signatureColor: {r: 0.7882353, g: 0.28235295, b: 0.25490198, a: 1}
+  highlightColor: {r: 1, g: 0.52503043, b: 0.3915094, a: 1}
+  startingWeapon: {fileID: 11400000, guid: 031b1f7cc4c1a9d4fa944ecca413f834, type: 2}
+  startingSkills:
+  - {fileID: 11400000, guid: 94dfa414f3594ae4cb10ab88dc7549da, type: 2}
+  - {fileID: 11400000, guid: 6a4507b8eee736e4c9c159c0c0e5531d, type: 2}
+  - {fileID: 11400000, guid: 2d0d1f841999b1648afb6acee9ac28ce, type: 2}
+  hasOrbSystem: 0
+  hasSpellbook: 0
+  hasPotionSack: 0
+  hasStanceSystem: 0
+  startingOrb: {fileID: 0}
+  startingStars: 0
+  refusalLine_NoAction: I've done my swing already...
+  refusalLine_NoFreeAction: No more openings...
+  refusalLine_NotEnoughSP: Got nothing in the tank...
+  refusalLine_NotEnoughStars: 
+  refusalLine_Immobilized: Can't... move.
+  startingLevel: 1
+  hpPerLevel: 5

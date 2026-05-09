@@ -1,0 +1,96 @@
+// ConditionalMoveResolver.cs
+// -----------------------------------------------------------------------------
+// Static helper that evaluates an enemy's authored EnemyConditionalMove[] list
+// and returns the override move whose trigger fires (if any). Plugged into
+// EnemyAI.DecideMove ahead of the weighted-random pattern pick so reactive
+// AI overrides take precedence.
+//
+// State-based triggers (HP %, condition stacks, turn number) poll on every
+// call. Event-based triggers (OnConditionApplied / OnConditionRemoved) read
+// the sets the Unit populates from its ConditionManager events; CombatManager
+// clears those sets after the enemy acts so the trigger fires once per gap
+// between actions.
+//
+// First match wins — designers list overrides in priority order. Once-per-
+// combat overrides latch via Unit.firedConditionalIndices.
+// -----------------------------------------------------------------------------
+using UnityEngine;
+
+namespace DarkSpire
+{
+    public static class ConditionalMoveResolver
+    {
+        /// <summary>
+        /// Walk the enemy's authored conditional moves and return the first
+        /// one whose trigger fires right now. Returns null when nothing
+        /// matches — caller falls back to the weighted-random pattern pick.
+        /// </summary>
+        public static EnemyMove PickOverride(Unit enemy)
+        {
+            if (enemy == null || enemy.enemyData == null) return null;
+            var list = enemy.enemyData.conditionalMoves;
+            if (list == null || list.Length == 0) return null;
+
+            for (int i = 0; i < list.Length; i++)
+            {
+                var entry = list[i];
+                if (entry == null || entry.move == null) continue;
+
+                // Once-per-combat triggers latch after their first fire so a
+                // sustained condition (e.g. HP < 50% the rest of the fight)
+                // doesn't replace every subsequent move.
+                if (entry.oncePerCombat && enemy.firedConditionalIndices.Contains(i))
+                    continue;
+
+                if (!TriggerFires(enemy, entry)) continue;
+
+                if (entry.oncePerCombat) enemy.firedConditionalIndices.Add(i);
+                return entry.move;
+            }
+
+            return null;
+        }
+
+        private static bool TriggerFires(Unit enemy, EnemyConditionalMove entry)
+        {
+            switch (entry.trigger)
+            {
+                case EnemyConditionalTrigger.HPBelowPercent:
+                {
+                    if (enemy.maxHP <= 0) return false;
+                    float pct = (float)enemy.currentHP / enemy.maxHP;
+                    return pct < Mathf.Clamp01(entry.percent);
+                }
+
+                case EnemyConditionalTrigger.HPAbovePercent:
+                {
+                    if (enemy.maxHP <= 0) return false;
+                    float pct = (float)enemy.currentHP / enemy.maxHP;
+                    return pct > Mathf.Clamp01(entry.percent);
+                }
+
+                case EnemyConditionalTrigger.OnTurnNumber:
+                {
+                    var mgr = CombatManager.Instance;
+                    if (mgr == null) return false;
+                    return mgr.TurnNumber == entry.turnNumber;
+                }
+
+                case EnemyConditionalTrigger.OnConditionApplied:
+                    return enemy.conditionsAppliedSinceLastMove != null
+                        && enemy.conditionsAppliedSinceLastMove.Contains(entry.conditionId);
+
+                case EnemyConditionalTrigger.OnConditionRemoved:
+                    return enemy.conditionsRemovedSinceLastMove != null
+                        && enemy.conditionsRemovedSinceLastMove.Contains(entry.conditionId);
+
+                case EnemyConditionalTrigger.OnConditionAtStacks:
+                    return enemy.conditions != null
+                        && enemy.conditions.GetStacks(entry.conditionId) >= Mathf.Max(1, entry.stacks);
+
+                default:
+                    return false;
+            }
+        }
+    }
+}

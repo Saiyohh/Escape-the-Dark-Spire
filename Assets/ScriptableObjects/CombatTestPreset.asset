@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db76e42d0f5f65f4e9828f53f014dcad, type: 3}
+  m_Name: CombatTestPreset
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.CombatTestPreset
+  party:
+  - {fileID: 11400000, guid: ccc536d1b00d84141965d53d2a791d7b, type: 2}
+  - {fileID: 11400000, guid: 8f76d654feb51a844b62f3967b5a8a7e, type: 2}
+  - {fileID: 11400000, guid: 08548173d7719204d985b998c929cda6, type: 2}
+  - {fileID: 11400000, guid: 246a4f7e635d34e4ab032c70647db373, type: 2}
+  encounter: {fileID: 11400000, guid: ea6d485a3a8d0bc49bd24fca2f3c5749, type: 2}
+  startingGold: 99
+  currentFloor: 1
+  notes: 

@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 756a43e3ab69dbe46b17a2bcc76a636e, type: 3}
+  m_Name: SK_Free_Strike
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.SkillData
+  skillName: Free Strike
+  description: Make a quick free action attack.
+  icon: {fileID: 0}
+  spCost: 0
+  altCostType: 0
+  altCostAmount: 0
+  actionCostType: 1
+  diceRule: 0
+  tags: 1
+  primaryTargetMode: 0
+  effects:
+  - effectType: 5
+    targetMode: 0
+    magnitude: 4
+    conditionID: 0
+    conditionStacks: 0
+    stackSource: 0
+    saveDC: 0
+    movementKind: 0
+    movementMagnitude: 1
+    orbType: 0
+    orbCount: 1
+    orbSource: 0
+    evokeKind: 0
+    companionTarget: 1
+    bindDuration: 1
+    pouchItemType: 0
+    itemSO: {fileID: 0}
+    itemQuantity: 1
+    resourceAmount: 1
+    sealTarget: 0
+    sealDuration: 1
+    extraActionKind: 0
+    triggerDuration: 1
+    retaliateDamage: 0
+    placeholderNote: 
+    scalingMultiplier: 0
+    saveType: 0
+  - effectType: 7
+    targetMode: 3
+    magnitude: -1
+    conditionID: 0
+    conditionStacks: 0
+    stackSource: 0
+    saveDC: 0
+    movementKind: 1
+    movementMagnitude: 1
+    orbType: 0
+    orbCount: 1
+    orbSource: 0
+    evokeKind: 0
+    companionTarget: 1
+    bindDuration: 1
+    pouchItemType: 0
+    itemSO: {fileID: 0}
+    itemQuantity: 1
+    resourceAmount: 1
+    sealTarget: 0
+    sealDuration: 1
+    extraActionKind: 0
+    triggerDuration: 1
+    retaliateDamage: 0
+    placeholderNote: 
+    scalingMultiplier: 0
+    saveType: 0
+  rangeMin: 1
+  rangeMax: 3
+  rangeDisplay: 1-3
+  alignment: 1
+  rarity: 0
+  upgradedVersion: {fileID: 0}
+  masteryVersion: {fileID: 0}
+  masteryThreshold: 8
+  maxUpgradeTier: 1
+  shopCost: 0

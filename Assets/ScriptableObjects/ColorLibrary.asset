@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2568e119b8f6bfc44bf8c64a9063454d, type: 3}
+  m_Name: ColorLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.ColorLibrary
+  categories:
+  - name: UI
+    colors:
+    - name: ButtonNormalBG
+      color: {r: 0.10980393, g: 0.10980393, b: 0.10980393, a: 1}
+    - name: ButtonHoverBG
+      color: {r: 0.90588236, g: 0.88235295, b: 0.88235295, a: 1}
+    - name: ButtonPressedBG
+      color: {r: 0.5566038, g: 0.5566038, b: 0.5566038, a: 1}
+    - name: ButtonNormalText
+      color: {r: 0.90588236, g: 0.88235295, b: 0.88235295, a: 1}
+    - name: ButtonHoverText
+      color: {r: 0.10980393, g: 0.10980393, b: 0.10980393, a: 1}
+    - name: ButtonOutlineColor
+      color: {r: 0.10980393, g: 0.10980393, b: 0.10980393, a: 1}
+  - name: DamageNumbers
+    colors:
+    - name: Damage
+      color: {r: 0.90588236, g: 0.88235295, b: 0.88235295, a: 1}
+    - name: Crit
+      color: {r: 0.9150943, g: 0.49447364, b: 0.16834284, a: 1}
+    - name: Heal
+      color: {r: 0.38314345, g: 0.7735849, b: 0.41808826, a: 1}
+    - name: Shields
+      color: {r: 0.42733178, g: 0.58259904, b: 0.9150943, a: 1}
+    - name: Miss
+      color: {r: 0.9150943, g: 0.38942137, b: 0.38416696, a: 1}
+  - name: Condition
+    colors:
+    - name: BuffPill
+      color: {r: 0.90588236, g: 0.88235295, b: 0.88235295, a: 1}
+    - name: DebuffPill
+      color: {r: 0.91372555, g: 0.38823533, b: 0.38431376, a: 1}
+  - name: HUD
+    colors:
+    - name: HpFill
+      color: {r: 0.9245283, g: 0.2921858, b: 0.2921858, a: 1}
+    - name: SpFill
+      color: {r: 0.46635816, g: 0.754717, b: 0.7364876, a: 1}
+    - name: ExpFill
+      color: {r: 0.95686275, g: 0.7647059, b: 0.21960784, a: 1}
+  - name: Skills
+    colors:
+    - name: UpgradeFill
+      color: {r: 0.42352942, g: 0.7647059, b: 0.5254902, a: 1}
+  - name: Text
+    colors:
+    - name: KeywordPaleYellow
+      color: {r: 1, g: 0.92565995, b: 0.4009434, a: 1}
+    - name: NumberBuffed
+      color: {r: 0.38431376, g: 0.7725491, b: 0.41960788, a: 1}
+    - name: NumberDebuffed
+      color: {r: 0.91372555, g: 0.38823533, b: 0.38431376, a: 1}

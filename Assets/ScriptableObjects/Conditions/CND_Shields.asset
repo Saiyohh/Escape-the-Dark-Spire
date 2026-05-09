@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f17ab3f7b8f841042b90f7f7d4c08eb2, type: 3}
+  m_Name: CND_Shields
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.ConditionData
+  conditionID: 33
+  displayName: Shields
+  description: 
+  icon: {fileID: 21300000, guid: 77c18914e64c4ea4098f42cdf134485c, type: 3}
+  tintColor: {r: 1, g: 1, b: 1, a: 1}
+  iconGrayscale: 1
+  iconBwReds: 1.04
+  iconBwYellows: 1.86
+  iconBwGreens: 1.92
+  iconBwCyans: 1.89
+  iconBwBlues: 0.45
+  iconBwMagentas: 2.24
+  stackType: 0
+  timing: 0
+  isDebuff: 0
+  ticksDown: 0
+  maxStacks: 0
+  passiveModifiers: []
+  triggers:
+  - when: 11
+    onlyIf: []
+    actions:
+    - kind: 7
+      target: 0
+      amount: 0
+      amountPerStack: 1
+      percentValue: 0
+      conditionID: 0
+      conditionStacks: 0
+      stat: 0
+    afterFiring: 0
+    stackOpAmount: 1
+  preventsAction: 0
+  clearTiming: 2
+  defensePersists: 0
+  bypassesShields: 0
+  bypassesDEF: 0
+  defModifier: 0
+  damageModifier: 0
+  tickDamage: 0
+  tickHeal: 0
+  dodgeChance: 0
+  retaliationDamage: 0
+  ignoresDEF: 0
+  ignoresDefense: 0
+  clearsAtTurnStart: 1

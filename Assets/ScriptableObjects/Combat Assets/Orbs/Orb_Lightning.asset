@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c1d669c47226574d9230e0f507437ff, type: 3}
+  m_Name: Orb_Lightning
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.OrbDataSO
+  orbType: 0
+  displayName: Lightning
+  tier: 1
+  icon: {fileID: 21300000, guid: 896753907cbbe684b964c56b0d459975, type: 3}
+  vfxColor: {r: 0.9622642, g: 0.86555403, b: 0.13163051, a: 1}
+  startingStacks: 0
+  passiveAtTurnStart: 0
+  passiveBaseMagnitude: 3
+  evokeBaseMagnitude: 8
+  passiveDescription: Deal 3 damage to a random enemy.
+  evokeDescription: Deal 8 damage to a random enemy.
