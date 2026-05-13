@@ -1,14 +1,3 @@
-// LinkRectMath.cs
-// -----------------------------------------------------------------------------
-// Helpers for converting a TMP <link> span's character rects into a screen-
-// pixel midpoint, and for inflated hit-testing (so 1-2 character damage
-// numbers don't require pixel-perfect cursor placement).
-//
-// TMP_LinkInfo carries character indices into TMP_TextInfo.characterInfo;
-// each TMP_CharacterInfo has topLeft/topRight in the TMP_Text's LOCAL space.
-// We transform to world via the text's transform, then to screen via the
-// canvas's worldCamera (null for ScreenSpaceOverlay).
-// -----------------------------------------------------------------------------
 using System;
 using TMPro;
 using UnityEngine;
@@ -17,17 +6,6 @@ namespace DarkSpire
 {
     public static class LinkRectMath
     {
-        /// <summary>
-        /// Inflated link hit-test. Computes each link's axis-aligned screen-
-        /// space bounding box across all its character rects, optionally
-        /// inflates it by <paramref name="inflateFraction"/> (0.5 = 50% larger
-        /// = 25% padding on each side), and returns the first link containing
-        /// <paramref name="screenPos"/>.
-        ///
-        /// The optional <paramref name="shouldInflate"/> predicate lets callers
-        /// inflate only specific links (e.g. only ComputedNumber tokens) by
-        /// returning true for those link indices.
-        /// </summary>
         public static int FindIntersectingLinkPadded(
             TMP_Text text,
             Vector2 screenPos,
@@ -96,11 +74,6 @@ namespace DarkSpire
             return -1;
         }
 
-        /// <summary>
-        /// Returns the screen-pixel point at the horizontal midpoint of the
-        /// link's first line and the top edge of the first line.
-        /// Returns false if the link or its character info is missing.
-        /// </summary>
         public static bool TryGetLinkScreenMidTop(TMP_Text text, int linkIdx, out Vector2 screenMidTop)
         {
             screenMidTop = default;

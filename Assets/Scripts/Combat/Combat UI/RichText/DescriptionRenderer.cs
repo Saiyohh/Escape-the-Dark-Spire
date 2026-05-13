@@ -1,23 +1,3 @@
-// DescriptionRenderer.cs
-// -----------------------------------------------------------------------------
-// Drop-on-a-TMP component that renders a DescriptionToken list to TMP rich
-// text. Owns the canonical token list, evaluates each ComputedNumber + resolves
-// each Keyword each render pass, wraps each in a <link> span so the
-// DescriptionLinkHoverDispatcher (auto-added if missing) can route hovers to
-// the right popup.
-//
-// Re-renders on TargetingSystem hover events: when the player hovers an enemy,
-// numbers re-evaluate against that target (Vulnerable etc.) and recolor live.
-// Un-hover re-renders against no-target. Subscribes only when the system is
-// present — works in non-combat scenes too (just no live target updates).
-//
-// Setters per content type live here so authoring sites don't need to know
-// about DescriptionTokenizer:
-//   renderer.SetSkill(skill, caster);
-//   renderer.SetWeapon(weapon, caster);
-//   renderer.SetConditionEntry(condition);
-//   renderer.SetPlainText("...");
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;

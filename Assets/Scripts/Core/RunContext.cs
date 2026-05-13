@@ -6,7 +6,6 @@ namespace DarkSpire
     // Static run-scoped state shared across scenes (Title -> PartySelect ->
     // DungeonFloor -> Combat -> back). Lives for the lifetime of one run.
     //
-    // Phase 3 only populates a few fields; later phases (party select, combat
     // handoff, victory) fill in the rest.
     public static class RunContext
     {

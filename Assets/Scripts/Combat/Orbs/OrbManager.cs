@@ -1,37 +1,3 @@
-// OrbManager.cs
-// -----------------------------------------------------------------------------
-// Orchestrates the Defect's orb queue. Static helper (no Unity component) —
-// mirrors RankHelper's style: stateless functions that read/mutate state on
-// a Unit + the live combat lineup.
-//
-// Slot convention:
-//   • Slots are FIXED visual positions: slot 0 = far RIGHT, slot N-1 = far
-//     LEFT. Slot 0 is the "evoke chamber" — Evoke always targets it.
-//   • orbs[i] always renders at slot i. The list is packed from index 0,
-//     so orbs[0] is the OLDEST orb (next to Evoke) and orbs[count-1] is
-//     the most recently channeled.
-//   • Channel = "place into the rightmost empty slot." Since the list is
-//     packed from slot 0 leftward, the rightmost empty slot is always at
-//     index orbs.Count, which is exactly where List.Add lands.
-//   • Evoke (slot 0) removes orbs[0]; the remaining orbs shift one slot
-//     to the right (orbs[1] → orbs[0], etc.) by virtue of List.RemoveAt(0).
-//     The freshly emptied position is always on the LEFT (slot count-1).
-//   • Channeling into a full tray (orbs.Count == orbSlotMax) auto-evokes
-//     orbs[0] first (still slot 0, still the rightmost), opening up slot
-//     count-1 on the left for the new orb.
-//   • At the BEARER'S TURN START: orbs flagged passiveAtTurnStart fire their
-//     Passive (Plasma — its D20 extra-action roll resolves before the player
-//     picks their action). Per-turn so the bearer benefits directly.
-//   • At PLAYER PHASE END (after every player has acted): orbs WITHOUT the
-//     start-of-turn flag fire their Passive. NO automatic Evoke at phase
-//     end — orbs only Evoke from explicit skill effects (Dualcast,
-//     evoke-tagged skills, etc.). Channeling into a full tray drops the
-//     oldest orb silently rather than auto-evoking.
-//
-// Spec source: "Defect: 6 Orb Types (3 Tiers)" page in the Characters DB.
-// Plasma's extra-action grant is stubbed (Debug.Log) — implementing it
-// requires extending the action queue, which is out of scope for this pass.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -69,18 +35,6 @@ namespace DarkSpire
             EvokeFirstRepeated(defect, 1, suppressOrbsChanged);
         }
 
-        /// <summary>
-        /// Fire the rightmost orb's Evoke <paramref name="times"/> times AS THE
-        /// SAME ORB (Dualcast pattern). The orb is removed from the slot only
-        /// once, after every repetition has resolved — so even with a single
-        /// orb in the tray, Dualcast still produces both effects. Glass
-        /// follows its normal rule and never consumes regardless of count.
-        ///
-        /// Note that re-firing the same orb means stack-driven orbs (Dark,
-        /// Light) deal/heal the same amount each repetition (their stacks
-        /// don't reset between calls). Glass zeroes its stacks on the first
-        /// fire, so subsequent fires only deliver Focus damage.
-        /// </summary>
         public static void EvokeFirstRepeated(Unit defect, int times, bool suppressOrbsChanged = false)
         {
             if (defect == null || defect.orbs == null || defect.orbs.Count == 0) return;
@@ -95,12 +49,6 @@ namespace DarkSpire
             if (!suppressOrbsChanged) defect.RaiseOrbsChanged();
         }
 
-        /// <summary>
-        /// Evoke the LEFTMOST orb on screen — slot N-1 in the array, the
-        /// oldest channel still in the tray. Single-fire only; the Dualcast
-        /// "fire the same orb N times" pattern targets the rightmost (slot 0)
-        /// via EvokeFirstRepeated.
-        /// </summary>
         public static void EvokeLeftmost(Unit defect)
         {
             if (defect == null || defect.orbs == null || defect.orbs.Count == 0) return;
@@ -128,12 +76,6 @@ namespace DarkSpire
             defect.RaiseOrbsChanged();
         }
 
-        /// <summary>
-        /// Start-of-turn pass: orbs flagged passiveAtTurnStart fire their
-        /// Passive before the player picks an action. Currently Plasma only —
-        /// its D20 extra-action roll has to resolve in time for the player to
-        /// use the bonus action.
-        /// </summary>
         public static void OnTurnStart(Unit defect)
         {
             if (defect == null || defect.orbs == null) return;
@@ -147,16 +89,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// End-of-player-phase pass: orbs WITHOUT the start-of-turn flag fire
-        /// their Passive — and that's it. Slot 0 does NOT auto-evoke at
-        /// phase end; orbs only ever Evoke from explicit skill effects.
-        ///
-        /// Per-orb passive triggers run with a short interval (driven by
-        /// CombatManager's phase-end coroutine) so the player can see each
-        /// individual passive resolve. This method is the synchronous
-        /// fallback; OnPhaseEndCoroutine is the preferred entry point.
-        /// </summary>
         public static void OnPhaseEnd(Unit defect)
         {
             if (defect == null || defect.orbs == null) return;
@@ -172,12 +104,6 @@ namespace DarkSpire
             defect.RaiseOrbsChanged();
         }
 
-        /// <summary>
-        /// Coroutine variant of OnPhaseEnd that yields between each orb's
-        /// passive trigger so the player can see them resolve one at a time.
-        /// VFX/animation hook fires per orb via CombatEvents.OnOrbPassiveTriggered;
-        /// OrbSlotsUI subscribes to play a flash on the corresponding slot.
-        /// </summary>
         public static System.Collections.IEnumerator OnPhaseEndCoroutine(
             Unit defect, float perOrbInterval = 0.45f)
         {
@@ -267,10 +193,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Returns true if the orb is consumed (removed from the slot lineup).
-        /// Glass returns false — it stays in the slot at 0 stacks per the spec.
-        /// </summary>
         private static bool TriggerEvoke(Unit defect, OrbInstance orb)
         {
             if (orb == null || orb.data == null) return true;
@@ -337,13 +259,6 @@ namespace DarkSpire
 
         // ─── HUD display values ──────────────────────────────────────────────
 
-        /// <summary>
-        /// What to render as the orb's "passive number" on the HUD — i.e. what
-        /// the next Passive tick would produce given the bearer's current
-        /// Focus. Returns 0 when the orb has no meaningful numeric passive
-        /// (Plasma's D20 roll). Used by OrbSlotsUI; not on the combat hot
-        /// path (TriggerPassive computes the same value inline).
-        /// </summary>
         public static int GetPassiveDisplayValue(OrbInstance orb, Unit bearer)
         {
             if (orb == null || orb.data == null) return 0;
@@ -364,11 +279,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// What to render as the orb's "active number" — what an Evoke right
-        /// now would produce. Surfaced on the icon for Dark (per the GDD)
-        /// and via the hover tooltip for other orbs.
-        /// </summary>
         public static int GetActiveDisplayValue(OrbInstance orb, Unit bearer)
         {
             if (orb == null || orb.data == null) return 0;
@@ -391,12 +301,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// True when the active value should be drawn on the orb icon at all
-        /// times (Dark, per the GDD: "showing both communicates that growth
-        /// visibly"). Other orbs hide it on the icon and surface it via the
-        /// tooltip on hover.
-        /// </summary>
         public static bool ShouldShowActiveOnIcon(OrbInstance orb)
         {
             if (orb == null || orb.data == null) return false;
@@ -485,16 +389,8 @@ namespace DarkSpire
             unit.conditions.ApplyCondition(data, stacks, unit);
         }
 
-        /// <summary>
-        /// Plasma's extra-action grant. Implementing this end-to-end requires
-        /// extending the turn-action queue so the Defect can act again before
-        /// the turn finalizes. Out of scope for this pass — log the intent so
-        /// it surfaces during playtest, then wire to the action queue when
-        /// that infrastructure is in place.
-        /// </summary>
         private static void GrantExtraAction(Unit defect, string source)
         {
-            // TODO: route to the action-queue extension when available.
             Debug.Log($"[OrbManager] Extra action granted to {defect?.unitName} via {source} (queue plumbing pending).");
         }
     }

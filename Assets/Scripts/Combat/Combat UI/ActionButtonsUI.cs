@@ -1,35 +1,3 @@
-// ActionButtonsUI.cs
-// -----------------------------------------------------------------------------
-// Bottom-of-screen action bar: Attack / Guard / Skill / Advance / Withdraw /
-// End Turn. Buttons are enabled only on the active player's turn and disabled
-// after an action spends the Action slot.
-//
-// Visibility rule:
-//   The bar is shown only when ALL of these hold:
-//     • a player turn is currently active
-//     • the skill submenu is closed
-//     • TargetingSystem is not in targeting mode
-//   Anything else hides it (CanvasGroup alpha 0 + non-interactable + no raycast).
-//
-// Hide is via CanvasGroup so the script itself stays active and event
-// subscriptions don't drop while the bar is invisible. The script can keep
-// tracking turn / submenu / targeting state in the background and pop back
-// in cleanly when the conditions return to true.
-//
-// Button routing:
-//   Attack    → CombatManager.OnPlayerChooseAttack(arrowOrigin). Channel-on-
-//               attack weapons (Defect's WPN_OrbBeam) auto-pick a random
-//               Tier 1 orb in the Attack resolver — no UI choice needed.
-//   Guard     → CombatManager.OnPlayerChooseGuard()
-//   Skill     → SkillSubmenuUI.OpenFor (which fires OnOpened → we hide)
-//   Advance   → CombatManager.OnPlayerChooseMove(-1)  (toward front/enemy)
-//   Withdraw  → CombatManager.OnPlayerChooseMove(+1)  (toward back)
-//   End Turn  → CombatManager.OnPlayerEndTurn()  (advances turn unconditionally)
-//
-// Move buttons additionally gate on rank legality: Advance disabled at
-// MinRank, Withdraw disabled at MaxRank. We subscribe to the bound unit's
-// OnRankChanged so mid-turn shifts (e.g. an ally Pull/Knockback) re-gate.
-// -----------------------------------------------------------------------------
 using System;
 using UnityEngine;
 using UnityEngine.UI;
@@ -261,10 +229,6 @@ namespace DarkSpire
 
         // ─── Visibility ──────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Recompute visibility from the three independent signals. Single
-        /// source of truth — every state change calls this.
-        /// </summary>
         private void ApplyVisibility()
         {
             bool show = playerTurnActive && !skillSubmenuOpen && !itemSubmenuOpen && !isTargeting;
@@ -427,15 +391,6 @@ namespace DarkSpire
             if (cg != null) cg.alpha = available ? 1f : disabledAlpha;
         }
 
-        /// <summary>
-        /// Per-button enable logic based on the active unit's action state.
-        /// Buttons remain clickable; the visual dim signals unavailability and
-        /// the click handler routes to a refusal speech bubble.
-        /// • Attack / Guard / Skill / Advance / Withdraw dimmed once hasActedThisTurn is true.
-        /// • Advance additionally dimmed when at MinRank (nowhere further forward).
-        /// • Withdraw additionally dimmed when at MaxRank (nowhere further back).
-        /// • End Turn always available during a live player turn.
-        /// </summary>
         private void RefreshInteractability()
         {
             if (boundUnit == null || !boundUnit.IsAlive)

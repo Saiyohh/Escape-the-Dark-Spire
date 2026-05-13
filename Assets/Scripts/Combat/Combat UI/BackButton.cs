@@ -1,30 +1,3 @@
-// BackButton.cs
-// -----------------------------------------------------------------------------
-// Singleton back / dismiss button. ONE instance lives on the Combat canvas
-// (typically inactive at scene start). Submenus claim it on open and release
-// it on close — no per-submenu back button needed.
-//
-//   public void Open()
-//   {
-//       panelRoot.SetActive(true);
-//       BackButton.Instance?.Bind(this, Close);
-//   }
-//
-//   public void Close()
-//   {
-//       BackButton.Instance?.Unbind(this);
-//       panelRoot.SetActive(false);
-//   }
-//
-// Bind activates the button and subscribes the close action; Unbind clears
-// the handler and deactivates. An owner reference guards against cross-
-// talk — if submenu A binds, then B binds, A's later Unbind is rejected
-// because B owns the button now.
-//
-// Self-contained styling: matches action buttons (resting black, hover white)
-// by reading UI/Button* keys from ColorLibrary. Icon tints with the label
-// color for readability across states.
-// -----------------------------------------------------------------------------
 using System;
 using TMPro;
 using UnityEngine;
@@ -103,12 +76,6 @@ namespace DarkSpire
 
         private void OnEnable() => Apply();
 
-#if UNITY_EDITOR
-        // Refresh in edit mode whenever a serialized field changes — e.g.
-        // the user wires backgroundImage / iconImage in the inspector.
-        private void OnValidate() => Apply();
-#endif
-
         private void OnDestroy()
         {
             if (button != null) button.onClick.RemoveListener(HandleClick);
@@ -116,11 +83,6 @@ namespace DarkSpire
             if (_instance == this) _instance = null;
         }
 
-        /// <summary>
-        /// Drop any current binding and hide the button. Called by
-        /// CombatUIBootstrap on combat start and by the auto-subscription on
-        /// OnCombatStart wired in Awake. Safe to call from anywhere.
-        /// </summary>
         public void ForceClose()
         {
             currentOwner = null;
@@ -130,11 +92,6 @@ namespace DarkSpire
 
         // ─── Bind / Unbind ───────────────────────────────────────────────────
 
-        /// <summary>
-        /// Submenu calls this on open: activates the button and routes the
-        /// click to the supplied action. Pass `this` as owner so subsequent
-        /// Unbind calls from a different submenu are correctly rejected.
-        /// </summary>
         public void Bind(object owner, Action onBackPressed)
         {
             currentOwner = owner;
@@ -144,14 +101,6 @@ namespace DarkSpire
             Apply();
         }
 
-        /// <summary>
-        /// Submenu calls this on close. Anti-clobber rule: if a DIFFERENT
-        /// submenu currently owns the button (Submenu A binds, then B binds,
-        /// then A's Close runs late), reject. But when there's no current
-        /// owner — e.g. the very first scene-load Close before anyone has
-        /// ever Bound — the call is idempotent and proceeds to ensure the
-        /// button is hidden.
-        /// </summary>
         public void Unbind(object owner)
         {
             if (currentOwner != null && owner != null
@@ -161,7 +110,6 @@ namespace DarkSpire
             gameObject.SetActive(false);
         }
 
-        /// <summary>True if this button is currently bound to <paramref name="owner"/>.</summary>
         public bool IsBoundTo(object owner) => ReferenceEquals(currentOwner, owner);
 
         // ─── Pointer events ──────────────────────────────────────────────────
@@ -221,11 +169,6 @@ namespace DarkSpire
             ApplyColors(bg, fg);
         }
 
-        /// <summary>
-        /// Dumps the current state to the console so we can tell whether
-        /// the wrong colors come from a missing library lookup, swapped
-        /// image refs, or a non-tintable source sprite.
-        /// </summary>
         [ContextMenu("Diagnose Colors")]
         private void DiagnoseColors()
         {

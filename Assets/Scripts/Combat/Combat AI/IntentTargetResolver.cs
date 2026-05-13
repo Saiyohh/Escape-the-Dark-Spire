@@ -1,34 +1,3 @@
-// IntentTargetResolver.cs
-// -----------------------------------------------------------------------------
-// Expands an EnemyIntent into the per-player list it will threaten, with
-// pre-computed hit% / afflict% per target. Used by DangerPreviewController
-// to drive the on-hover red/purple auras over targeted players.
-//
-// Pipeline (per effect on the intent):
-//   1. Skip Self / AllAllies / SingleAlly — those target the enemy or its
-//      allies, not players, so they don't endanger anyone we'd highlight.
-//   2. Pick the intent's primary target once via
-//      EnemyAI.SelectTargetForIntent (honors rangeMin/rangeMax and
-//      targetPreference). Reused across every effect in the intent so a
-//      RandomEnemy / SingleEnemy follow-up isn't independently random.
-//   3. Expand to the effect's full target list via
-//      SkillResolver.ResolveTargets (handles AllEnemies fanning out, etc.).
-//   4. Filter to alive player-controlled units (defensive — if the intent
-//      somehow points at enemies via odd targetMode, skip).
-//   5. Per target, accumulate hit% and/or afflict% into a deduped entry.
-//
-// Same target appearing in multiple effects merges:
-//   - hit %       → first-encountered value is kept. Formula only depends on
-//                   attacker.ATK / target.DEF so multiple Attack effects
-//                   produce the same number; first-wins documented for the
-//                   rare case where future content varies per-effect ATK.
-//   - afflict %   → first-encountered value (same reasoning, vs casterWIL /
-//                   targetWIL / saveDC of the first contributing effect).
-//
-// Random-target intents (TargetMode.RandomEnemy) preview against the primary
-// the AI picks; the actual roll re-randomizes at resolve time. Documented
-// limitation — fine for a "in danger" preview.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 
 namespace DarkSpire
@@ -73,11 +42,6 @@ namespace DarkSpire
             public ConditionID afflictCondition;
         }
 
-        /// <summary>
-        /// Walk every effect on <paramref name="intent"/>, expand to player
-        /// targets, and write one IntentTargetEntry per affected player into
-        /// <paramref name="output"/>. Output is cleared first.
-        /// </summary>
         public static void Resolve(
             Unit source, EnemyIntent intent,
             List<Unit> playerUnits, List<Unit> enemyUnits,
@@ -169,12 +133,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Map an EnemyIntent back to the primary target the enemy committed
-        /// to when their move was set. Falls back to a live SelectTargetForIntent
-        /// if the lock is missing or stale (dead target, or this intent isn't
-        /// part of the enemy's currentMove — debug paths, ad-hoc previews).
-        /// </summary>
         private static Unit ResolveLockedPrimary(
             Unit source, EnemyIntent intent, List<Unit> playerUnits)
         {

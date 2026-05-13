@@ -1,17 +1,3 @@
-// EnemyAI.cs
-// -----------------------------------------------------------------------------
-// Thin decision layer over EnemyData:
-//   DecideMove:           pick a move (turn-1 override → conditional override
-//                         → weighted-random pattern)
-//   SelectTargetForIntent: per-intent target picker honoring rangeMin/rangeMax
-//                         and the intent's targetPreference (LowestHP, etc.)
-//   ExecuteMove:          resolve every intent in the move via SkillResolver,
-//                         returns the per-effect result list for CombatManager
-//                         playback.
-//
-// CombatManager drives this during ExecuteEnemyPhase. The pattern + weights +
-// conditional overrides live on EnemyData.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,11 +5,6 @@ namespace DarkSpire
 {
     public static class EnemyAI
     {
-        /// <summary>
-        /// Pick the move this enemy will use on its next action. Priority
-        /// order: turn-1 override > first triggered conditional override >
-        /// weighted-random from movePattern.
-        /// </summary>
         public static EnemyMove DecideMove(Unit enemy)
         {
             if (enemy == null || enemy.enemyData == null) return null;
@@ -45,12 +26,6 @@ namespace DarkSpire
             return enemy.GetNextEnemyMove();
         }
 
-        /// <summary>
-        /// Per-intent target picker — filters players by the intent's
-        /// rangeMin/rangeMax then ranks by targetPreference. Returns null
-        /// when nothing's in range (offensive effects whiff gracefully;
-        /// Self / AllAllies / AllEnemies effects ignore the primary target).
-        /// </summary>
         public static Unit SelectTargetForIntent(
             Unit enemy, EnemyIntent intent, List<Unit> playerUnits)
         {
@@ -75,11 +50,6 @@ namespace DarkSpire
             return PickByPreference(inRange, pref, condId);
         }
 
-        /// <summary>
-        /// Legacy single-pick over alive players, ignoring range and intent.
-        /// Kept for callers that don't have an intent in hand (debug tools,
-        /// future scripted events). Prefer SelectTargetForIntent in resolution.
-        /// </summary>
         public static Unit SelectTarget(List<Unit> playerUnits)
         {
             if (playerUnits == null) return null;
@@ -90,11 +60,6 @@ namespace DarkSpire
             return alive[Random.Range(0, alive.Count)];
         }
 
-        /// <summary>
-        /// Execute an enemy's chosen move. The resolver picks per-intent
-        /// targets via SelectTargetForIntent; CombatManager iterates the
-        /// returned results through the shared playback pipeline.
-        /// </summary>
         public static List<CombatActionResult> ExecuteMove(
             Unit enemy, EnemyMove move,
             List<Unit> playerUnits, List<Unit> enemyUnits)
@@ -142,10 +107,6 @@ namespace DarkSpire
             return ties[Random.Range(0, ties.Count)];
         }
 
-        /// <summary>
-        /// Lower score = preferred. Negate the underlying stat for "Highest"
-        /// variants so the same min-finding pass works for both directions.
-        /// </summary>
         private static int ScoreFor(Unit u, EnemyTargetPreference pref) => pref switch
         {
             EnemyTargetPreference.LowestHP     =>  u.currentHP,

@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Step 4: place per-room and per-corridor content. Boss Gate and stairway
     // tile come in Step 5; extras (bonus chest/shrine/rest at dead ends) come
     // in Step 5.5.
     internal static class PlaceEntities

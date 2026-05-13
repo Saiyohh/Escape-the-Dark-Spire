@@ -11,7 +11,6 @@ namespace DarkSpire
     // Boss tier is special-cased to never patrol or chase — it sits in the
     // boss room and only triggers combat when the party walks onto its tile.
     //
-    // Phase 9 stops at "log + destroy" on collision. Phase 10 wires the
     // actual scene swap to combat using the EncounterResult returned here.
     public class MapMonsterEntity : MonoBehaviour, IDungeonEntity
     {
@@ -224,8 +223,6 @@ namespace DarkSpire
             if (d > detectionRadius) return false;
             return LineOfSight.HasLoS(floor.tiles, GridPos, p);
         }
-
-        // Step targets -----------------------------------------------------
 
         private Vector2Int? NextPatrolStep()
         {

@@ -1,13 +1,3 @@
-// ConditionInstance.cs
-// -----------------------------------------------------------------------------
-// Runtime pairing of a ConditionData SO with mutable state (stacks, duration).
-// Lives inside ConditionManager's dictionary on each Unit.
-//
-// Stack behavior depends on data.stackType:
-//   Counter  → stacks accumulate, duration unused
-//   Duration → duration refreshes to max(current, applied), stacks fixed at 1
-//   Single   → one stack, duration counts down turns
-// -----------------------------------------------------------------------------
 namespace DarkSpire
 {
     [System.Serializable]

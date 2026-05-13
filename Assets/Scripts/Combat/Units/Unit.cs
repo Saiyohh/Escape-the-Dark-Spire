@@ -1,29 +1,3 @@
-// Unit.cs
-// -----------------------------------------------------------------------------
-// Runtime combatant. One Unit per party member or enemy in the fight.
-// Constructed from CharacterData (player) or EnemyData (enemy).
-//
-// Owns: HP/SP, equipped weapon, equipped skills, a ConditionManager for
-// status effects, and events the UI layer subscribes to (OnDamageTaken,
-// OnHealReceived, OnDefenseChanged, OnDeath).
-//
-// Combat stats are normalized to Dark Spire's 5-stat model internally:
-//   • POW — damage bonus
-//   • ATK — attack-roll bonus (d20 + ATK vs target DEF)
-//           For players:  Unit.baseATK = CharacterData.dex
-//           For enemies:  Unit.baseATK = EnemyData.atk
-//   • DEF — attack-roll target
-//   • SPD — initiative-roll bonus
-//           For players:  Unit.baseSPD = CharacterData.dex  (DEX doubles)
-//           For enemies:  Unit.baseSPD = EnemyData.spd
-//   • WIL — save-roll bonus
-//
-// Effective* properties fold condition modifiers into base stats; damage math
-// in SkillResolver + DamageCalculator reads those effective values.
-//
-// Pass 2 divergences still to apply here:
-//   • add currentRank + rank-change event for the position system (Pass 2.B)
-// -----------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -53,7 +27,6 @@ namespace DarkSpire
         // to characterData.startingStars at combat start (Divine Right = 3 for
         // the Regent). No upper cap.
         public int currentStars;
-        // NOTE: temporaryDefense is gone. Shields live as a stackable condition
         // (ConditionID.Shields) on the ConditionManager. Query via
         // conditions.GetShields(); the TakeDamage path auto-consumes them.
 
@@ -124,17 +97,12 @@ namespace DarkSpire
         public event Action<int> OnDefenseChanged;
         public event Action OnDeath;
         public event Action OnStatsChanged;
-        /// <summary>(oldRank, newRank). Fired after currentRank is mutated.</summary>
         public event Action<int, int> OnRankChanged;
 
-        /// <summary>Fired by OrbManager whenever orbs is mutated (Channel/Evoke/Clear).</summary>
         public event Action<Unit> OnOrbsChanged;
 
-        /// <summary>Internal raise hook for OrbManager — kept on Unit so callers
-        /// don't need to know the event signature.</summary>
         public void RaiseOrbsChanged() => OnOrbsChanged?.Invoke(this);
 
-        /// <summary>Fired whenever currentStars changes (gain or spend).</summary>
         public event Action<Unit> OnStarsChanged;
 
         // Computed properties
@@ -159,11 +127,6 @@ namespace DarkSpire
         public int EffectiveDEX =>
             Mathf.RoundToInt(conditions.GetPassiveModifier(StatKind.DEX));
 
-        /// <summary>
-        /// Save-roll bonus: DiceRoller.SaveRoll adds this to d20 vs the DC.
-        /// Used by Afflict-style skills (SkillDiceRule.WilSave) and by
-        /// resisted movement effects with saveDC > 0.
-        /// </summary>
         public int EffectiveWIL => baseWIL;
 
         public bool IsAlive => currentHP > 0;
@@ -171,11 +134,6 @@ namespace DarkSpire
         public bool HasActionAvailable => !hasActedThisTurn;
         public bool HasFreeActionAvailable => !hasFreeActedThisTurn;
 
-        /// <summary>
-        /// Returns true if the unit has at least one Free-Action-cost skill
-        /// that is currently usable (has SP). SP is the sole gate — no cooldowns.
-        /// Does NOT check the item pouch (not implemented yet).
-        /// </summary>
         public bool HasPlayableFreeAction()
         {
             if (hasFreeActedThisTurn) return false;
@@ -184,7 +142,6 @@ namespace DarkSpire
                 if (skill.actionCostType == ActionCostType.FreeAction && CanUseSkill(skill))
                     return true;
             }
-            // TODO: check pouch inventory when item system exists
             return false;
         }
 
@@ -258,24 +215,12 @@ namespace DarkSpire
             conditions.OnConditionRemoved += id     => conditionsRemovedSinceLastMove.Add(id);
         }
 
-        /// <summary>
-        /// Wipe the conditional-move event sets. Called after an enemy acts so
-        /// OnConditionApplied / OnConditionRemoved triggers fire exactly once
-        /// per gap between move executions. Also called at combat start (after
-        /// starting conditions seed) so opening intents start from a clean
-        /// slate instead of latching onto self-applied seeds.
-        /// </summary>
         public void ClearConditionalMoveEventState()
         {
             conditionsAppliedSinceLastMove.Clear();
             conditionsRemovedSinceLastMove.Clear();
         }
 
-        /// <summary>
-        /// Main damage entry point. Fires OnTakeDamagePre so triggers (Shields,
-        /// Dodge, Thorns, Vulnerable, etc.) can modify the amount or negate
-        /// entirely. Then applies whatever remains to HP, then fires OnTakeDamagePost.
-        /// </summary>
         public void TakeDamage(int rawDamage, Unit source = null)
         {
             if (rawDamage <= 0) return;
@@ -317,7 +262,6 @@ namespace DarkSpire
 
         // Single death-edge entry point: strip every caster-gated condition
         // (Shrink, etc.) sourced by this unit from everyone on the field,
-        // then notify subscribers. Run BEFORE OnDeath.Invoke so UI listeners
         // see the conditions already gone.
         private void HandleDeath()
         {
@@ -344,12 +288,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Add Shield stacks to this unit (1 per stack = 1 dmg absorbed).
-        /// Looks up the Shields ConditionData via ConditionLibrary.Instance —
-        /// requires a ConditionData with conditionID = Shields registered in
-        /// the library at Assets/Resources/ConditionLibrary.asset.
-        /// </summary>
         public void GainDefense(int amount)
         {
             if (amount <= 0) return;
@@ -376,7 +314,6 @@ namespace DarkSpire
 
         // Why this skill can't be played right now, or None if it's legal.
         // Order: Immobilized first (overrides everything), then action-state,
-        // then resource costs. The UI uses this to surface a refusal bubble.
         public ActionRefusalReason GetSkillRefusal(SkillData skill)
         {
             if (skill == null) return ActionRefusalReason.None;
@@ -402,7 +339,6 @@ namespace DarkSpire
 
         // Why this item can't be used right now, or None if it's legal.
         // Mirrors GetSkillRefusal: Immobilized first (overrides everything),
-        // then action-state per the item's ActionCostType. Items have no SP
         // or Star cost — consumed-on-use is the cost. ZeroCost bypasses both
         // action and free-action gates.
         public ActionRefusalReason GetItemRefusal(ItemData item)
@@ -441,11 +377,6 @@ namespace DarkSpire
             OnStatsChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Add Stars to the Regent's pool (or any future character with the
-        /// Star resource). Generated by GainStars effects and Divine Right.
-        /// No upper cap. Fires OnStarsChanged.
-        /// </summary>
         public void GainStars(int amount)
         {
             if (amount <= 0) return;
@@ -454,10 +385,6 @@ namespace DarkSpire
             OnStatsChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Deduct Stars (skill starCost on play). Floors at 0 — callers should
-        /// use CanUseSkill to gate before spending. Fires OnStarsChanged.
-        /// </summary>
         public void SpendStars(int amount)
         {
             if (amount <= 0) return;
@@ -466,11 +393,6 @@ namespace DarkSpire
             OnStatsChanged?.Invoke();
         }
 
-        /// <summary>
-        /// Set the unit's rank directly. RankHelper.MoveUnit uses this to commit
-        /// shifts. Clamped to [RankHelper.MinRank, RankHelper.MaxRank]; fires
-        /// OnRankChanged when the value actually changes.
-        /// </summary>
         public void SetRank(int newRank)
         {
             int clamped = Mathf.Clamp(newRank, RankHelper.MinRank, RankHelper.MaxRank);
@@ -480,14 +402,6 @@ namespace DarkSpire
             OnRankChanged?.Invoke(old, clamped);
         }
 
-        /// <summary>
-        /// Pick this enemy's next move from its authored pattern. Honors the
-        /// EnemyData.movePatternMode setting:
-        ///   • WeightedRandom — rolls each call against per-move weights.
-        ///   • Cycle          — iterates the pattern in order, looping back
-        ///                       to index 0 at the end. Weights are ignored.
-        /// Returns null when the enemy has no authored moves.
-        /// </summary>
         public EnemyMove GetNextEnemyMove()
         {
             if (enemyData == null) return null;
@@ -503,11 +417,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Walk the pattern in authored order, skipping null / unauthored
-        /// entries, and bump <see cref="actionCycleIndex"/> for next time.
-        /// Loops back to the start once we run off the end.
-        /// </summary>
         private EnemyMove NextCyclicMove(EnemyMove[] pattern)
         {
             int len = pattern.Length;

@@ -1,9 +1,3 @@
-// VictoryController.cs
-// -----------------------------------------------------------------------------
-// Loaded by SceneFlow.LoadVictory() after the party clears Floor 1 (slice).
-// Reads RunContext.gold / runTime / fightsWon for the score breakdown, then
-// Continue returns to MainMenu (which clears state).
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

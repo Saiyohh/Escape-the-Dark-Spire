@@ -1,13 +1,3 @@
-// NumberCalcBoxPresenter.cs
-// -----------------------------------------------------------------------------
-// Routes computed-number link hovers from a DescriptionLinkHoverDispatcher to
-// a single NumberCalcBoxView. Same single-popup-at-a-time + delay/grace model
-// as KeywordTooltipPresenter.
-//
-// Authoring: drop this MonoBehaviour on any GameObject under the combat-UI
-// canvas. Wire the prefab + parent. We instantiate one NumberCalcBoxView at
-// Awake and reuse it indefinitely (no pool — only one is ever visible).
-// -----------------------------------------------------------------------------
 using System.Collections;
 using TMPro;
 using UnityEngine;

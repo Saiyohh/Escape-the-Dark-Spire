@@ -1,27 +1,5 @@
-// KeywordGlossary.cs
-// -----------------------------------------------------------------------------
-// ScriptableObject of every keyword that can appear in a description and get
-// a hover tooltip. Two backing sources:
-//
-//   • Standalone — the entry's own description / icon / display name. Used for
-//     verb keywords like "Attack", "Seal", "Heal", "Generate" that aren't
-//     condition-backed.
-//
-//   • Condition-linked — the entry has linkedCondition != None and pulls its
-//     body / icon from ConditionData via ConditionLibrary at runtime. Used for
-//     "Bruise", "Vulnerable", "Strength", etc. — single source of truth lives
-//     on the ConditionData SO; the glossary entry is just an addressing layer.
-//
-// Asset location: Assets/ScriptableObjects/KeywordGlossary.asset (designer
-// creates via Create → DarkSpire → Keyword Glossary). Mirrors ColorLibrary /
-// ConditionLibrary singleton pattern with a static Instance accessor that
-// uses AssetDatabase in-editor and Preloaded Assets at runtime.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace DarkSpire
 {
@@ -77,9 +55,6 @@ namespace DarkSpire
             get
             {
                 if (_instance != null) return _instance;
-#if UNITY_EDITOR
-                _instance = AssetDatabase.LoadAssetAtPath<KeywordGlossary>(AssetPath);
-#endif
                 return _instance;
             }
         }
@@ -93,14 +68,6 @@ namespace DarkSpire
             _byKey = null;
             _byCondition = null;
         }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            _byKey = null;
-            _byCondition = null;
-        }
-#endif
 
         private void BuildLookupIfNeeded()
         {
@@ -177,7 +144,6 @@ namespace DarkSpire
             return e.icon;
         }
 
-        /// <summary>Returns the entry's color override, or the default keyword color when none set.</summary>
         public Color GetColor(Entry e)
         {
             if (e != null && e.colorOverride.a > 0f) return e.colorOverride;

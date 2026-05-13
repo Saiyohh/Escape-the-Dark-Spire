@@ -1,21 +1,3 @@
-// Inventory.cs
-// -----------------------------------------------------------------------------
-// Static helper that bridges the persistent inventory (RunContext.partyInventory
-// + PartyMemberRuntime.pouchItems) to combat-time consumers (the action menu's
-// item submenu, SkillResolver's GenerateItem effect, the dungeon inventory
-// panel, etc).
-//
-// Single point of access for "what items can this unit use right now?" — the
-// caller doesn't need to know whether an item is shared (party) or
-// character-locked (pouch); they just call GetUsableFor and consume by the
-// returned (source, index) pair.
-//
-// Why a static helper, not a Unit field:
-//   • Two sources of truth (party + pouch) merge at use-time
-//   • Persistence lives on RunContext / PartyMemberRuntime, not Unit (which is
-//     rebuilt every combat) — keeping Unit ignorant avoids re-sync churn
-//   • Brewed Potions go straight into partyInventory; no extra plumbing
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -37,11 +19,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Items the given unit can use this turn — this character's pouch
-        /// first, then the shared party bag. Enumerated lazily so the caller
-        /// can short-circuit if a count check is enough.
-        /// </summary>
         public static IEnumerable<Entry> GetUsableFor(Unit unit)
         {
             if (unit == null) yield break;
@@ -58,7 +35,6 @@ namespace DarkSpire
                 }
             }
 
-            // Then shared party inventory.
             var party = RunContext.partyInventory;
             if (party != null)
             {
@@ -71,11 +47,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Look up the ItemInstance at the given source+index. Returns null
-        /// if the index is out of bounds (e.g. a stale UI reference after
-        /// another action consumed the slot).
-        /// </summary>
         public static ItemInstance Resolve(Unit user, ItemSource source, int index)
         {
             switch (source)
@@ -96,12 +67,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Consume one charge from the item at source+index. Removes the
-        /// instance entirely when charges hit 0. Safe to call after a
-        /// non-consumable resolve — caller is expected to gate on
-        /// itemData.consumedOnUse before invoking.
-        /// </summary>
         public static void Consume(Unit user, ItemSource source, int index)
         {
             var inst = Resolve(user, source, index);
@@ -124,12 +89,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Add an item instance to the appropriate bag. For Pouch items the
-        /// owner unit must be supplied (used to find the right
-        /// PartyMemberRuntime). Stackable items merge with an existing entry
-        /// of the same ID; non-stackable items occupy a new slot.
-        /// </summary>
         public static void Add(ItemSource source, Unit owner, ItemInstance inst)
         {
             if (inst == null || inst.itemID == ItemID.None) return;
@@ -158,11 +117,6 @@ namespace DarkSpire
             bag.Add(inst);
         }
 
-        /// <summary>
-        /// Convenience: add by ID + count. Resolves stack/category from
-        /// ItemLibrary; routes Pouch-category items to the owner's pouch and
-        /// everything else to the shared bag.
-        /// </summary>
         public static void Grant(ItemID id, int count, Unit owner)
         {
             if (id == ItemID.None || count <= 0) return;

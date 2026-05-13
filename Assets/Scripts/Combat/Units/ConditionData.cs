@@ -1,26 +1,3 @@
-// ConditionData.cs
-// -----------------------------------------------------------------------------
-// ScriptableObject describing a single status effect. Compositional model:
-//
-//   [Identity]            ID, display name, description, icon, tint
-//   [Stacking]            stackType, maxStacks, isDebuff
-//   [Passive Modifiers]   Static stat bonuses (+POW per stack, etc.)
-//   [Triggers]            Event-driven reactions with optional filters
-//   [Structural Flags]    Behaviors that bypass normal combat flow
-//                         (preventsAction, clearsAtTurnStart, defensePersists,
-//                          bypassesShields, bypassesDEF)
-//
-// Runtime dispatch is handled by ConditionManager, which subscribes to combat
-// events and walks each active trigger. Passive modifiers are read by
-// Unit.Effective* properties through ConditionManager.GetPassiveModifier.
-//
-// See ConditionTrigger.cs for the trigger/action/conditional enum reference.
-//
-// Legacy fields (defModifier, damageModifier, tickDamage, tickHeal, dodgeChance,
-// retaliationDamage) are deprecated in the new model but kept for backward
-// compatibility during migration. New conditions should use passiveModifiers +
-// triggers exclusively.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire

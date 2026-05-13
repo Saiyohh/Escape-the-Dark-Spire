@@ -1,26 +1,4 @@
-// MapEntitySpriteLibrary.cs
-// -----------------------------------------------------------------------------
-// Single source of truth for map-side (dungeon-exploration) sprites. Every
-// system rendering on the dungeon map (FloorRenderer, EntitySpawner,
-// MapEntityBase variants, FloorGeneratorWindow, debug overlays) pulls
-// sprites from here by enum key.
-//
-// Mirrors the ConditionLibrary / OrbLibrary singleton pattern: one canonical
-// asset at Assets/ScriptableObjects/MapEntitySpriteLibrary.asset, registered
-// in PlayerSettings.preloadedAssets so the static Instance is wired at game
-// start without a Resources folder.
-//
-// Per-consumer SerializedField references to a specific library asset still
-// work (and override the singleton lookup) — useful if a debug/test scene
-// wants a stub sprite set. Production code can rely on Instance.
-//
-// Kept generic-by-tier on monsters: standard/elite/boss share one sprite
-// each. The Encounter Manager's unpredictability contract relies on this.
-// -----------------------------------------------------------------------------
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace DarkSpire
 {
@@ -40,9 +18,6 @@ namespace DarkSpire
             get
             {
                 if (_instance != null) return _instance;
-#if UNITY_EDITOR
-                _instance = AssetDatabase.LoadAssetAtPath<MapEntitySpriteLibrary>(AssetPath);
-#endif
                 if (_instance == null)
                     Debug.LogWarning(
                         $"[MapEntitySpriteLibrary] Missing asset at {AssetPath}. " +
@@ -88,11 +63,6 @@ namespace DarkSpire
         public Sprite bossGateOpenEast;
         public Sprite bossGateOpenWest;
 
-        /// <summary>
-        /// Picks the boss-gate sprite for the given facing code ("N"/"S"/"E"/"W",
-        /// matching what PlaceBossGate writes to EntityPlacement.strPayload).
-        /// Returns null if the corresponding slot is empty.
-        /// </summary>
         public Sprite GetBossGateSprite(string facing, bool open) => open
             ? facing switch
               {
@@ -156,12 +126,6 @@ namespace DarkSpire
             _ => null,
         };
 
-        /// <summary>
-        /// Convenience for consumers: prefer the explicitly-assigned
-        /// library, otherwise fall back to the singleton. Centralizes the
-        /// "did the designer drag one in or should we use the global?"
-        /// pattern across FloorRenderer, EntitySpawner, MapEntityBase, etc.
-        /// </summary>
         public static MapEntitySpriteLibrary ResolveOrSingleton(MapEntitySpriteLibrary explicitRef)
         {
             return explicitRef != null ? explicitRef : Instance;

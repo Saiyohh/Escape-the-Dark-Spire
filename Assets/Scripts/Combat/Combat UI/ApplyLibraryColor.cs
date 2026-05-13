@@ -1,21 +1,3 @@
-// ApplyLibraryColor.cs
-// -----------------------------------------------------------------------------
-// Drop on a Graphic (Image, RawImage, TMP_Text, etc.) to tint it from
-// ColorLibrary by Category + Name at runtime. Lets HUD bars, badges, and
-// any other "needs a project-wide color" Graphic stay in sync with the
-// library without bespoke wiring.
-//
-//   ApplyLibraryColor:
-//     Category = "HUD"
-//     Name     = "HpFill"
-//
-// Runtime Awake reads the library and sets graphic.color.
-// In edit mode (ExecuteAlways) the color updates live too — useful while
-// authoring prefabs against the library.
-//
-// Falls back gracefully when the library or key is missing — in that case
-// the Graphic's authored color stays as-is.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -63,7 +45,6 @@ namespace DarkSpire
             if (textTarget != null) textTarget.color = c;
         }
 
-        /// <summary>Re-fetch from the library — call after editing the library at runtime.</summary>
         public void Refresh() => Apply();
     }
 }

@@ -1,29 +1,3 @@
-// TurnIndicator.cs
-// -----------------------------------------------------------------------------
-// Active-turn aura that sits at the active unit's feet and pulses softly to
-// signal whose turn it is. Replaces the old above-the-head bobbing sprite —
-// the previous design fought above-the-head UI like the orb tray; the aura
-// approach moves the indicator down to the unit's pivot where it doesn't
-// compete with anything authored above the head.
-//
-// Lifecycle (parent-swap, like the prior version):
-//   • Lives in the scene as a child of CombatUI (or whatever parent it was
-//     authored under). That parent is captured in Awake as the "stable root."
-//   • OnUnitTurnStart → reparent under the active UnitDisplay, snap to the
-//     unit's pivot (localPosition = pulseOffset), start pulsing.
-//   • OnUnitTurnEnd  → reparent back to the stable root and hide.
-//   • If the bound unit dies mid-turn, detach immediately so the indicator
-//     survives the unit's destruction.
-//
-// Visual:
-//   • Bottom-center-pivoted sprite. The unit's transform pivot is also bottom-
-//     center, so localPosition = pulseOffset (default zero) places the aura
-//     under the unit's feet without further math.
-//   • Alpha oscillates between minAlpha and maxAlpha at pulseFrequency Hz
-//     using a sin curve. RGB stays at the configured tint (default white).
-//   • Sorting order defaults to ABOVE the unit sprite but BELOW the HUD
-//     (HP bars / conditions / orb tray). Tweak per scene if needed.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
@@ -205,7 +179,6 @@ namespace DarkSpire
         {
             if (indicatorRenderer == null) return;
 
-            // 0..1 sine ramp. Multiply through min/max range.
             float wave = (Mathf.Sin(Time.time * pulseFrequency * Mathf.PI * 2f) + 1f) * 0.5f;
             float pulseAlpha = Mathf.Lerp(minAlpha, maxAlpha, wave);
 
@@ -227,12 +200,5 @@ namespace DarkSpire
             indicatorRenderer.color = c;
         }
 
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (minAlpha > maxAlpha) (minAlpha, maxAlpha) = (maxAlpha, minAlpha);
-            ApplySortingToRenderer();
-        }
-#endif
     }
 }

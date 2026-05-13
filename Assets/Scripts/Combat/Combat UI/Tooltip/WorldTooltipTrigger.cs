@@ -1,21 +1,3 @@
-// WorldTooltipTrigger.cs
-// -----------------------------------------------------------------------------
-// Concrete tooltip trigger base for world-space (non-UI) elements. The
-// project runs the new Input System, which means OnMouseEnter/Exit and
-// IPointerEnterHandler don't fire on world sprites without a Physics2D
-// raycaster setup. Mirroring the pattern UnitDisplay uses, this trigger
-// polls Physics2D.OverlapPoint(cursorWorldPos) every frame and tracks
-// hover transitions itself.
-//
-// Authoring shape:
-//   • The GameObject must have a Collider2D sized to the visible sprite.
-//     A BoxCollider2D auto-sized via the SpriteRenderer's bounds is the
-//     usual choice. Without a collider Physics2D.OverlapPoint never hits.
-//   • The trigger uses the trigger's own SpriteRenderer (or any Renderer)
-//     to compute the on-screen anchor rect — see TooltipTrigger.GetAnchorScreenRect.
-//
-// Subclasses must implement BuildContent (inherited from TooltipTrigger).
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.InputSystem;
 

@@ -1,9 +1,3 @@
-// UIPalette.cs
-// -----------------------------------------------------------------------------
-// Slice-scope shared color palette. Intentionally a static class (not an SO)
-// so it's free to use without inspector wiring. Production-quality art will
-// likely promote this to a ThemedPaletteSO referenced from a theme manager.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire

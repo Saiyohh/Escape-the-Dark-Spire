@@ -1,30 +1,3 @@
-// UnitDisplay.cs
-// -----------------------------------------------------------------------------
-// The MonoBehaviour "body" of a combatant on screen. One per unit in the scene.
-//
-// Responsibilities:
-//   • Hold the SpriteRenderer + BoxCollider2D for hit testing.
-//     The sibling BoxCollider2D is the *source of truth* for hitbox size
-//     and offset — author it directly on the prefab (size, offset, edit
-//     with the handles in the scene view). This script never mutates it,
-//     it only reads `size` / `offset` via the HitboxSize / HitboxOffset
-//     properties.
-//   • Read the turn-indicator anchor from a serialized child Transform
-//     (convention: empty child named "TurnIndicatorAnchor"). Falls back
-//     to the hitbox top-center if the anchor is null.
-//   • Spawn the appropriate world-space HUD (UnitWorldHUD for players,
-//     EnemyWorldHUD for enemies) — the HUD scripts themselves are currently
-//     stubs, filled in during Pass 3
-//   • Play attack lunge, damage knockback flash, heal flash, death fade
-//   • Draw the 4-corner targeting brackets when selected
-//   • Serve as the mouse-hover/click hook for TargetingSystem
-//
-// Suppress* flags let CombatManager sequence VFX correctly (damage flash only
-// after dice + lunge land, death only after all attack visuals finish).
-//
-// Registry: static Dictionary<Unit, UnitDisplay> so other code can go from
-// a Unit reference to its on-screen GameObject.
-// -----------------------------------------------------------------------------
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -130,9 +103,6 @@ namespace DarkSpire
                  "unit so the death timing reads as a single global motion.")]
         [SerializeField] private float deathDropDistance = 1.0f;
 
-        /// <summary>Total seconds the death animation runs (fade + drop).
-        /// Read by CombatManager so it can wait the right amount before
-        /// firing combat-end.</summary>
         public float DeathFadeDuration => deathFadeDuration;
 
         [Header("Flash Colors")]
@@ -187,11 +157,6 @@ namespace DarkSpire
 
         public Unit LinkedUnit { get; private set; }
 
-        /// <summary>
-        /// World-space offset (from this transform) for the turn indicator,
-        /// readable by TurnIndicatorUI. Prefers the authored child anchor;
-        /// falls back to the hitbox top-center if the anchor is null.
-        /// </summary>
         public Vector2 TurnIndicatorOffset
         {
             get
@@ -208,16 +173,10 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>Size of the targeting hitbox, read from the sibling BoxCollider2D.</summary>
         public Vector2 HitboxSize => boxCollider != null ? boxCollider.size : Vector2.one;
 
-        /// <summary>Center offset of the targeting hitbox, read from the sibling BoxCollider2D.</summary>
         public Vector2 HitboxOffset => boxCollider != null ? boxCollider.offset : Vector2.zero;
 
-        /// <summary>
-        /// World-space position for condition floaters.
-        /// Players: uses turn indicator offset; Enemies: uses enemyIntentAnchorOffset.
-        /// </summary>
         public Vector3 FloaterAnchorWorld
         {
             get
@@ -239,21 +198,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Spawn a speech bubble at speechBubbleAnchor's world position.
-        /// Used for action-refusal feedback (e.g. "No SP.", "I can't move.").
-        /// Replaces any existing in-flight bubble on this unit so rapid
-        /// refusal clicks always show the latest reason.
-        ///
-        /// The bubble prefab is a UI element (RectTransform-only) authored
-        /// to live under CombatUIManager.WorldCanvas — same hosting pattern
-        /// as UnitWorldHUD / EnemyWorldHUD / ChanceBox. It's parented under
-        /// the shared canvas (so it inherits its sorting, scale, and camera
-        /// projection) and then placed at the anchor's world position.
-        ///
-        /// No-ops if the prefab or anchor is unset, or if the shared world
-        /// canvas isn't available yet (combat scene not fully bootstrapped).
-        /// </summary>
         public void ShowSpeechBubble(string message)
         {
             if (string.IsNullOrEmpty(message)) return;
@@ -290,37 +234,12 @@ namespace DarkSpire
         private UnitWorldHUD worldHUD;
         private EnemyWorldHUD enemyWorldHUD;
 
-        /// <summary>
-        /// When true, the automatic damage flash from OnDamageTaken is suppressed.
-        /// CombatManager sets this before resolving attacks so the hurt animation
-        /// plays after the dice roll and lunge animation, not immediately.
-        /// </summary>
         public bool SuppressDamageFlash { get; set; }
 
-        /// <summary>
-        /// When true, the death animation is deferred instead of playing immediately.
-        /// CombatManager sets this before resolving attacks so the death fade
-        /// plays after dice roll + lunge animations, not before them.
-        /// Call PlayDeathAnimation() manually after un-suppressing.
-        /// </summary>
         public bool SuppressDeathAnimation { get; set; }
 
-        /// <summary>True if death was suppressed and needs to be played later.</summary>
         public bool HasPendingDeath { get; private set; }
 
-        /// <summary>
-        /// When true, both the FloatingNumberManager "+N Condition" floater AND
-        /// the world HUD condition-icon strip skip their event-driven updates
-        /// for this unit. CombatManager sets this during skill resolution so
-        /// the condition floater + icon paint AFTER the lunge and damage
-        /// feedback (replayed via SpawnConditionApplied + the icon catch-up
-        /// rebuild that fires when this flag is cleared), not at the moment
-        /// ApplyCondition() runs synchronously inside SkillResolver.
-        /// Autonomous applies (DoT ticks, start-of-turn self-stacks) leave
-        /// this flag false and update through the normal event path.
-        /// Lifting fires OnConditionUISuppressionLifted so HUDs can run a
-        /// catch-up RebuildConditions in one pass.
-        /// </summary>
         private bool suppressConditionUI;
         public bool SuppressConditionUI
         {
@@ -334,14 +253,6 @@ namespace DarkSpire
         }
         public event System.Action OnConditionUISuppressionLifted;
 
-        /// <summary>
-        /// Master gate for UI refreshes (HP / SP / DEF / conditions). While
-        /// true, world HUDs (UnitWorldHUD / EnemyWorldHUD) skip their event-
-        /// driven RefreshHP/etc. calls so HP bars don't move before the
-        /// attacker's lunge animation finishes. Setting back to false fires
-        /// OnUISuppressionLifted; HUDs subscribe and do one full refresh
-        /// then to catch up to the live state.
-        /// </summary>
         private bool suppressUIUpdates;
         public bool SuppressUIUpdates
         {
@@ -361,10 +272,8 @@ namespace DarkSpire
         private bool isHighlighted;
         private Coroutine highlightAnim;
 
-        /// <summary>World-space HUD instance (HP/SP bars + conditions). Null for enemies.</summary>
         public UnitWorldHUD WorldHUD => worldHUD;
 
-        /// <summary>World-space enemy HUD (HP/DEF/intent). Null for players.</summary>
         public EnemyWorldHUD EnemyWorldHUD => enemyWorldHUD;
 
         // Transform the lunge / knockback / shake / death-drop animations
@@ -423,11 +332,6 @@ namespace DarkSpire
             CreateCornerBrackets();
         }
 
-        /// <summary>
-        /// Programmatically create 4 corner bracket SpriteRenderers.
-        /// Top-left = base sprite. Top-right = flipX. Bottom-left = flipY. Bottom-right = flipX + flipY.
-        /// All start hidden.
-        /// </summary>
         private void CreateCornerBrackets()
         {
             if (cornerBracketSprite == null) return;
@@ -458,10 +362,6 @@ namespace DarkSpire
             PositionCornerBrackets();
         }
 
-        /// <summary>
-        /// Place the 4 brackets at the corners of the hitbox.
-        /// </summary>
-        /// <summary>Direction vectors for each corner bracket (outward from center).</summary>
         private static readonly Vector3[] cornerDirections =
         {
             new Vector3(-1, 1, 0).normalized,   // TL
@@ -565,11 +465,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Add (or reuse) a WorldFollow on the spawned HUD so it tracks this
-        /// unit even when reparented under the shared CombatUIManager.WorldCanvas.
-        /// Snapping the position immediately avoids a one-frame lag at spawn.
-        /// </summary>
         private void AttachWorldFollow(GameObject hudGO, Vector3 offset, Unit unit)
         {
             if (hudGO == null) return;
@@ -641,7 +536,6 @@ namespace DarkSpire
         // Instead we do a single Physics2D raycast per frame to detect
         // which UnitDisplay the cursor is over.
 
-        /// <summary>The UnitDisplay currently under the mouse (null if none).</summary>
         private static UnitDisplay currentlyHovered;
 
         private void Update()
@@ -684,10 +578,6 @@ namespace DarkSpire
                 currentlyHovered.HandleMouseClick();
         }
 
-        /// <summary>
-        /// Returns true if this instance should run the shared hover check this frame.
-        /// Uses the first alive entry in the registry to avoid duplicate raycasts.
-        /// </summary>
         private bool ShouldRunHoverCheck()
         {
             foreach (var kvp in registry)
@@ -763,11 +653,6 @@ namespace DarkSpire
         [Tooltip("Duration of the bracket disappear animation.")]
         [SerializeField] private float bracketHideDuration = 0.10f;
 
-        /// <summary>
-        /// Animate corner brackets in/out instead of instant toggle.
-        /// On show: expand outward → zoom in past rest → snap to rest.
-        /// On hide: rest → expand outward → disable.
-        /// </summary>
         public void SetHighlighted(bool on)
         {
             if (isHighlighted == on) return;
@@ -972,9 +857,6 @@ namespace DarkSpire
             animRoot.localPosition = Vector3.zero;
         }
 
-        /// <summary>
-        /// Play a light shake animation (for debuff application, not damage).
-        /// </summary>
         public void PlayDebuffShake()
         {
             if (isDead) return;
@@ -1030,12 +912,6 @@ namespace DarkSpire
             rankSlide = StartCoroutine(SlideToCoroutine(target.position));
         }
 
-        /// <summary>
-        /// Place the main sprite renderer on the Units sorting layer with an
-        /// order derived from the unit's rank — front ranks get higher orders
-        /// so they draw above units behind them. Preserves the active-actor
-        /// boost when one is currently applied.
-        /// </summary>
         private void ApplyRankSorting(int rank)
         {
             if (spriteRenderer == null) return;
@@ -1051,10 +927,6 @@ namespace DarkSpire
                 + (isActiveOrderBoosted ? activeUnitOrderBoost : 0);
         }
 
-        /// <summary>
-        /// Toggle the active-actor sort boost. Idempotent; reapplies the
-        /// current rank base whether boosting on or restoring off.
-        /// </summary>
         private void SetActiveSortingBoost(bool boosted)
         {
             if (isActiveOrderBoosted == boosted) return;
@@ -1070,13 +942,6 @@ namespace DarkSpire
         private bool hasIntroPrep;
         private Coroutine introSlideCo;
 
-        /// <summary>
-        /// Capture the unit's intended slot and shove the transform to an
-        /// off-screen X (positive offset for enemies, negative for players —
-        /// caller picks). HUDs ride along via WorldFollow; pair this call with
-        /// the HUD's PrepareForIntro to land everything off-screen / invisible
-        /// before InvokeCombatStart fires the bar slide.
-        /// </summary>
         public void PrepareForIntro(float offsetX)
         {
             introTargetPosition = transform.position;
@@ -1088,12 +953,6 @@ namespace DarkSpire
             hasIntroPrep = true;
         }
 
-        /// <summary>
-        /// Slide from the prepared off-screen position back to the captured
-        /// target slot. startDelay lets the caller stagger ranks so the formation
-        /// snaps into place as one wave. Safe to call without a prior
-        /// PrepareForIntro (no-ops in that case).
-        /// </summary>
         public Coroutine PlayIntroSlide(float duration, float startDelay)
         {
             if (!hasIntroPrep) return null;
@@ -1148,10 +1007,6 @@ namespace DarkSpire
             rankSlide = null;
         }
 
-        /// <summary>
-        /// Play the death animation unconditionally (ignores suppress flag).
-        /// Called by CombatManager after dice roll + lunge animations finish.
-        /// </summary>
         public void PlayDeathAnimationImmediate()
         {
             HasPendingDeath = false;
@@ -1188,13 +1043,6 @@ namespace DarkSpire
             gameObject.SetActive(false);
         }
 
-        /// <summary>
-        /// Apply the per-hue Black &amp; White adjust to this unit's sprite
-        /// when its EnemyData opts in. Clones blackAndWhiteMaterial once per
-        /// UnitDisplay so each enemy's weights stay independent. No-op for
-        /// player units (CharacterData has no equivalent flag) or when the
-        /// source material isn't wired on the prefab.
-        /// </summary>
         private static bool warnedMissingBWMaterial = false;
 
         private void ApplyBlackAndWhiteFilter(Unit unit)

@@ -1,29 +1,3 @@
-// SkillEffectData.cs
-// -----------------------------------------------------------------------------
-// One sub-effect inside a SkillData. Skills have 1-N of these and the resolver
-// iterates through them in authoring order. Every effect type pulls only the
-// fields it needs; the custom SkillDataEditor hides the rest in the inspector
-// so designers only see what matters for the selected effect.
-//
-// Field grouping (matching the SkillEffectCategory enum in CombatEnums):
-//   [Core]          — effectType, applyKind, gate, targetMode, magnitude,
-//                     saveDC, conditionID, conditionStacks, stackCountKind, stackPer
-//   [Movement]      — movementKind, movementMagnitude
-//   [Orb]           — orbType, orbCount, orbSource, evokeKind
-//   [Companion]     — companionTarget, bindDuration
-//   [Item]          — pouchItemType, itemSO, itemQuantity
-//   [Resource]      — resourceAmount (Stars / Forge)
-//   [Skill Manip]   — sealTarget, sealDuration, extraActionKind
-//   [Triggered]     — triggerDuration, retaliateDamage
-//
-// PLACEHOLDER fields (Orb, Companion, Resource, Triggered) describe valid
-// authoring data — their runtime implementation is wired in the character-kit
-// pass. The resolver logs a warning when a placeholder effect fires.
-//
-// Note: no [Header(...)] attributes — the custom SkillDataEditor owns the
-// section layout. Inline Header attributes misalign paired fields (e.g.
-// Range Min / Max) inside horizontal rows and render duplicate labels.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -196,10 +170,6 @@ namespace DarkSpire
             _ => SkillEffectCategory.Core,
         };
 
-        /// <summary>
-        /// Does this effect apply condition stacks? Used by the editor and
-        /// resolver to decide whether stack-count fields are relevant.
-        /// </summary>
         public bool AppliesCondition =>
             effectType == SkillEffectType.Afflict
             || effectType == SkillEffectType.ApplyCondition

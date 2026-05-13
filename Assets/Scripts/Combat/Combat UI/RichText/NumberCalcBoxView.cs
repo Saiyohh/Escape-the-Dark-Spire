@@ -1,17 +1,3 @@
-// NumberCalcBoxView.cs
-// -----------------------------------------------------------------------------
-// The actual UI for the Number Calc Box popup. Renders a CalcBreakdown into
-// a compact two-or-three-line display:
-//
-//   Base (5) + POW (3)
-//   × Vulnerable (1.5x)        [optional, one line per multiplicative step]
-//   CRIT: 2x                   [for attack damage only]
-//
-// No "Total" line — the number the player is hovering already shows the total.
-//
-// The body is a single multi-line TMP_Text. The headerLabel field, if wired
-// from an older prefab authoring, is hidden at runtime (we no longer use it).
-// -----------------------------------------------------------------------------
 using System.Globalization;
 using System.Text;
 using TMPro;
@@ -53,7 +39,6 @@ namespace DarkSpire
 
             sb.Clear();
 
-            // First line: all additive steps inline. "Base (5) + POW (3) - Weak (1)"
             if (breakdown.Steps != null)
             {
                 bool wroteAddRow = false;

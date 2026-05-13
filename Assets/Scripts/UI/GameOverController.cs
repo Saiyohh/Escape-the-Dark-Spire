@@ -1,8 +1,3 @@
-// GameOverController.cs
-// -----------------------------------------------------------------------------
-// Loaded by SceneFlow.LoadGameOver() after a party wipe. Single button: Try
-// Again returns to MainMenu (which clears RunStateHolder and RunContext).
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

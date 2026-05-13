@@ -1,20 +1,3 @@
-// TooltipContent.cs
-// -----------------------------------------------------------------------------
-// Plain payload describing what a tooltip should display. Triggers build one
-// of these in BuildContent() and hand it to the TooltipController; the View
-// reads it and toggles its sub-elements accordingly.
-//
-// Two body modes:
-//   • Single block — set BodyText. Used by conditions, chance icons, stars.
-//   • Passive/Evoke — set PassiveText AND EvokeText (BodyText ignored). Used
-//     by Defect orbs; the View renders two labeled paragraphs.
-//
-// Header mode:
-//   • If HeaderText is null/empty, the entire header row is hidden — that's
-//     the orb path (per spec, orbs have no header at all).
-//   • HeaderIcon is optional; if null the icon slot is hidden but the text
-//     still shows.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire

@@ -1,27 +1,3 @@
-// DangerPreviewController.cs
-// -----------------------------------------------------------------------------
-// Singleton that drives the "you are in danger" auras when the player hovers
-// an enemy's intent icon. Owns a pool of DangerAura prefabs, spawns one per
-// player the intent will threaten (resolved by IntentTargetResolver), and
-// hides everything on:
-//   • IntentIconUI.OnPointerExit             (explicit hide)
-//   • CombatEvents.OnEnemyMoveSet            (intent retargeted — preview stale)
-//   • CombatEvents.OnUnitTurnStart on source (enemy is about to act)
-//   • CombatEvents.OnUnitTurnEnd   on source (defensive)
-//
-// IntentIconUI.OnPointerEnter calls ShowFor(source, intent). Subsequent
-// ShowFor calls Hide() first so flipping between two intent icons on the
-// same enemy is idempotent and the pool is reused.
-//
-// Each DangerAura is a world-space prefab (SpriteRenderer-based, sibling
-// pattern to TurnIndicator). The controller is its stable parent — auras
-// reparent themselves under the threatened player's UnitDisplay on Bind
-// and back to the controller on Release.
-//
-// Scene wiring: drop a DangerPreviewController GameObject anywhere under
-// CombatUI (the transform itself doesn't need to be anywhere specific —
-// it's just the pool root). Assign the DangerAura prefab.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -68,11 +44,6 @@ namespace DarkSpire
 
         // ─── Public API ──────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Show danger auras for every player <paramref name="intent"/> would
-        /// threaten. Safe to call repeatedly — implicitly hides any prior
-        /// preview first.
-        /// </summary>
         public void ShowFor(Unit source, EnemyIntent intent)
         {
             Hide();
@@ -102,7 +73,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>Return every active aura to the pool and clear preview state.</summary>
         public void Hide()
         {
             for (int i = 0; i < _active.Count; i++)

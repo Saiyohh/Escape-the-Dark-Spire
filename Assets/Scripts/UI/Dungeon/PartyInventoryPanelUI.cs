@@ -1,21 +1,3 @@
-// PartyInventoryPanelUI.cs
-// -----------------------------------------------------------------------------
-// Read-only dungeon HUD panel listing the party's inventory:
-//   • Section: Party Inventory  — RunContext.partyInventory (shared bag)
-//   • Section: Pouches           — RunContext.partyState[i].pouchItems per char
-//
-// V1 scope: read-only display. The player can see what items they have but
-// can't drop, transfer, or rearrange — those interactions land in a future
-// pass. Hover on any row populates a paired ItemInfoPanelUI with the full
-// details (banner + cost + description).
-//
-// Toggle visibility via Open() / Close() (or Toggle()) — bind a HUD button
-// or hotkey at the project level. The panel doesn't subscribe to any combat
-// events; it pulls fresh state from RunContext / PartyMemberRuntime each
-// time Open() is called.
-//
-// Sibling of FloorHUD's PartyHpBar / Minimap on the dungeon canvas.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -164,7 +146,7 @@ namespace DarkSpire
             {
                 row.Bind(data, inst,
                     onHovered: () => infoPanel?.Show(data, inst),
-                    onUnhovered: () => { /* keep last-hovered showing */ });
+                    onUnhovered: () => {  });
             }
             else
             {
@@ -197,12 +179,6 @@ namespace DarkSpire
         }
     }
 
-    /// <summary>
-    /// Row component for a single inventory entry. Designer authors a prefab
-    /// with an Image (icon), TMP_Text (name + optional charges), and this
-    /// component on the root. Bind() wires up hover callbacks for the info
-    /// panel.
-    /// </summary>
     public class ItemRowUI : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler
     {

@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Step 5.5: roll for bonus chest/shrine/rest at dead-end terminals,
     // preferring high-detour terminals (off the critical path) so extras
     // feel like discoveries rather than forced detours.
     internal static class PlaceExtras

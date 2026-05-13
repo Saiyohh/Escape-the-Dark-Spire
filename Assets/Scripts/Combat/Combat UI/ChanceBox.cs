@@ -1,19 +1,3 @@
-// ChanceBox.cs
-// -----------------------------------------------------------------------------
-// Player → enemy hit-chance preview. Pinned to the top-right corner of the
-// enemy's hitbox and visible ONLY while the player is in targeting mode AND
-// the pointer is over THIS enemy AND this enemy is a valid target.
-//
-// Shows the active caster's chance to hit this enemy with a standard attack
-// roll: d20 + caster.ATK vs target.DEF (>=, ties hit). Math lives in
-// AttackChance.Hit and is shared with the DangerPreviewController on-hover
-// enemy-intent preview, so the two surfaces can't drift apart.
-//
-// Example: DEX 4 vs DEF 10 → needed = 6 → 15/20 = 75%.
-//
-// Visibility is driven by TargetingSystem events — UnitDisplay's hover path
-// no longer touches this component.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
@@ -160,13 +144,6 @@ namespace DarkSpire
 
         // ─── Positioning ────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Reparent the ChanceBox under the shared CombatUIManager.WorldCanvas
-        /// (no per-unit canvas), and attach a WorldFollow that tracks the
-        /// enemy's hitbox top-right corner in world space. Falls back to the
-        /// legacy parent-to-UnitDisplay flow if the shared canvas isn't set
-        /// up — keeps old prefabs working during migration.
-        /// </summary>
         private void PositionToHitboxTopRight()
         {
             var rt = transform as RectTransform;

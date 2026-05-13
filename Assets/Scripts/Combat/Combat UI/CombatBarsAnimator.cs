@@ -1,16 +1,3 @@
-// CombatBarsAnimator.cs
-// -----------------------------------------------------------------------------
-// Slides the combat top + bottom UI bars in on combat start and out on combat
-// end. Drop on any GameObject under CombatUI; wire `topBar` (run info / nav)
-// and `bottomBar` (action / party stats) RectTransforms in the inspector.
-//
-// Authored positions are captured as the SHOWN state on Awake. HIDDEN state
-// is computed automatically from each bar's height: topBar slides up off the
-// top of its anchor, bottomBar slides down off the bottom.
-//
-// Subscribes to CombatEvents.OnCombatStart / OnCombatEnd in OnEnable so the
-// slide-in fires before any combat visuals settle.
-// -----------------------------------------------------------------------------
 using System.Collections;
 using UnityEngine;
 

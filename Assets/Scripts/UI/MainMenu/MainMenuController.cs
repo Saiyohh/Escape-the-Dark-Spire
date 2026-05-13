@@ -1,15 +1,3 @@
-// MainMenuController.cs
-// -----------------------------------------------------------------------------
-// Title-screen controller. Two buttons: Play (loads the dungeon via the
-// SceneTransitionOverlay) and Quit (closes the app, or exits Play Mode in the
-// editor). Slice ships without a Party Select stage — Play jumps straight
-// into Floor 1; the future flow inserts a PartySelect scene between menu
-// and dungeon.
-//
-// Also responsible for the run-state reset on entry: clears RunStateHolder
-// so a stale combat-resume from a previous run can't leak into the new one,
-// and seeds a fresh RunContext.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -63,17 +51,6 @@ namespace DarkSpire
 
         private void OnPlayClicked()
         {
-            // Slice: jump straight into the dungeon. Future:
-            //   var overlay = SceneTransitionOverlay.GetOrCreate();
-            //   overlay.LoadSceneTransition("PartySelect");
-            // and PartySelect's confirm button continues to DungeonFloor.
-
-            // Seed a fresh run. Once a real PartySelect scene exists, the
-            // party will be chosen there and this menu just goes to PartySelect.
-            // For the slice, the menu IS the party-select: the inspector-wired
-            // bootstrapParty is locked in here, and RunContext.partyState is
-            // initialized to full HP/SP for each member so values carry across
-            // the dungeon ↔ combat loop.
             RunContext.NewRun(bootstrapParty, Random.Range(0, int.MaxValue));
             RunContext.InitializePartyState(bootstrapParty);
 
@@ -90,11 +67,7 @@ namespace DarkSpire
 
         private void OnQuitClicked()
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
             Application.Quit();
-#endif
         }
     }
 }

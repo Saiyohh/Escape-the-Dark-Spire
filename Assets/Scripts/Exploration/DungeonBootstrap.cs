@@ -73,7 +73,6 @@ namespace DarkSpire
         private void Start()
         {
             // Run-tier UI host: pause menu, pickup toasts, future inventory etc.
-            // First call instantiates the MenuCanvas prefab and DontDestroyOnLoads
             // it; subsequent calls (e.g. from CombatBootstrap) return the existing
             // instance. MainMenuController.Start tears it down on return-to-menu.
             MenuCanvasController.GetOrCreate();
@@ -196,7 +195,6 @@ namespace DarkSpire
 
         private GeneratedFloorData ResolveFloor()
         {
-            // 1. RESUME path — coming back from combat. Reuse the saved floor
             //    so the layout and untouched entities stay identical.
             var holder = RunStateHolder.Instance;
             if (holder != null && holder.resumeMode && holder.savedFloor != null)
@@ -206,7 +204,6 @@ namespace DarkSpire
                 return holder.savedFloor;
             }
 
-            // 2. Fresh floor — snapshot or config + seed.
             var snapshot = RunContext.snapshotOverride ?? fallbackSnapshot;
             if (snapshot != null)
             {

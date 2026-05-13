@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Step 2: connect rooms with corridors. Build a Prim's MST on room
     // centers using Manhattan distance, then add N extra edges for loops,
     // and carve L-shaped 1-tile-wide corridors for each edge.
     internal static class ConnectRooms

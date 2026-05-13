@@ -1,31 +1,3 @@
-// SpriteOutline.cs
-// -----------------------------------------------------------------------------
-// Shader-driven outline. Replaces the earlier 4-child-renderer approach, which
-// leaked through transparent interior pixels (fur detail, finger gaps, etc.)
-// because the duplicate sprites had no way to know where the silhouette edge
-// actually was.
-//
-// This version:
-//   • Requires the SpriteRenderer to use the DarkSpire/SpriteOutline shader
-//     (assign the material once; the component auto-creates a default if the
-//     renderer's material isn't outline-capable).
-//   • Drives _OutlineColor + _OutlineWidth per-instance via MaterialPropertyBlock
-//     — no per-sprite material duplication, no batching breakage.
-//   • 8-direction alpha scan in the shader means outline only renders on the
-//     true silhouette boundary, not through interior holes.
-//
-// ⚠ Sprite padding note:
-//   If the sprite artwork is cropped tight to the opaque pixels, the outline
-//   has nowhere to draw and gets clipped at the mesh bounds. Fix it one of
-//   three ways:
-//     1. Repack the sprite with transparent border (best)
-//     2. Sprite Import → Mesh Type → Full Rect (cheapest — uses the sprite's
-//        full bounding quad, outline gets room to render)
-//     3. Sprite Import → Extrude Edges → 2-4 (small but works per-atlas)
-//
-// Tag → (color, width) still comes from OutlineProfile as before, with the
-// same override + reset-to-default affordances in the custom editor.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
@@ -112,7 +84,6 @@ namespace DarkSpire
             ApplyStyle();
         }
 
-        /// <summary>Push current style into the sprite's MaterialPropertyBlock.</summary>
         public void ApplyStyle()
         {
             if (self == null) self = GetComponent<SpriteRenderer>();
@@ -198,15 +169,6 @@ namespace DarkSpire
 
         private static Material FindProjectMaterialUsingOutlineShader(Shader shader)
         {
-#if UNITY_EDITOR
-            var guids = UnityEditor.AssetDatabase.FindAssets("t:Material");
-            foreach (var g in guids)
-            {
-                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
-                var m = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>(path);
-                if (m != null && m.shader == shader) return m;
-            }
-#endif
             return null;
         }
     }

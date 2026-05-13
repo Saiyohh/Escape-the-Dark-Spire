@@ -7,7 +7,6 @@ namespace DarkSpire
     // Hand-authored interior layout for a room kind. The generator picks one
     // template at random per placed room and stamps it into the grid.
     //
-    // Phase 1 ships without authored templates — the generator falls back to
     // a flat rectangular floor fill when template == null. Templates can be
     // added incrementally to add variety without changing the pipeline.
     [CreateAssetMenu(fileName = "RT_NewTemplate", menuName = "DarkSpire/Dungeon/Room Template")]

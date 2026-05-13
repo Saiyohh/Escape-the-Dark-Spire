@@ -1,22 +1,3 @@
-// ConditionIconUI.cs
-// -----------------------------------------------------------------------------
-// One condition icon rendered inside a HorizontalLayoutGroup on a unit's HUD.
-// Bound to a ConditionData SO (for icon + colors) and shows the current stack
-// count as a small number badge.
-//
-// If the ConditionData has iconGrayscale = true, the icon is rendered through
-// the DarkSpire/UI/BlackAndWhite shader with the data's six channel weights —
-// same per-hue mix used by the skill info panel. Keep placeholder art
-// desaturated cheaply without a Photoshop pass.
-//
-// Prefab setup:
-//   ConditionIcon (GameObject) — LayoutElement preferredWidth/Height = 32
-//     Image    (the icon sprite; swapped at bind time from ConditionData.icon)
-//     ├─ StackText (TMP, bottom-right, shows "×3")
-//     └─ Background (optional — Image with buff/debuff tint)
-//
-// Wire iconImage + stackText + backgroundImage + blackAndWhiteMaterial, save.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -39,13 +20,8 @@ namespace DarkSpire
         private int stacks;
         private Material runtimeBWMaterial;
 
-        /// <summary>The currently-bound condition (or null before Bind has run).
-        /// Read by ConditionTooltipTrigger to populate the hover tooltip.</summary>
         public ConditionData Data => data;
 
-        /// <summary>Live stack count last passed to SetStacks. Read by
-        /// ConditionTooltipTrigger so the tooltip body can resolve
-        /// {stacks}/{total} placeholders against the actual instance.</summary>
         public int Stacks => stacks;
 
         private static readonly int PropWR = Shader.PropertyToID("_WR");
@@ -55,7 +31,6 @@ namespace DarkSpire
         private static readonly int PropWB = Shader.PropertyToID("_WB");
         private static readonly int PropWM = Shader.PropertyToID("_WM");
 
-        /// <summary>Assign the SO — updates sprite, tint, grayscale, and tooltip data.</summary>
         public void Bind(ConditionData data)
         {
             this.data = data;

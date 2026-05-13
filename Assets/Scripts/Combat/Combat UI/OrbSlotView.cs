@@ -1,21 +1,3 @@
-// OrbSlotView.cs
-// -----------------------------------------------------------------------------
-// Per-slot view component for the orb tray. Sits on the slotPrefab that
-// OrbSlotsUI instantiates. Holds serialized references to the slot's renderer
-// (UI Image OR world-space SpriteRenderer — whichever the prefab uses) and
-// to two TMP_Text labels for the canonical "passive number" + "active
-// number" display per the GDD's HUD section.
-//
-// OrbSlotsUI computes the values via OrbManager.GetPassiveDisplayValue /
-// GetActiveDisplayValue and calls the per-slot Render methods. This component
-// owns ONLY presentation — no game logic.
-//
-// Default visibility (per GDD):
-//   • Passive number — always shown when an orb is in the slot, hidden if 0.
-//   • Active number  — shown only when ShouldShowActiveNumberOnIcon (Dark);
-//                      other orbs surface the active number via the (future)
-//                      hover tooltip.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -62,15 +44,8 @@ namespace DarkSpire
                  "this transform (legacy prefabs).")]
         [SerializeField] private Transform visualTransform;
 
-        /// <summary>The orb instance most recently rendered into this slot,
-        /// or null when the slot is empty. Read by OrbTooltipTrigger to
-        /// populate the hover tooltip with the orb's passive/evoke text.</summary>
         public OrbInstance BoundOrb { get; private set; }
 
-        /// <summary>Transform that animations should scale — the visible
-        /// orb sprite, NOT the slot root (which carries the collider used
-        /// for hover detection). See the visualTransform field above for
-        /// fallback order.</summary>
         public Transform VisualTransform
         {
             get

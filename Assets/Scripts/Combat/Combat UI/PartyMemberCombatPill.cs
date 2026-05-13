@@ -1,15 +1,3 @@
-// PartyMemberCombatPill.cs
-// -----------------------------------------------------------------------------
-// One pill in the in-combat party tray. Shows a masked combat-sprite portrait
-// (collapsed 140×80, expanded 140×130) plus three repurposed HP-Bar prefabs
-// for HP / SP / EXP. Subscribes to its bound Unit's stat events and updates
-// the bars live; expands the mask smoothly when this pill represents the
-// currently-active unit.
-//
-// All UI references are wired in the inspector (Mask, Portrait, three
-// Slider+TMP_Text pairs). Pivot/stretch on the Mask is authored to grow
-// upward — this script only animates the height.
-// -----------------------------------------------------------------------------
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -189,7 +177,6 @@ namespace DarkSpire
 
         private void RefreshEXP()
         {
-            // TODO: wire to XP system once PartyMemberRuntime gets an xp field.
             int max = Mathf.Max(1, expMaxStub);
             int cur = Mathf.Clamp(expCurrentStub, 0, max);
             if (expBar != null)

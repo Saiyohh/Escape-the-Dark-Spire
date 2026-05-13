@@ -1,21 +1,5 @@
-// OrbLibrary.cs
-// -----------------------------------------------------------------------------
-// Central registry of every OrbDataSO in the project, keyed by OrbType.
-// Mirrors ConditionLibrary's pattern: a single ScriptableObject at a fixed
-// path, registered into PlayerSettings.preloadedAssets so it loads at runtime
-// without a Resources folder. SkillResolver and OrbStrike both reach the
-// per-type SO via `OrbLibrary.Instance.Get(orbType)`.
-//
-// Asset location: `Assets/ScriptableObjects/OrbLibrary.asset`.
-//
-// OrbType.Random is a sentinel — Get returns a uniform pick over all
-// non-Random orbs registered.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace DarkSpire
 {
@@ -30,9 +14,6 @@ namespace DarkSpire
             get
             {
                 if (_instance != null) return _instance;
-#if UNITY_EDITOR
-                _instance = AssetDatabase.LoadAssetAtPath<OrbLibrary>(AssetPath);
-#endif
                 if (_instance == null)
                     Debug.LogError(
                         $"[OrbLibrary] Missing asset at {AssetPath}. " +
@@ -62,10 +43,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Returns the OrbDataSO for the given type. OrbType.Random returns a
-        /// uniform pick over all registered non-Random orbs.
-        /// </summary>
         public OrbDataSO Get(OrbType type)
         {
             BuildLookupIfNeeded();
@@ -94,12 +71,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Returns a random orb whose <c>tier</c> matches <paramref name="tier"/>,
-        /// or null if no orb of that tier is registered. Used by Defect-style
-        /// weapons whose channelOrbOnAttack auto-picks from the Tier 1 pool
-        /// (Lightning, Frost) without hardcoding the type list.
-        /// </summary>
         public OrbDataSO GetRandomByTier(int tier)
         {
             BuildLookupIfNeeded();
@@ -131,39 +102,5 @@ namespace DarkSpire
             _lookup = null;
         }
 
-#if UNITY_EDITOR
-        public void Register(OrbDataSO o)
-        {
-            if (o == null) return;
-            if (orbs.Contains(o)) return;
-            orbs.Add(o);
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-        }
-
-        public void Unregister(OrbDataSO o)
-        {
-            if (o == null) return;
-            if (orbs.Remove(o))
-            {
-                _lookup = null;
-                EditorUtility.SetDirty(this);
-            }
-        }
-
-        public void RefreshFromProject()
-        {
-            orbs.Clear();
-            string[] guids = AssetDatabase.FindAssets("t:OrbDataSO");
-            for (int i = 0; i < guids.Length; i++)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
-                var o = AssetDatabase.LoadAssetAtPath<OrbDataSO>(path);
-                if (o != null) orbs.Add(o);
-            }
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-        }
-#endif
     }
 }

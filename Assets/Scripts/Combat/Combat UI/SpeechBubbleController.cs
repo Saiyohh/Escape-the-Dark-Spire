@@ -1,22 +1,3 @@
-// SpeechBubbleController.cs
-// -----------------------------------------------------------------------------
-// World-space speech bubble shown above a UnitDisplay when the player tries to
-// use an action that's currently disallowed (no action, no free action, not
-// enough SP/stars, immobilized). Bubble fades in, text types in shortly after,
-// holds for a few seconds, then both fade out together.
-//
-// Prefab setup (designer authors `Assets/Prefabs/Combat UI/Speech Bubble.prefab`):
-//   SpeechBubble (Canvas, World Space, sorting layer "Combat HUD")
-//     RectTransform pivot = (0, 0)   ← bottom-left, tail anchor
-//     + CanvasGroup
-//     + SpeechBubbleController        (this)
-//     ├─ Background (Image, 9-sliced bubble sprite with tail in lower-left)
-//     └─ Label (TMP_Text)
-//
-// Spawned by UnitDisplay.ShowSpeechBubble. Self-destroys when the fade-out
-// finishes. Multiple bubbles on the same unit are NOT stacked — UnitDisplay
-// destroys the previous bubble before instantiating a new one.
-// -----------------------------------------------------------------------------
 using System.Collections;
 using TMPro;
 using UnityEngine;

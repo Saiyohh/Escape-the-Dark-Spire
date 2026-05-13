@@ -1,27 +1,3 @@
-// DangerAura.cs
-// -----------------------------------------------------------------------------
-// Per-targeted-player visual spawned by DangerPreviewController while the user
-// hovers an enemy intent that threatens this player. Mirrors TurnIndicator's
-// pattern exactly:
-//   • Pure world-space SpriteRenderer for the aura (no Canvas).
-//   • World-space TextMeshPro (MeshRenderer-based) for the % label.
-//   • Reparents under the target's UnitDisplay so the aura rides along with
-//     rank shifts, knockbacks, lunges, etc. (Same trick TurnIndicator uses.)
-//   • Alpha pulse driven directly on renderer.color.a + label color.a, no
-//     CanvasGroup. Sorting layer matches "Unit Overlays" stratum.
-//
-// Lifecycle is pool-owned by DangerPreviewController. Bind() refreshes
-// content + parents under the player's display; Release() detaches back to
-// the stable pool root and hides.
-//
-// Prefab structure (hand-authored):
-//   DangerAura  (Transform, DangerAura)
-//     ├─ Glow   (SpriteRenderer — aura sprite, pivot bottom-center; sorting
-//                 layer 'Unit Overlays')
-//     └─ Label  (TextMeshPro — world-space text mesh; same sorting layer,
-//                 higher order so it sits in front of the glow; supports
-//                 two lines)
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 
@@ -103,7 +79,6 @@ namespace DarkSpire
 
         // ─── Bind / Release ─────────────────────────────────────────────────
 
-        /// <summary>Reset state and attach to the given player's UnitDisplay at the feet.</summary>
         public void Bind(in IntentTargetEntry entry, UnitDisplay display)
         {
             currentTint = entry.hasAttack
@@ -128,7 +103,6 @@ namespace DarkSpire
             gameObject.SetActive(true);
         }
 
-        /// <summary>Hide and return to the stable parent so the pool can re-issue it later.</summary>
         public void Release()
         {
             gameObject.SetActive(false);
@@ -190,12 +164,5 @@ namespace DarkSpire
             return "Afflict";
         }
 
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (minAlpha > maxAlpha) (minAlpha, maxAlpha) = (maxAlpha, minAlpha);
-            ApplySorting();
-        }
-#endif
     }
 }

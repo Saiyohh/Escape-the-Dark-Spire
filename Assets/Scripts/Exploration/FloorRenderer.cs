@@ -67,11 +67,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Destroy the campsite overlay at <paramref name="pos"/> so the rest
-        /// tile reads as a regular Floor after use. Called from
-        /// DungeonWalkoverDispatcher when the player presses E.
-        /// </summary>
         public void MarkRestUsed(Vector2Int pos)
         {
             if (restOverlays.TryGetValue(pos, out var go))
@@ -166,11 +161,6 @@ namespace DarkSpire
             };
         }
 
-        /// <summary>
-        /// Spawn the campsite glyph on top of a Rest tile's Floor sprite.
-        /// Tracked in restOverlays so MarkRestUsed can remove just this
-        /// overlay (not the underlying floor).
-        /// </summary>
         private void SpawnRestOverlay(Vector2Int pos)
         {
             var lib = Library;

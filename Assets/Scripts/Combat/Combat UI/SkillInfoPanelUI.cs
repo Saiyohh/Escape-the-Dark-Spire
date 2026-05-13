@@ -1,24 +1,3 @@
-// SkillInfoPanelUI.cs
-// -----------------------------------------------------------------------------
-// Detail readout for whichever skill is currently hovered in the SkillSubmenuUI.
-// Shows the banner art (masked to a wide rectangle), skill name, Range badge,
-// SP badge, and description.
-//
-// Driven by SkillSubmenuUI.ShowInfo(skill). The panel is a sibling of the
-// card list, not a child — so hovering a card in the list doesn't de-hover
-// itself by moving the pointer onto the info panel.
-//
-// Prefab setup:
-//   SkillInfoPanel (GameObject)
-//     Image (background)
-//     ├─ BannerMask (RectTransform + Image + Mask) — wide rectangle
-//     │   └─ Banner (Image — sprite set at Bind from SkillData.GetArtBanner)
-//     ├─ Header (horizontal)
-//     │   ├─ Name (TMP, left)
-//     │   ├─ RangeBadge (rounded Image tinted + "Range: 4-6" TMP inside)
-//     │   └─ SpBadge (rounded Image tinted + "SP: 3" TMP inside)
-//     └─ Description (TMP, wordwrap)
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -81,13 +60,6 @@ namespace DarkSpire
         public void Show(SkillData skill, float masteryProgress01 = 0f) =>
             Show(skill, caster: null, masteryProgress01);
 
-        /// <summary>
-        /// Detail-render variant that wires the rich-text DescriptionRenderer
-        /// against a caster unit so number values, color coding, keyword
-        /// tooltips, and live target-hover updates all work. Pass <c>null</c>
-        /// for caster from non-combat contexts; numbers fall back to their
-        /// magnitude with no scaling and default coloring.
-        /// </summary>
         public void Show(SkillData skill, Unit caster, float masteryProgress01 = 0f)
         {
             if (skill == null) { ShowEmpty(); return; }
@@ -161,17 +133,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Adjust the banner Image's anchored position so the focal point
-        /// (focalX, focalY) controls which slice of the authored image shows
-        /// through the mask. Both the mask AND the banner image's authored
-        /// size are respected — this method does NOT resize anything.
-        ///
-        /// Only the axis where the authored image exceeds the mask gets
-        /// offset; the other axis stays at 0.
-        ///   image taller than mask → focalY picks vertical slice
-        ///   image wider than mask  → focalX picks horizontal slice
-        /// </summary>
         private void ApplyBannerFit(Sprite sprite, float focalX, float focalY)
         {
             if (bannerImage == null || bannerMask == null || sprite == null) return;
@@ -196,11 +157,6 @@ namespace DarkSpire
             bannerRT.anchoredPosition = new Vector2(xOff, yOff);
         }
 
-        /// <summary>
-        /// Drive the upgrade-progress fill amount (0..1). Wires straight into
-        /// Image.fillAmount on the upgradeFill slot. Caller is responsible for
-        /// computing the ratio from current mastery count / threshold.
-        /// </summary>
         public void SetMasteryProgress(float progress01)
         {
             if (upgradeFill == null) return;

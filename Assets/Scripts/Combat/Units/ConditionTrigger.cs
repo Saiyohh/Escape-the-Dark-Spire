@@ -1,20 +1,3 @@
-// ConditionTrigger.cs
-// -----------------------------------------------------------------------------
-// The compositional core of the condition system. A ConditionData asset pairs
-// identity fields with:
-//   • PassiveModifier[]  — always-on stat changes (Strength +POW, Weak −POW, etc.)
-//   • ConditionTrigger[] — event-driven reactions (when X happens, do Y, then
-//                          change my stacks by Z)
-//
-// The four parts of each trigger:
-//   WHEN       TriggerEvent — which combat event fires me
-//   IF...      TriggerConditional[] — optional filters (stacks >=, chance, etc.)
-//   DO         TriggerAction[] — what to do when I fire
-//   THEN       StackOp — how my stacks change after firing
-//
-// Runtime dispatch lives in ConditionManager. Designers compose new conditions
-// entirely in the inspector via the custom ConditionDataEditor.
-// -----------------------------------------------------------------------------
 using System;
 
 namespace DarkSpire
@@ -62,27 +45,6 @@ namespace DarkSpire
         OnDeath,
     }
 
-    /// <summary>
-    /// When a condition with this timing auto-clears. Replaces the old
-    /// `clearsAtTurnStart` bool to disambiguate owner-vs-round scoped
-    /// removal.
-    ///
-    ///   • Never           — persist until removed explicitly (Strength, Doom)
-    ///   • OwnerTurnStart  — clears when this unit's OWN turn begins.
-    ///                        Used for per-unit cooldowns: Guarding (+4 DEF),
-    ///                        Flanked, Intangible, most Duration-style turn buffs.
-    ///   • RoundStart      — clears at the start of the NEXT round, before any
-    ///                        turn begins. Used for buffs meant to protect the
-    ///                        whole round regardless of who got them — Shields
-    ///                        is the canonical example (if Ally 1 gives Ally 2
-    ///                        Shields mid-round, Ally 2 still has it when their
-    ///                        turn comes).
-    ///   • RoundEnd        — clears at end of current round (before cleanup→next).
-    ///                        Rarely needed; provides a symmetric option.
-    ///
-    /// The structural flag `defensePersists` (Barricade) overrides RoundStart
-    /// clears of Shields specifically.
-    /// </summary>
     public enum ClearTiming
     {
         Never,
@@ -218,11 +180,6 @@ namespace DarkSpire
     //  Serializable data classes
     // ═════════════════════════════════════════════════════════════════════════
 
-    /// <summary>
-    /// Static stat bonus applied while this condition has stacks. Evaluated
-    /// every time Unit.Effective* is read — cheap because ConditionManager
-    /// sums these with a single pass.
-    /// </summary>
     [Serializable]
     public class PassiveModifier
     {
@@ -230,10 +187,6 @@ namespace DarkSpire
         public float amountPerStack;   // float to support DodgeChance (0.15) + int stats
     }
 
-    /// <summary>
-    /// Optional "IF..." filter on a trigger. All conditionals on a trigger must
-    /// pass (AND semantics) for the actions to fire.
-    /// </summary>
     [Serializable]
     public class TriggerConditional
     {
@@ -244,10 +197,6 @@ namespace DarkSpire
         public SkillTag tagFilter;
     }
 
-    /// <summary>
-    /// One "DO" step. Multiple actions on a trigger run in order (they can
-    /// read the mutable event context from previous actions).
-    /// </summary>
     [Serializable]
     public class TriggerAction
     {
@@ -261,11 +210,6 @@ namespace DarkSpire
         public StatKind stat;
     }
 
-    /// <summary>
-    /// A single trigger on a condition: WHEN + IF + DO + STACK-OP.
-    /// A condition can have any number of these (each fires independently
-    /// when its event matches).
-    /// </summary>
     [Serializable]
     public class ConditionTrigger
     {

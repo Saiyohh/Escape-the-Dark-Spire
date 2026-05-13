@@ -1,20 +1,3 @@
-// TooltipController.cs
-// -----------------------------------------------------------------------------
-// Singleton pool/registry for the tooltip system. Owns the tooltip prefab
-// that gets instantiated each time a TooltipSpawnPoint asks for a fresh
-// view, the parent transform under which pooled instances live, and the
-// global timing defaults that triggers fall back to.
-//
-// The controller no longer tracks ownership or anchor placement — that
-// moved to TooltipSpawnPoint, which manages a per-anchor stack of visible
-// tooltips. Each container in combat (orb tray, condition row, skill info
-// panel) hosts its own spawn point and routes triggers within it through
-// that point.
-//
-// Authoring shape — drop on a GameObject under the combat canvas (or any
-// scene root). Set the prefab + the tooltips parent (a RectTransform under
-// the same combat canvas, last sibling so the children draw on top).
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -55,9 +38,6 @@ namespace DarkSpire
                  "spammed in normal play.")]
         public bool verboseLogging;
 
-        /// <summary>True if any TooltipController in the scene has verbose
-        /// logging on. Used by every system file via a single check so we
-        /// can sprinkle log statements without a static dependency.</summary>
         public static bool Verbose =>
             Instance != null && Instance.verboseLogging;
 
@@ -80,10 +60,6 @@ namespace DarkSpire
             if (Instance == this) Instance = null;
         }
 
-        /// <summary>Get a tooltip view (from the pool, or instantiated fresh).
-        /// The view is parented under <paramref name="parent"/> if non-null,
-        /// otherwise under <see cref="TooltipsParent"/>. Caller is responsible
-        /// for calling <see cref="Release"/> when finished.</summary>
         public TooltipView Allocate(Transform parent = null)
         {
             Transform target = parent != null ? parent : TooltipsParent;
@@ -156,8 +132,6 @@ namespace DarkSpire
             return v;
         }
 
-        /// <summary>Return a tooltip view to the pool. Caller should drop its
-        /// reference after calling this.</summary>
         public void Release(TooltipView view)
         {
             if (view == null) return;
@@ -172,15 +146,6 @@ namespace DarkSpire
 
         // ─── Diagnostic ──────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Editor-only test spawner. Right-click this component in the
-        /// Inspector during Play mode → "Test Spawn Tooltip" to allocate a
-        /// tooltip with placeholder content and place it at screen center.
-        /// Bypasses the trigger / spawn point pipeline entirely so you can
-        /// verify the prefab + parent + pool chain in isolation. The
-        /// spawned tooltip is NOT released — it stays visible until you
-        /// stop Play mode or call ClearTestSpawn.
-        /// </summary>
         [ContextMenu("Test Spawn Tooltip")]
         public void TestSpawnTooltip()
         {
@@ -207,7 +172,6 @@ namespace DarkSpire
                       $"in the hierarchy.", v);
         }
 
-        /// <summary>Hide & pool every tooltip the test spawner created.</summary>
         [ContextMenu("Clear Test Spawn")]
         public void ClearTestSpawn()
         {

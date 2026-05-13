@@ -1,22 +1,3 @@
-// TargetingSystem.cs
-// -----------------------------------------------------------------------------
-// Singleton that mediates target selection. Actions call BeginTargeting(mode,
-// caster, onConfirmed, onCancelled) and either:
-//   • Auto-resolve (Self, AllEnemies, AllAllies, RandomEnemy) → invoke immediately
-//   • Manual mode (SingleEnemy, SingleAlly) → raise OnTargetingStateChanged,
-//     let UnitDisplay dispatch clicks, fire onConfirmed on SelectTarget
-//
-// Escape + right-click cancel targeting.
-// TargetingArrow subscribes to the state/hover events for the bezier-arrow VFX.
-//
-// Range validation (Pass 2.B): BeginTargeting accepts rangeMin/rangeMax that
-// filter valid targets by RankHelper.Distance from the caster. Out-of-range
-// units are excluded from validTargets — clicks on them are ignored, and the
-// IsValidTarget query returns false (so TargetingArrow won't tint-green/red
-// on hover). Pass 0/99 or call without range args to skip the filter.
-//
-// Pass 2 TODO: add RandomAlly mode.
-// -----------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -45,7 +26,6 @@ namespace DarkSpire
         private int picksRequired = 1;
         public int PicksRequired => picksRequired;
         public int PicksSoFar => picksCollected.Count;
-        /// <summary>Fired each time a pick is added (picks so far, required). UI can read this for "pick 2 of 3" hints.</summary>
         public event Action<int, int> OnMultiPickProgress;
 
         // Active range window during targeting (Pass 2.B). Set by BeginTargeting,
@@ -55,11 +35,6 @@ namespace DarkSpire
         public int CurrentRangeMin { get; private set; } = 0;
         public int CurrentRangeMax { get; private set; } = int.MaxValue;
 
-        /// <summary>
-        /// Optional world-space origin for the targeting arrow.
-        /// Set by the action that initiates targeting (card, button, potion sprite).
-        /// If null, TargetingArrow falls back to the active unit's display position.
-        /// </summary>
         public Transform ArrowOriginOverride { get; private set; }
 
         public event Action<Unit> OnTargetHovered;
@@ -78,14 +53,6 @@ namespace DarkSpire
             allEnemyUnits = enemyUnits;
         }
 
-        /// <summary>Begin targeting mode. Calls callback with resolved targets when confirmed.</summary>
-        /// <param name="arrowOrigin">Optional Transform the targeting arrow should originate from.
-        /// Pass null to fall back to the active unit's display position.</param>
-        /// <param name="rangeMin">Minimum distance this target must be from caster. 0 = no min.</param>
-        /// <param name="rangeMax">Maximum distance. Leave default (int.MaxValue) for unrestricted.</param>
-        /// <param name="pickCount">How many individual targets the player must pick. 1 = legacy
-        /// one-click-confirms. >1 = each click adds to a collected list; confirm fires when the
-        /// list reaches pickCount. Applies only to SingleEnemy / SingleAlly modes.</param>
         public void BeginTargeting(TargetMode mode, Unit caster,
             Action<List<Unit>> onConfirmed, Action onCancelled = null,
             Transform arrowOrigin = null,
@@ -158,7 +125,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>True if `target` is inside the currently-active range window.</summary>
         private bool InRange(Unit caster, Unit target)
         {
             if (CurrentRangeMax >= int.MaxValue && CurrentRangeMin <= 0) return true;
@@ -166,7 +132,6 @@ namespace DarkSpire
             return d >= CurrentRangeMin && d <= CurrentRangeMax;
         }
 
-        /// <summary>Called by UnitDisplay when player clicks a unit during targeting.</summary>
         public void SelectTarget(Unit target)
         {
             if (!IsTargeting) return;

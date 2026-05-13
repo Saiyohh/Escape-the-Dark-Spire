@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Step 1: select room kinds and place them on the grid via rejection
     // sampling with minimum spacing. Failure to place a room within the
     // attempt budget aborts the attempt; the top-level driver retries with
     // a fresh seed.
@@ -112,7 +111,6 @@ namespace DarkSpire
 
         private static void StampRoom(GenContext ctx, RoomPlacement room)
         {
-            // Phase 1: flat floor stamp. Templates can override this in a future pass.
             for (int x = room.bounds.xMin; x < room.bounds.xMax; x++)
                 for (int y = room.bounds.yMin; y < room.bounds.yMax; y++)
                     ctx.tiles[x, y] = TileType.Floor;

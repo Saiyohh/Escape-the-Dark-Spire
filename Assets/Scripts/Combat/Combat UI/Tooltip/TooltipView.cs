@@ -1,23 +1,3 @@
-// TooltipView.cs
-// -----------------------------------------------------------------------------
-// Drives one pooled tooltip prefab's UI. Owns the root RectTransform, the
-// header row (icon + label), and the body (single block OR passive/evoke
-// pair). Position is set externally by TooltipSpawnPoint via
-// SetScreenPosition — this script only renders content.
-//
-// Visual structure (authored in the prefab — this script just toggles + fills):
-//
-//   TooltipPanel (Image — black bg + UIOutline white border; this script
-//                 lives here; pooled instance is a child of the combat
-//                 canvas's TooltipsParent)
-//   ├─ Header (HorizontalLayoutGroup)
-//   │   ├─ Icon  (Image — Preserve Aspect)
-//   │   └─ Label (TMP_Text — name)
-//   ├─ Body  (TMP_Text — single-block path)
-//   └─ PassiveEvoke (VerticalLayoutGroup — orb path)
-//       ├─ PassiveLabel (TMP_Text)
-//       └─ EvokeLabel   (TMP_Text)
-// -----------------------------------------------------------------------------
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -68,8 +48,6 @@ namespace DarkSpire
                  "at Awake.")]
         [Min(0f)] [SerializeField] private float fadeInDuration = 0.15f;
 
-        /// <summary>The panel's RectTransform — used by the spawn point to
-        /// read the panel's preferred size after layout rebuild.</summary>
         public RectTransform PanelRoot => panelRoot;
 
         // CanvasGroup driven by PlayFadeIn. Auto-resolved (added if missing)
@@ -96,12 +74,6 @@ namespace DarkSpire
             if (canvasGroup != null) canvasGroup.alpha = 1f;
         }
 
-        /// <summary>
-        /// Snap alpha to 0 and animate to 1 over <c>fadeInDuration</c>. Called
-        /// by TooltipSpawnPoint only on a NEW allocation (not on content
-        /// updates of an already-visible tooltip — that would re-fade every
-        /// frame the spawn point's Layout re-runs, which looks awful).
-        /// </summary>
         public void PlayFadeIn()
         {
             if (canvasGroup == null) return;
@@ -179,13 +151,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Place the panel's center at <paramref name="screenPoint"/> (in
-        /// screen pixels — origin bottom-left). Sets the pivot to centered
-        /// for predictable arithmetic and converts the screen point into
-        /// the panel's parent-local rect via RectTransformUtility, which
-        /// handles every canvas mode uniformly (Overlay / Camera / WorldSpace).
-        /// </summary>
         public void SetScreenPosition(Vector2 screenPoint)
         {
             if (panelRoot == null) return;

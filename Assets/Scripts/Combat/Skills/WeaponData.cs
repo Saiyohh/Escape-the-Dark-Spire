@@ -1,14 +1,3 @@
-// WeaponData.cs
-// -----------------------------------------------------------------------------
-// ScriptableObject for equipped weapons. Drives basic attacks: base damage,
-// hit bonus, crit threshold, hit count, optional on-hit condition. Equipped
-// by Unit.equippedWeapon and consumed by SkillResolver.ResolveWeaponAttack.
-//
-// Description: BuildDescriptionTokens() returns an auto-generated mechanical
-// header ("Attack for 3+POW × 2 hits. On hit: apply 1 Bruise.") followed by
-// the hand-written `description` field as flavor text (parsed for
-// [[Keyword]] markup).
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -62,11 +51,6 @@ namespace DarkSpire
         public int maxUpgradeTier = 1;
         public int shopCost;
 
-        /// <summary>
-        /// Tokenized description: auto-built mechanical header from the data
-        /// fields followed by the hand-written `description` (parsed for
-        /// [[Keyword]] inline markup). Consumed by DescriptionRenderer.
-        /// </summary>
         public List<DescriptionToken> BuildDescriptionTokens()
         {
             return DescriptionTokenizer.BuildWeaponTokens(this);

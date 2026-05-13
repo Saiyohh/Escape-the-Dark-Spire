@@ -1,18 +1,3 @@
-// CombatEnums.cs
-// -----------------------------------------------------------------------------
-// All shared enums used by combat systems. Kept in one file so SkillData,
-// EnemyData, ConditionData, Unit, CombatManager etc. can reference them
-// without circular-include concerns.
-//
-// Dark Spire note: Pass 2 rules work is complete as of 2.C. Done: stat
-// renames (AC→DEF, MGT→POW, AGI→SPD, SOUL/VIG→WIL); cooldown removal;
-// TargetMode.RandomAlly/WholeParty; Shields condition replacing
-// temporaryDefense; Guarding data-driven via defModifier; hasBonus → hasFree;
-// Poison tick at afflicted unit's TurnStart; nat-1 crit-miss = 1 self-damage;
-// rank + range + movement keywords; WIL save (SkillDiceRule + DiceRoller.SaveRoll).
-// Powers/Echoes relic enums below are dead — left in so the ported files
-// compile unchanged.
-// -----------------------------------------------------------------------------
 namespace DarkSpire
 {
     public enum CombatPhase
@@ -45,16 +30,6 @@ namespace DarkSpire
         WholeParty,   // Hits all four characters regardless of KO status (revive effects)
     }
 
-    /// <summary>
-    /// All skill-effect operations. Each maps to a SkillResolver case. Grouped
-    /// by category for inspector organization via EffectCategoryOf().
-    ///
-    /// Subsystem effects (Orb, Osty, Stars/Forge, Shiv, Seal, Extra Action,
-    /// Retaliate) are PLACEHOLDERS in Pass 2 — SkillResolver logs a warning
-    /// when they fire. Their inspector fields are fully authored so designers
-    /// can keep building skill assets; runtime implementation lands per
-    /// character-kit pass (Defect Orbs, Necrobinder Osty, Regent Stars, etc.).
-    /// </summary>
     public enum SkillEffectType
     {
         // ── Core combat ──────────────────────────────────────
@@ -98,22 +73,12 @@ namespace DarkSpire
         Afflict,           // WIL-save gated condition application. On FAILED save, condition lands.
     }
 
-    /// <summary>
-    /// Sub-kind for <see cref="SkillEffectType.Apply"/>. Lets one Apply
-    /// effect mean either "deal flat damage" or "put a condition on the
-    /// target" without needing two separate enum values.
-    /// </summary>
     public enum ApplyKind
     {
         Damage,    // Flat damage; uses magnitude.
         Condition, // Puts stacks of conditionID on the target; stacks via stackCountKind.
     }
 
-    /// <summary>
-    /// Which caster stat adds to an Attack or Apply+Damage effect's final
-    /// damage. None = no stat bonus (pure magnitude). Picked per-effect so a
-    /// single skill can mix POW-scaling attacks with DEX-scaling followups.
-    /// </summary>
     public enum DamageStat
     {
         None,   // No stat bonus — magnitude is final.
@@ -122,12 +87,6 @@ namespace DarkSpire
         WIL,    // + caster WIL (spell / willpower scaling).
     }
 
-    /// <summary>
-    /// Per-effect gate. Each effect in a skill's effect list can be made
-    /// conditional on the outcome of the most recent Attack or Afflict
-    /// against the same target. Effects gate independently per target —
-    /// if only target A was hit, an OnHit effect runs only against A.
-    /// </summary>
     public enum ConditionalGate
     {
         Always,     // Unconditional — effect always fires.
@@ -139,7 +98,6 @@ namespace DarkSpire
         OnFail,     // Requires the most recent Afflict to have failed (caster won; condition landed).
     }
 
-    /// <summary>Coarse grouping used by the skill inspector to title sections.</summary>
     public enum SkillEffectCategory
     {
         Core,
@@ -164,7 +122,6 @@ namespace DarkSpire
     // Which orb(s) an Evoke effect targets. Names follow on-screen layout: in
     // this game new channels push into slot 0, which renders on the right, so
     // slot 0 = visually rightmost and slot N-1 = visually leftmost.
-    //   First    = slot 0 (the visually-rightmost orb). Standard Evoke target;
     //              evokeCount > 1 fires the same orb repeatedly (Dualcast).
     //   Leftmost = slot N-1 (the visually-leftmost / oldest orb). Useful for a
     //              "drain from the back of the queue" mechanic. Single-fire
@@ -210,15 +167,6 @@ namespace DarkSpire
         Any,           // Ally including companions
     }
 
-    /// <summary>
-    /// For effects that apply condition stacks, how is the stack count derived?
-    ///   • Fixed — uses effect.conditionStacks verbatim
-    ///   • UnblockedDamage — apply stacks equal to unblocked damage dealt this
-    ///     effect (Blight Strike: "apply Doom equal to unblocked damage dealt")
-    ///   • DamageDealt — total damage dealt this effect (pre-Shields)
-    ///   • CasterPOW — caster's EffectivePOW
-    ///   • TargetStacks — stacks of another condition on the target (e.g. Cursed scaling)
-    /// </summary>
     public enum ConditionStackSource { Fixed, UnblockedDamage, DamageDealt, CasterPOW, TargetStacks }
 
     // Skills carry one or more mechanical-subsystem tags. These mirror the Tags
@@ -330,12 +278,6 @@ namespace DarkSpire
 
     public enum EnemyIntentType { Attack, Guard, Buff, Debuff, Skill, Stunned, Unknown }
 
-    /// <summary>
-    /// Encounter-tier classification for enemies. Drives the visual treatment
-    /// (HUD badge, name color) and gates encounter authoring (one Boss per
-    /// fight, etc.). Pure stat scaling stays on EnemyData itself — designers
-    /// pick the numbers per-enemy rather than blanket-multiplying by tier.
-    /// </summary>
     public enum EnemyType
     {
         Normal,  // Standard mook. No badge.
@@ -343,19 +285,6 @@ namespace DarkSpire
         Boss,    // Floor / act capper. Red badge.
     }
 
-    /// <summary>
-    /// How an enemy intent picks among in-range players. State-based heuristics
-    /// (HP / max HP / WIL) compare across the eligible pool and pick the
-    /// extremum; ties break randomly. Condition-based variants prefer or avoid
-    /// targets carrying a specific condition.
-    /// </summary>
-    /// <summary>
-    /// How an enemy chooses its next move from the authored move pattern.
-    /// WeightedRandom rolls each turn against the per-move weight (default,
-    /// good for variety). Cycle iterates the pattern in order and loops back
-    /// at the end, ignoring weights — designed for telegraphed bosses or
-    /// simple mooks with a fixed routine ("smash, smash, regroup, repeat").
-    /// </summary>
     public enum EnemyMovePatternMode
     {
         WeightedRandom,
@@ -375,33 +304,8 @@ namespace DarkSpire
         LacksCondition,   // Prefer targets WITHOUT preferredCondition.
     }
 
-    /// <summary>
-    /// How a skill's attack-style roll is resolved. Drives SkillResolver's
-    /// dispatch tree. Maps directly to the Notion Skills DB "Dice Rule" column.
-    ///   • AttackRoll — classic d20 + ATK vs DEF; crit + crit-miss apply
-    ///   • AutoHit    — no roll, effects always land (Brace, Heal, etc.)
-    ///   • WilSave    — target rolls d20 + WIL vs (10 + caster WIL);
-    ///                   on SUCCESS the whole effect block is resisted
-    ///                   (one roll per target per cast, cached)
-    ///   • Passive    — skill doesn't execute when Played. Intended to be
-    ///                   event-subscription driven; for now SkillResolver
-    ///                   logs a warning if a Passive skill is Played and
-    ///                   returns empty results without spending SP
-    /// </summary>
     public enum SkillDiceRule { AttackRoll, AutoHit, WilSave, Passive }
 
-    /// <summary>
-    /// Direction/flavor of skill-driven movement. Self-movement (Advance/Withdraw)
-    /// always succeeds. Target-movement (Pull/Knockback/Shuffle) can be resisted
-    /// by a WIL save on the target — set SkillEffectData.saveDC > 0 to gate the
-    /// move on a save (target rolls d20 + WIL vs saveDC; success = resisted).
-    /// Leaving saveDC = 0 means the movement auto-applies.
-    ///   • Advance   N — user moves N ranks toward front (lower rank number)
-    ///   • Withdraw  N — user moves N ranks toward back  (higher rank number)
-    ///   • Pull      N — target moves N ranks toward the caster's side
-    ///   • Knockback N — target moves N ranks away from the caster's side
-    ///   • Shuffle     — target moves to a random rank
-    /// </summary>
     public enum MovementKind { Advance, Withdraw, Pull, Knockback, Shuffle }
 
     public enum Alignment

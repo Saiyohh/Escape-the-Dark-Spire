@@ -1,23 +1,3 @@
-// SceneTransitionOverlay.cs
-// -----------------------------------------------------------------------------
-// Persistent screen-space overlay that wraps SceneManager.LoadScene with a
-// slide-up cover + slide-down reveal. One singleton across the run; created
-// on first call (typically from the main menu or the first SceneFlow swap)
-// and survives every subsequent load via DontDestroyOnLoad.
-//
-// Behaviour:
-//   - First Awake snaps the black panel below the screen (uncovered).
-//     The first visible scene is shown immediately, no fade-in.
-//   - LoadSceneTransition(sceneName) slides the panel up to cover, then
-//     calls SceneManager.LoadScene synchronously, then waits for
-//     SceneManager.sceneLoaded and slides back down.
-//   - If a transition is requested while one is in flight, the request
-//     is dropped (logged) — keeps the slice's behaviour predictable.
-//
-// The overlay can be authored as a prefab at Resources/SceneTransitionOverlay
-// (Canvas + black RectTransform child) for art control. If the prefab is
-// missing, GetOrCreate falls back to a runtime-built canvas with default look.
-// -----------------------------------------------------------------------------
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -151,7 +131,6 @@ namespace DarkSpire
         // after SceneManager.LoadScene completes can have a massive deltaTime
         // (the engine just finished a synchronous load + asset rebind on that
         // frame). Without this cap, t jumps deep into the curve in a single
-        // step and the slide visibly teleports through most of its travel.
         // 1/30s = ~33ms ≈ a slow frame — generous, but still smooth.
         private const float MaxStepPerFrame = 1f / 30f;
 

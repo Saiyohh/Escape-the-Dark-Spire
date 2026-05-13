@@ -25,7 +25,6 @@ namespace DarkSpire
         private MapEntitySpriteLibrary Library =>
             MapEntitySpriteLibrary.ResolveOrSingleton(spriteLibrary);
 
-        // Phase 3 entry point. Phase 9 splits monster spawning out so it can
         // run AFTER the party token exists (monsters need a target).
         public void SpawnEntities(GeneratedFloorData floor)
         {
@@ -223,12 +222,6 @@ namespace DarkSpire
             monster.InitializeMonster(m, floor, party, Library, sr, detectionRadius, alertIndicatorSortingOrder);
         }
 
-        /// <summary>
-        /// Look up this floor's boss encounter (without consuming it) and
-        /// return the per-enemy mapIcon override if any boss-tagged enemy in
-        /// the pool has one wired. Returns null when no override exists —
-        /// caller falls back to MapEntitySpriteLibrary.boss.
-        /// </summary>
         private static Sprite ResolveBossMapIcon()
         {
             var em = EncounterManager.Instance;

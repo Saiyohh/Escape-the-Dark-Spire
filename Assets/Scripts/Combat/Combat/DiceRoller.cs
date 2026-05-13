@@ -1,12 +1,3 @@
-// DiceRoller.cs
-// -----------------------------------------------------------------------------
-// All RNG rolls used by combat go through here: d20 attack rolls, d8
-// initiative, generic d-any. Pure static utility — no state, no events.
-//
-// Nat-1 crit miss (attack) and nat-1 auto-fail / nat-20 auto-succeed (save)
-// are handled here and by SkillResolver. The hot-path tuples stay narrow —
-// callers detect the natural-die edge cases themselves.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
@@ -19,13 +10,6 @@ namespace DarkSpire
 
         public static int RollInitiative(int agiModifier) => RollD8() + agiModifier;
 
-        /// <summary>
-        /// Attack roll: d20 + attackBonus vs targetDEF.
-        /// Returns (hit, crit, rawD20, totalRoll).
-        /// Crit: raw d20 >= critThreshold (default 20). Crits always hit.
-        /// Nat-1 is NOT flagged here — callers detect `rawRoll == 1` to apply
-        /// crit-miss self-damage (keeps this tuple narrow for hot-path use).
-        /// </summary>
         public static (bool hit, bool crit, int rawRoll, int totalRoll) AttackRoll(
             int attackBonus, int targetDEF, int critThreshold = 20)
         {
@@ -36,18 +20,6 @@ namespace DarkSpire
             return (hit, crit, raw, total);
         }
 
-        /// <summary>
-        /// WIL save roll: target rolls d20 + targetWIL vs DC. When <paramref name="dc"/>
-        /// is 0, the default DC of <c>10 + casterWIL</c> applies (GDD default).
-        /// Pass an explicit dc to override for specific skills.
-        ///
-        /// Natural-die edge cases (D&D convention, explicit on purpose):
-        ///   • Nat-1  → save always fails
-        ///   • Nat-20 → save always succeeds
-        ///
-        /// Returns (saveSucceeded, rawD20, totalRoll). "Success" = the target
-        /// resists the effect.
-        /// </summary>
         public static (bool success, int rawRoll, int totalRoll) SaveRoll(
             int targetWIL, int casterWIL, int dc = 0)
         {

@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Step 3: identify natural dead ends in carved corridors and optionally
     // extend additional dead-end branches off corridor tiles. The terminals
     // collected here feed Step 5.5's extras pass.
     internal static class PlaceDeadEnds

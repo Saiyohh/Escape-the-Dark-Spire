@@ -1,23 +1,3 @@
-// PickupNotificationManager.cs
-// -----------------------------------------------------------------------------
-// Persistent toast feed for "you got something" feedback. One singleton across
-// the run; created on first call (typically from MainMenuController.Start).
-// Lives under DontDestroyOnLoad so dungeon ↔ combat round-trips don't tear it
-// down between gain events.
-//
-// Two API shapes:
-//   • ShowPickup(text, icon)   — single line, e.g. "+1 Key gained" with icon.
-//   • ShowMulti(lines)         — list of (text, icon) for batched events
-//                                 (e.g. campsite: one line per healed character).
-//
-// Each toast is a horizontal Image+TMP row: icon on the left, text on the
-// right. Toasts stack downward inside a vertical layout. They fade out after
-// `lifeSeconds` then self-destroy.
-//
-// Mirrors SceneTransitionOverlay / PauseMenuController bootstrapping: an
-// authored prefab at Resources/PickupNotifications takes precedence; otherwise
-// a runtime canvas is built so the loop is verifiable before art lands.
-// -----------------------------------------------------------------------------
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;

@@ -1,21 +1,3 @@
-// ItemSubmenuUI.cs
-// -----------------------------------------------------------------------------
-// Popup that lists every item the active player can currently use — pouch
-// items (character-locked, this unit's pouch) first, followed by the shared
-// party inventory. Each row is an ItemCardUI button; an ItemInfoPanelUI
-// alongside shows the banner + name + cost badges + description for whichever
-// item is hovered. Clicking a button picks that item and routes it into
-// CombatManager.OnPlayerChooseItem, which kicks off targeting.
-//
-// Mirrors SkillSubmenuUI structurally (same hover/cancel/close behavior, same
-// event subscriptions, same shared BackButton claim) with two differences:
-//   • Iterates Inventory.GetUsableFor(boundUnit) — merged pouch + party list
-//   • Wraps cardsContainer in a ScrollRect — items are expected to grow long
-//
-// Opens via ActionButtonsUI when the Items button is clicked; closes after
-// selection, on right-click (cancel), when targeting cancels, or when the
-// player's turn ends.
-// -----------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -68,7 +50,6 @@ namespace DarkSpire
             CombatEvents.OnActionResolved           -= HandleActionResolved;
         }
 
-        /// <summary>Open the submenu populated with the unit's usable items.</summary>
         public void OpenFor(Unit unit, Transform arrowOrigin)
         {
             if (panelRoot == null) panelRoot = gameObject;
@@ -114,11 +95,6 @@ namespace DarkSpire
             if (!wasOpen) OnOpened?.Invoke();
         }
 
-        /// <summary>
-        /// Rebuild the card list from the current inventory state. Called on
-        /// open and on action-resolved to pick up any GenerateItem grants
-        /// fired during a player's turn.
-        /// </summary>
         private void Repopulate()
         {
             for (int i = spawned.Count - 1; i >= 0; i--)
@@ -150,7 +126,7 @@ namespace DarkSpire
                     entry.source, entry.index,
                     onClicked:   () => OnCardClicked(capturedSource, capturedIndex),
                     onHovered:   () => ShowInfo(capturedItem),
-                    onUnhovered: () => { /* keep last-hovered showing */ });
+                    onUnhovered: () => {  });
                 spawned.Add(card);
             }
         }

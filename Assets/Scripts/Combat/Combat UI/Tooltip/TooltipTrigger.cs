@@ -1,34 +1,3 @@
-// TooltipTrigger.cs
-// -----------------------------------------------------------------------------
-// Abstract base for any element that wants to fire a tooltip on hover.
-// Subclasses do two things:
-//   1. Provide the tooltip's payload via BuildContent().
-//   2. Detect hover enter/exit through whatever input plumbing fits their
-//      element type (UGUI pointer events, world-space collider polling, TMP
-//      link hover detection, etc.) and call ShowTooltip() / HideTooltip().
-//
-// Two concrete bases ship with the system:
-//   • UITooltipTrigger      — UGUI IPointerEnter/Exit handlers. Use on any
-//                             RectTransform-based UI element.
-//   • WorldTooltipTrigger   — Polls Collider2D.OverlapPoint each frame
-//                             against the cursor world position. Use on
-//                             world-space SpriteRenderer elements (orb
-//                             slots) since the new Input System silently
-//                             skips OnMouseEnter/IPointerEnterHandler on
-//                             world sprites.
-//
-// Per-trigger ownership of the show delay + hide grace. Each trigger runs
-// its own coroutines so multiple triggers can be in flight simultaneously
-// without stomping each other's timing. The actual tooltip placement +
-// stacking happens in the trigger's resolved TooltipSpawnPoint.
-//
-// Authoring: triggers expose NO inspector fields by default. The spawn
-// point is auto-resolved via GetComponentInParent at Awake; timing comes
-// from the global TooltipController defaults; toggle behavior is the
-// MonoBehaviour's built-in `enabled` checkbox (disabled component → no
-// tooltip). Subclasses may add their own fields for content (e.g.
-// StaticTooltipTrigger's inspector-authored header / body text).
-// -----------------------------------------------------------------------------
 using System.Collections;
 using UnityEngine;
 
@@ -56,13 +25,8 @@ namespace DarkSpire
                                  "This trigger will silently no-op.", this);
         }
 
-        /// <summary>
-        /// Build the tooltip payload. Return false to suppress the tooltip on
-        /// this hover (e.g. an empty orb slot has nothing to show).
-        /// </summary>
         protected abstract bool BuildContent(out TooltipContent content);
 
-        /// <summary>Subclasses call this from their hover-enter detector.</summary>
         protected void ShowTooltip()
         {
             bool verbose = TooltipController.Verbose;
@@ -112,7 +76,6 @@ namespace DarkSpire
             else spawnPoint.ShowFor(this, content);
         }
 
-        /// <summary>Subclasses call this from their hover-exit detector.</summary>
         protected void HideTooltip()
         {
             CancelPendingShow();

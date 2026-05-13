@@ -1,21 +1,3 @@
-// Minimap.cs
-// -----------------------------------------------------------------------------
-// Corner panel rendering revealed-only tiles of the current floor. Uses a
-// Texture2D drawn at tileSize px per tile, displayed via a RawImage. Reads
-// FogOfWar.IsRevealed for the visible mask and PartyToken.GridPos for the
-// party-position dot.
-//
-// HAND-AUTHORED ONLY. The Canvas + frame + RawImage hierarchy MUST be authored
-// in the scene. The `display` RawImage is the only required Inspector ref;
-// `fog` and `party` are resolved at runtime from DungeonBootstrap.Bind(...).
-// Run Tools > DarkSpire > Scenes > Scaffold Minimap into open scene once to
-// generate a starting frame; the size/position you set there is what the
-// minimap will use at runtime.
-//
-// LateUpdate redraws only the deltas: tiles that flipped from unrevealed to
-// revealed since the last frame, plus the party-token tile (and the previous
-// one — cleared back to its base color).
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.UI;
 

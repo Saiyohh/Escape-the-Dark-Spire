@@ -1,19 +1,3 @@
-// IntentIconUI.cs
-// -----------------------------------------------------------------------------
-// One intent icon in the EnemyWorldHUD above-region strip. Bound to a single
-// EnemyIntent and renders what the enemy is going to do: an attack icon
-// with damage, a defense icon with shields gained, a buff/debuff icon, etc.
-//
-// The intent's behavior is a chain of SkillEffectData[] effects (the same
-// fidelity skills use). The label is derived by inspecting those effects
-// rather than reading flat fields — designers compose damage/shields/
-// conditions through the standard effect data structure.
-//
-// Prefab setup:
-//   IntentIcon (GameObject) — LayoutElement preferredWidth/Height = 48
-//     Image (intent sprite, swapped per intent type at bind time)
-//     └─ Label (TMP, shows damage "8", multi-hit "3×4", shields gained, etc.)
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -36,9 +20,7 @@ namespace DarkSpire
         private EnemyIntent intent;
         private Unit source;
 
-        /// <summary>The intent this icon is bound to. Null until Bind() runs.</summary>
         public EnemyIntent Intent => intent;
-        /// <summary>The enemy that authored the intent. Null until Bind() runs.</summary>
         public Unit Source => source;
 
         public void Bind(EnemyIntent intent, Unit source = null)
@@ -48,11 +30,6 @@ namespace DarkSpire
             Refresh();
         }
 
-        /// <summary>
-        /// Re-render the icon + label from the currently bound intent. Called
-        /// when the source's conditions change so a Weak / Strength landing
-        /// mid-turn updates the previewed damage number.
-        /// </summary>
         public void Refresh()
         {
             if (intent == null)
@@ -91,17 +68,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Inspect the effect chain for Attack effects and produce the icon
-        /// label. Multi-hit comes from two sources — a single Attack effect
-        /// with hitCount > 1 ("3×6"), OR multiple identical Attack effects
-        /// authored in series. Both fold into the same total-hit count, and
-        /// when every contributing strike shares the same magnitude+stat we
-        /// render as "N×M" (with N = total strikes, M = post-modifier per-hit
-        /// damage). Mixed magnitudes fall back to a single total-damage
-        /// number. Damage is previewed through DamageCalculator so a Weak /
-        /// Strength stack landing on the source updates the label live.
-        /// </summary>
         private static string ComputeAttackLabel(SkillEffectData[] effects, Unit src)
         {
             if (effects == null || effects.Length == 0) return "";
@@ -150,10 +116,6 @@ namespace DarkSpire
             return totalDamage.ToString();
         }
 
-        /// <summary>
-        /// Sum stacks across all effects that apply the Shields condition to
-        /// Self (the canonical "Guard for N" authoring).
-        /// </summary>
         private static string ComputeShieldsLabel(SkillEffectData[] effects)
         {
             if (effects == null) return "";
@@ -171,11 +133,6 @@ namespace DarkSpire
             return total > 0 ? total.ToString() : "";
         }
 
-        /// <summary>
-        /// Total condition stacks across condition-applying effects. Used for
-        /// Buff / Debuff icons so a "+1 Strength + 1 Tough" intent still
-        /// shows a meaningful number.
-        /// </summary>
         private static string ComputeStacksLabel(SkillEffectData[] effects)
         {
             if (effects == null) return "";

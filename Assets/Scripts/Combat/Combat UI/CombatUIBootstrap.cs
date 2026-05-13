@@ -1,27 +1,3 @@
-// CombatUIBootstrap.cs
-// -----------------------------------------------------------------------------
-// Single explicit source of truth for "the action UI is in its idle state."
-// Lives on the combat canvas as a once-per-scene component. Does two things:
-//
-//   1. On Awake (scene load) — force every modal / submenu / shared button
-//      into its closed state, before any unit turn fires. Fixes the long-
-//      standing class of bug where a designer-authored "active" GameObject
-//      sat visible on screen until the first turn-event ran.
-//
-//   2. On CombatEvents.OnCombatStart — repeat the reset. Belt and suspenders
-//      for cases where combat re-initializes mid-scene (e.g. a re-enter
-//      flow, a transition between encounters in the same scene) and the UI
-//      shouldn't carry stale binding state forward.
-//
-// The bootstrap doesn't OWN the visibility of any element — each submenu
-// still self-manages via OnEnable / turn events at runtime. It just ensures
-// the starting state is correct, which the per-element logic alone can't
-// guarantee because no turn has fired yet at scene load.
-//
-// To extend: add another serialized field for a new modal piece + reset it
-// in ResetAll. Keeping the list explicit (rather than auto-discovery) so
-// authoring stays readable and side-effects don't surprise designers.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
@@ -68,12 +44,6 @@ namespace DarkSpire
             CombatEvents.OnCombatStart -= ResetAll;
         }
 
-        /// <summary>
-        /// Idempotent. Drops every modal back to its closed state and
-        /// releases any shared bindings. Safe to call from anywhere; the
-        /// per-element Close/ForceClose methods all handle being called
-        /// when already closed.
-        /// </summary>
         public void ResetAll()
         {
             if (skillSubmenu != null)

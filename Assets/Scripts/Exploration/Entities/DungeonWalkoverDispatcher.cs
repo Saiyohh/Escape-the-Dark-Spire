@@ -93,7 +93,6 @@ namespace DarkSpire
                     {
                         Debug.Log("[Stairway] Floor cleared.");
                         DungeonEvents.InvokeFloorAdvance();
-                        // Slice = Floor 1 only; stepping the stairway after the
                         // boss is the Victory trigger. Multi-floor handling
                         // (next floor vs. final floor) lands when floors 2+
                         // ship.

@@ -33,7 +33,6 @@ namespace DarkSpire
             RunContext.gold += gold;
             RunStateHolder.Instance?.openedChests.Add(GridPos);
             Debug.Log($"[Chest] Opened. +{gold} gold (total: {RunContext.gold})");
-            // Phase 11: flash message
 
             var openSprite = library != null ? library.chestOpen : null;
             SwapSprite(openSprite, new Color(0.45f, 0.28f, 0.10f));

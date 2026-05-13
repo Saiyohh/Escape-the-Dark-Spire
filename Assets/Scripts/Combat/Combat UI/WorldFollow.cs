@@ -1,17 +1,3 @@
-// WorldFollow.cs
-// -----------------------------------------------------------------------------
-// Glues a UI RectTransform to a world-space Transform's position. Used when
-// a HUD lives under a SHARED world-space Canvas (instead of as a child of
-// the unit it's tracking) but still needs to follow that unit's movement —
-// rank slides, knockbacks, etc.
-//
-// Cheap LateUpdate copy of `target.position + offset` to `transform.position`.
-// LateUpdate ensures we read the unit's final per-frame position after any
-// of its own move animations have run.
-//
-// Optional `lifetimeBoundTo` field — if set, this object self-destroys when
-// the bound Unit dies (cleans up dangling HUDs from the shared canvas).
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
@@ -33,10 +19,6 @@ namespace DarkSpire
         public Transform Target { get => target; set => target = value; }
         public Vector3 Offset { get => offset; set => offset = value; }
 
-        /// <summary>
-        /// Wire this follower to a unit. Sets the target transform, offset,
-        /// and (optionally) the unit-death cleanup hook.
-        /// </summary>
         public void Bind(Transform target, Vector3 offset = default, Unit lifetimeUnit = null)
         {
             this.target = target;
@@ -66,7 +48,6 @@ namespace DarkSpire
             transform.position = target.position + offset;
         }
 
-        /// <summary>Snap once now (e.g. immediately after Bind so frame-1 doesn't lag).</summary>
         public void ApplyNow()
         {
             if (target == null) return;

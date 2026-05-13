@@ -1,30 +1,3 @@
-// UnitWorldHUD.cs
-// -----------------------------------------------------------------------------
-// World-space player HUD pinned under each player unit. Rendered by a UGUI
-// Canvas (World Space) sitting as a child of the UnitDisplay prefab. Shows:
-//   • HP bar (foreground fill + text "12 / 20")
-//   • SP bar (foreground fill + text "5 / 10")
-//   • Condition icon strip (HorizontalLayoutGroup filled with ConditionIconUI children)
-//
-// Lives per-unit → automatically follows the unit via transform parenting.
-// Automatically hidden by UnitDisplay.PlayDeathAnimationImmediate via Hide().
-//
-// Prefab setup (do once, drag onto UnitDisplay.unitWorldHUDPrefab):
-//   HUD_Player (GameObject)
-//     Canvas (RenderMode = World Space, Sort Order = 10, Scale = 0.01)
-//     + CanvasScaler (Constant Pixel Size, Scale Factor 1)
-//     + GraphicRaycaster (uncheck "Blocking Mask" so clicks pass through to units)
-//     RectTransform width 300, height 120
-//     ├─ HpBar (Slider; Background + Fill Area/Fill)
-//     │   └─ HpText (TMP)
-//     ├─ SpBar (Slider)
-//     │   └─ SpText (TMP)
-//     └─ ConditionsContainer (RectTransform with HorizontalLayoutGroup)
-//         (ConditionIconUI children spawn at runtime)
-//
-// Wire the Slider + TMP_Text + RectTransform + conditionIconPrefab fields on
-// this component, save prefab. Drop the prefab into UnitDisplay.unitWorldHUDPrefab.
-// -----------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -285,7 +258,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>Full rebuild — used on Initialize (unit may enter combat with pre-applied conditions).</summary>
         private void RebuildConditions()
         {
             if (conditionsContainer == null) return;
@@ -349,10 +321,6 @@ namespace DarkSpire
             return rootCanvasGroup;
         }
 
-        /// <summary>
-        /// Snap the HUD invisible (and non-blocking) for the combat-start
-        /// intro. Pair with FadeIn after the unit has slid into position.
-        /// </summary>
         public void PrepareForIntro()
         {
             var cg = GetOrAddRootCanvasGroup();
@@ -361,11 +329,6 @@ namespace DarkSpire
             cg.interactable = false;
         }
 
-        /// <summary>
-        /// Fade the HUD root from alpha 0 → 1 over <paramref name="duration"/>
-        /// seconds, optionally after a short delay. Restores raycast / input
-        /// when fully visible.
-        /// </summary>
         public Coroutine FadeIn(float duration, float startDelay = 0f)
         {
             if (introFadeCo != null) StopCoroutine(introFadeCo);
@@ -398,12 +361,6 @@ namespace DarkSpire
 
         // ─── Hover name overlay ─────────────────────────────────────────────
 
-        /// <summary>
-        /// Pre-fill the name label and snap statsGroup / nameGroup alphas so
-        /// the rest pose is "bars visible, name hidden". Called from
-        /// Initialize so the overlay starts in a known state regardless of
-        /// what the prefab authored on the CanvasGroup alphas.
-        /// </summary>
         private void InitializeHoverOverlay(Unit unit)
         {
             if (nameLabel != null && unit != null)
@@ -413,10 +370,6 @@ namespace DarkSpire
             isHovered = false;
         }
 
-        /// <summary>
-        /// Pointer entered the unit's hitbox — fade bars out and the name
-        /// label in. Called by UnitDisplay's hover handler.
-        /// </summary>
         public void OnUnitHoverEnter()
         {
             if (isHovered) return;
@@ -424,7 +377,6 @@ namespace DarkSpire
             StartHoverFade(targetBars: 0f, targetName: 1f);
         }
 
-        /// <summary>Pointer left — restore bars-visible / name-hidden.</summary>
         public void OnUnitHoverExit()
         {
             if (!isHovered) return;

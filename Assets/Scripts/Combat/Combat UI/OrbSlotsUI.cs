@@ -1,45 +1,3 @@
-// OrbSlotsUI.cs
-// -----------------------------------------------------------------------------
-// HUD widget that displays the orb queue for the orb-bearer (Defect) in the
-// player party. Subscribes to CombatEvents.OnCombatStart to locate the unit
-// flagged hasOrbSystem, then listens to that Unit.OnOrbsChanged for live
-// updates as orbs are channeled and evoked.
-//
-// Layout — parametric "camel arc" between two endpoints:
-//   • rightEndpoint anchors slot 0 (the evoke chamber — always Evoked first).
-//   • leftEndpoint anchors slot (orbSlotMax - 1).
-//   • Intermediate slots distribute evenly along the line, with vertical arc
-//     offset = arcHeight * 4t(1-t) so endpoints sit on the line and the
-//     apex (t=0.5) is the highest point.
-//   • For 3 slots: slot 0 = far right, slot 1 = apex of arc, slot 2 = far left.
-//
-// Fill semantics (driven by OrbManager, surfaced here visually):
-//   • Channels go to the rightmost EMPTY slot — when the tray is empty the
-//     first orb lands at slot 0 (right); each subsequent channel marches
-//     leftward through slot 1, slot 2, etc.
-//   • When slot 0 Evokes, the surviving orbs shift one slot to the right;
-//     the freed slot is always on the LEFT side of the tray.
-//   • Empty slots therefore always sit on the LEFT of the filled section.
-//
-// Slot widgets are spawned from `slotPrefab` at runtime and reused — when
-// orbSlotMax shrinks (theoretically; not yet wired), excess widgets are
-// disabled rather than destroyed. Empty slots show `emptySlotSprite` tinted
-// with `emptySlotColor`; filled slots show the OrbDataSO.icon tinted with
-// the orb's vfxColor.
-//
-// Layout space: this component reads endpoint Transform.localPosition values,
-// so the script works equally well anchored to the Defect's UnitDisplay
-// (world-space, sits above the head) or under a screen-space HUD canvas
-// (RectTransforms work via .localPosition the same way). The slotPrefab is
-// instantiated as a child of this component's transform; author its visual
-// component (Image, SpriteRenderer, etc.) to match the parent canvas.
-//
-// World-space follow:
-//   When `anchorToBearerDisplay = true`, the OrbSlotsUI reparents itself
-//   under the bearer's UnitDisplay transform at combat start (with a local
-//   offset). Rank shifts already lerp the UnitDisplay between rank-position
-//   transforms, and the orb tray rides along automatically as a child.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -219,11 +177,6 @@ namespace DarkSpire
             if (id == ConditionID.Focus) Refresh();
         }
 
-        /// <summary>
-        /// Reparent under the bearer's UnitDisplay so the tray follows the
-        /// Defect when ranks shift. The UnitDisplay lerps between rank-position
-        /// transforms; as a child of it, the tray inherits the motion.
-        /// </summary>
         private void AttachToBearerDisplay()
         {
             if (boundUnit == null || wasReparented) return;
@@ -375,16 +328,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Spawn additional slot GameObjects from the prefab until we have at
-        /// least `count` of them. Existing slots are reused. Excess slots
-        /// beyond `count` are deactivated by Refresh, not destroyed, so the
-        /// pool is stable across orbSlotMax changes (e.g. a future aspect
-        /// granting +1 slot mid-combat).
-        ///
-        /// Also caches the per-slot OrbSlotView component (or null if the
-        /// prefab predates that authoring shape) for the number-display path.
-        /// </summary>
         private void EnsureSlotCount(int count)
         {
             if (slotPrefab == null) return;
@@ -397,15 +340,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Parametric position along the camel arc.
-        /// Slot 0 → right endpoint (t=0). Slot (n-1) → left endpoint (t=1).
-        /// Intermediate slots distribute evenly. The vertical arc offset is
-        /// arcHeight * 4t(1-t), so endpoints sit on the line and the apex
-        /// sits halfway between them.
-        ///
-        /// Single-slot edge case: place at the midpoint with full arc apex.
-        /// </summary>
         private Vector3 CurvePoint(int slotIndex, int slotCount)
         {
             Vector3 right = ToLocal(rightEndpoint);
@@ -425,13 +359,6 @@ namespace DarkSpire
 
         // ─── Channel-in spawn animation ──────────────────────────────────────
 
-        /// <summary>
-        /// Quick scale pop from channelStartScale to the slot's authored
-        /// localScale. Used to sell "an orb just got channeled" without
-        /// needing a per-orb particle effect. Caller should ensure the slot
-        /// has its final scale on its transform — we read it as the target
-        /// and snap-set the start scale before lerping back.
-        /// </summary>
         private System.Collections.IEnumerator ChannelGrow(Transform slotTransform)
         {
             if (slotTransform == null || channelGrowDuration <= 0f) yield break;
@@ -482,13 +409,6 @@ namespace DarkSpire
             StartCoroutine(PulseSlot(pulseTarget));
         }
 
-        /// <summary>
-        /// Quick scale-up-then-down on the slot's transform. Placeholder
-        /// "orb hits" feedback until per-orb VFX prefabs land. Coroutine is
-        /// fire-and-forget; multiple overlapping pulses on the same slot
-        /// just last-write-wins on the scale, which looks fine for the
-        /// pacing we control via CombatManager.orbPassiveInterval.
-        /// </summary>
         private System.Collections.IEnumerator PulseSlot(Transform slotTransform)
         {
             if (slotTransform == null || passivePulseDuration <= 0f) yield break;
@@ -525,11 +445,6 @@ namespace DarkSpire
             return transform.InverseTransformPoint(anchor.position);
         }
 
-        /// <summary>
-        /// Set the slot's sprite + color through whichever renderer it has —
-        /// UI Image (canvas) or SpriteRenderer (world-space). Looks at the
-        /// root and one level of children.
-        /// </summary>
         private static void ApplySpriteAndColor(GameObject slot, Sprite sprite, Color color)
         {
             var img = slot.GetComponentInChildren<Image>(true);
@@ -547,32 +462,5 @@ namespace DarkSpire
             }
         }
 
-#if UNITY_EDITOR
-        // Visualize the arc in the editor so authoring the endpoints is easy.
-        private void OnDrawGizmosSelected()
-        {
-            if (rightEndpoint == null || leftEndpoint == null) return;
-            Vector3 right = rightEndpoint.position;
-            Vector3 left  = leftEndpoint.position;
-            Vector3 up = transform.TransformDirection(
-                arcUpDirection.sqrMagnitude > 0.0001f ? arcUpDirection.normalized : Vector3.up);
-
-            Gizmos.color = Color.cyan;
-            const int segments = 24;
-            Vector3 prev = right;
-            for (int i = 1; i <= segments; i++)
-            {
-                float t = (float)i / segments;
-                Vector3 onLine = Vector3.Lerp(right, left, t);
-                Vector3 p = onLine + up * (arcHeight * 4f * t * (1f - t));
-                Gizmos.DrawLine(prev, p);
-                prev = p;
-            }
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(right, 0.05f);
-            Gizmos.color = Color.gray;
-            Gizmos.DrawSphere(left, 0.05f);
-        }
-#endif
     }
 }

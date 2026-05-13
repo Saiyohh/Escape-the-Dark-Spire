@@ -1,36 +1,3 @@
-// TooltipSpawnPoint.cs
-// -----------------------------------------------------------------------------
-// A single anchor + stack-direction policy for tooltips. Drop on any
-// container that hosts tooltip-triggers (the orb tray, a party member's
-// condition row, the skill info panel, etc.). Triggers within the
-// container's hierarchy resolve to this spawn point automatically via
-// GetComponentInParent.
-//
-// All tooltips fired from triggers under this spawn point appear at the
-// same anchor and stack in a configured direction:
-//
-//   • growDirection      — Up or Down. Successive tooltips stack along
-//                          this axis.
-//   • horizontalAlign    — Right (anchor = LEFT edge of each tooltip) or
-//                          Left (anchor = RIGHT edge). Matches the
-//                          author's mental model of "tooltips extend
-//                          rightward/leftward from this point."
-//   • gap                — Pixels between the anchor and the first
-//                          tooltip, and between adjacent tooltips.
-//
-// Stack semantics:
-//   • Each call to ShowFor(owner, content) either adds a new tooltip
-//     (if owner is new) or updates an existing one (same owner). Layout
-//     re-runs after each change.
-//   • HideFor(owner) removes that owner's tooltip and recompacts.
-//   • The spawn point re-layouts each frame in LateUpdate if anything is
-//     visible, so tooltips track an anchor that moves at runtime (e.g.
-//     the orb tray reparents under the bearer's UnitDisplay, which slides
-//     between rank positions).
-//
-// Pool ownership: the spawn point allocates tooltip views from
-// TooltipController.Instance and releases them back when removed.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -93,9 +60,6 @@ namespace DarkSpire
             return false;
         }
 
-        /// <summary>Show or update a tooltip owned by <paramref name="owner"/>.
-        /// If the owner already has a tooltip in this stack, content is
-        /// updated in place; otherwise a new tooltip is appended.</summary>
         public void ShowFor(object owner, TooltipContent content)
         {
             // Update existing.
@@ -139,8 +103,6 @@ namespace DarkSpire
             view.PlayFadeIn();
         }
 
-        /// <summary>Remove the tooltip owned by <paramref name="owner"/> and
-        /// recompact the stack.</summary>
         public void HideFor(object owner)
         {
             for (int i = 0; i < stack.Count; i++)
@@ -243,20 +205,5 @@ namespace DarkSpire
             return worldCam.WorldToScreenPoint(Anchor.position);
         }
 
-#if UNITY_EDITOR
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.cyan;
-            Vector3 p = Anchor.position;
-            Gizmos.DrawWireSphere(p, 0.05f);
-
-            // Indicator arrow pointing in the grow direction.
-            Vector3 dir = growDirection == TooltipGrowDirection.Up ? Vector3.up : Vector3.down;
-            Gizmos.DrawLine(p, p + dir * 0.25f);
-            Vector3 hDir = horizontalAlign == TooltipHorizontalAlign.Right ? Vector3.right : Vector3.left;
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(p, p + hDir * 0.15f);
-        }
-#endif
     }
 }

@@ -72,7 +72,6 @@ namespace DarkSpire
             int yMin = Mathf.Max(0, partyTile.y - margin);
             int yMax = Mathf.Min(h - 1, partyTile.y + margin);
 
-            // First, paint tiles outside the active update box back to their
             // resting alpha (revealed or unseen) — only needed once on first
             // call when the box is small. Cheap to always do; bail out if not.
             // Optimization deferred: most floors will iterate the full grid

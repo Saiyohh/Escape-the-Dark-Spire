@@ -1,20 +1,3 @@
-// OrbDataSO.cs
-// -----------------------------------------------------------------------------
-// One ScriptableObject per orb type (Lightning, Frost, Dark, Light, Plasma,
-// Glass). Holds the metadata used by the HUD and runtime: orb type tag, tier,
-// presentation (icon, vfxColor), and the base magnitudes that OrbManager reads
-// when triggering Passive (per-turn) and Evoke (consume) effects.
-//
-// Effect *behavior* per orb type lives in OrbManager (a switch on OrbType),
-// not on this SO — Lightning hits a random enemy, Dark stores damage on the
-// instance, Glass debuffs itself per Passive, etc. Encoding that diversity
-// into a single field set on this SO would either lose information or grow
-// unwieldy; the switch is direct and easy to read.
-//
-// Magnitudes are *base* values. OrbManager adds the Defect's Focus stacks at
-// resolution time via FocusBoost(). See the canonical Defect GDD page for the
-// per-orb table.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire

@@ -1,18 +1,3 @@
-// KeywordTooltipPresenter.cs
-// -----------------------------------------------------------------------------
-// Routes keyword-link hovers from a DescriptionLinkHoverDispatcher to a tooltip
-// allocated from the existing TooltipController pool. Single-popup-at-a-time:
-// keyword hovers from any DescriptionRenderer in the scene share this one
-// presenter, and a new hover instantly swaps content (no flicker).
-//
-// Show delay + hide grace mirror the TooltipController defaults (0.3s / 0.05s).
-// If a tooltip is already visible, swapping to a different keyword is instant
-// (no re-delay) — matches the existing TooltipTrigger UX.
-//
-// Singleton pattern: drop one of these on a UI bootstrap GameObject. We don't
-// auto-create because positioning needs a Canvas reference; explicit placement
-// in the combat-UI scene is the right authoring shape.
-// -----------------------------------------------------------------------------
 using System.Collections;
 using UnityEngine;
 using TMPro;

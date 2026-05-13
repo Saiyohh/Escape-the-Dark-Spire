@@ -115,9 +115,6 @@ namespace DarkSpire
             sr.sortingOrder = sortingOrder;
 
             // Resolution order:
-            //   1. spriteOverride (per-instance authored)
-            //   2. MapEntitySpriteLibrary.partyToken (singleton)
-            //   3. runtime white square (debug placeholder)
             Sprite resolved = spriteOverride;
             if (resolved == null)
             {
@@ -132,7 +129,6 @@ namespace DarkSpire
             }
             else
             {
-                // Placeholder: white square + cyan tint so it's obviously a
                 // debug glyph. Authored sprite replaces both branches.
                 sr.color = new Color(0.85f, 0.95f, 1.0f, 1f);
                 if (sr.sprite == null)

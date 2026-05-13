@@ -1,27 +1,3 @@
-// SkillResolver.cs
-// -----------------------------------------------------------------------------
-// Static resolver that turns a click (Attack / Guard / Skill / enemy action)
-// into a CombatActionResult. Handles:
-//   • Weapon attacks (multi-hit, crit, dodge, on-hit conditions)
-//   • Guard (Guarding condition application)
-//   • Skills with 1-3 effects (damage, direct dmg, heal, SP restore,
-//     defense, apply/remove conditions)
-//   • Enemy actions (attacks, defense gain, condition application)
-//
-// Called from CombatManager (player actions) and EnemyAI.ExecuteMove (enemies).
-// Uses DiceRoller for rolls and DamageCalculator for damage math.
-//
-// Crit rules (attack rolls):
-//   • Natural 20 (or weapon.critThreshold hit) → hit, 2× base damage
-//   • Natural 1 → crit miss; attack fails, attacker takes 1 self-damage
-//
-// Dice-rule dispatch (Pass 2.C):
-//   • AttackRoll → d20 + ATK vs DEF with crit / crit-miss
-//   • AutoHit    → skip the roll, every effect in the skill lands
-//   • WilSave    → one save per target per cast (cached); success resists
-//                  the entire effect block against that target
-//   • Passive    → no-op on Play (reserved for event-subscription skills)
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -29,7 +5,6 @@ namespace DarkSpire
 {
     public static class SkillResolver
     {
-        /// <summary>Resolve a basic weapon attack from attacker to target.</summary>
         public static CombatActionResult ResolveWeaponAttack(Unit attacker, Unit target)
         {
             var result = new CombatActionResult
@@ -109,7 +84,6 @@ namespace DarkSpire
             return result;
         }
 
-        /// <summary>Resolve Guard action — Guarding condition (+4 DEF, or +2 if Frail).</summary>
         public static CombatActionResult ResolveGuard(Unit unit, ConditionData guardingCondition)
         {
             var result = new CombatActionResult
@@ -129,18 +103,6 @@ namespace DarkSpire
             return result;
         }
 
-        /// <summary>Resolve a skill with its multi-effect system.</summary>
-        /// <param name="actionType">
-        /// Tag applied to every emitted CombatActionResult. Skills pass
-        /// ActionType.Skill (default); items pass ActionType.Item via
-        /// ResolveItem. The combat log and submenu close-on-resolve filters
-        /// key off this tag.
-        /// </param>
-        /// <param name="fireSkillPlayed">
-        /// When true (default), fires OnSkillPlayed so conditions/aspects can
-        /// react to the play. ResolveItem passes false — items aren't skills
-        /// and shouldn't trigger "whenever you play a skill" reactions.
-        /// </param>
         public static List<CombatActionResult> ResolveSkill(
             Unit caster, SkillData skill, List<Unit> targets,
             List<Unit> allPlayerUnits, List<Unit> allEnemyUnits,
@@ -151,7 +113,6 @@ namespace DarkSpire
             var results = new List<CombatActionResult>();
 
             // Passive skills are triggered by events, not by the Play action.
-            // Stub here until the event-subscription system lands (Pass 3+).
             // No SP is consumed, no effects fire.
             if (skill.diceRule == SkillDiceRule.Passive)
             {
@@ -321,21 +282,8 @@ namespace DarkSpire
             return results;
         }
 
-        /// <summary>Hard cap on loop-link iterations per skill cast.</summary>
         public const int MaxLoopIterations = 16;
 
-        /// <summary>
-        /// Resolve an item use through the same effect pipeline as skills.
-        /// Items are mini-skills — same SkillEffectData[] authoring, same
-        /// targeting, same condition gates and loop links. The only
-        /// divergences are zero SP/Star/altCost (handled by zeroing the
-        /// wrapper SkillData fields) and ActionType=Item tagging.
-        ///
-        /// The transient SkillData wrapper is allocated per use and destroyed
-        /// after — Unity-idiomatic pattern for ad-hoc SO data, no asset
-        /// footprint. Item charge consumption is the caller's responsibility
-        /// (CombatManager.OnPlayerChooseItem calls Inventory.Consume).
-        /// </summary>
         public static List<CombatActionResult> ResolveItem(
             Unit user, ItemData item, List<Unit> targets,
             List<Unit> allPlayerUnits, List<Unit> allEnemyUnits)
@@ -370,16 +318,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Pick targets for an effect. Three paths:
-        ///   • Gate = Always        → effect.targetMode (normal).
-        ///   • Gate + sameTargetAsGate = true → filter gateState to entries that pass
-        ///     the gate; the effect runs only on targets the gate was observed on
-        ///     ("OnHit: Apply Weak to the unit you hit").
-        ///   • Gate + sameTargetAsGate = false → re-roll via effect.targetMode; the
-        ///     gate acts as a global "did this outcome happen anywhere?" check
-        ///     ("OnKill: Attack another enemy").
-        /// </summary>
         private static List<Unit> BuildEffectTargets(
             SkillEffectData effect, Unit caster,
             List<Unit> selectedTargets, List<Unit> allPlayers, List<Unit> allEnemies,
@@ -401,7 +339,6 @@ namespace DarkSpire
                 pickIndex: effect.targetPickIndex);
         }
 
-        /// <summary>True if any entry in gateState satisfies the given gate.</summary>
         private static bool AnyTargetPassesGate(Dictionary<Unit, GateState> gateState, ConditionalGate gate)
         {
             foreach (var kvp in gateState)
@@ -409,7 +346,6 @@ namespace DarkSpire
             return false;
         }
 
-        /// <summary>Per-target gate outcomes carried across effects in a single skill cast.</summary>
         private struct GateState
         {
             public bool didAttack;    // true once an Attack effect has targeted this unit
@@ -455,7 +391,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>Cache entry for WilSave skills — one save per target per cast.</summary>
         private readonly struct SaveRollOutcome
         {
             public readonly bool success;
@@ -472,14 +407,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Resolve a single effect against one target. Shared between player
-        /// skill casts and enemy intents — the only skill-vs-intent
-        /// differences are passed in: actionName/actionType for the result,
-        /// useAttackRoll for whether Attack effects roll d20-vs-DEF or
-        /// auto-hit, and skillIsWilSave to suppress double-saves on Move
-        /// effects whose parent skill already gated on a save.
-        /// </summary>
         private static CombatActionResult ResolveSingleEffect(
             Unit caster, string actionName, ActionType actionType,
             bool useAttackRoll, bool skillIsWilSave,
@@ -596,7 +523,6 @@ namespace DarkSpire
                 case SkillEffectType.Forge:
                 case SkillEffectType.Retaliate:
                 case SkillEffectType.OnAllyAttackRider:
-                    // Placeholder effect types — inspector fields are authored, runtime
                     // implementation lands in the per-character kit pass (Necrobinder
                     // Osty, Regent Forge, Silent Shivs/Seal, etc.).
                     Debug.LogWarning(
@@ -618,11 +544,6 @@ namespace DarkSpire
             return result;
         }
 
-        /// <summary>
-        /// Attack effect: d20 + ATK vs DEF, crit on nat crit-threshold, crit-miss on nat 1.
-        /// Honors useAttackRoll — when false, skips the roll and damage lands
-        /// (AutoHit / WilSave-gated skills that already passed their save).
-        /// </summary>
         private static void ResolveAttack(
             Unit caster, Unit target, bool useAttackRoll, SkillEffectData effect,
             CombatActionResult result)
@@ -691,10 +612,6 @@ namespace DarkSpire
             result.didHit = anyHit;
         }
 
-        /// <summary>
-        /// Afflict effect: WIL save against (effect.saveDC ?: 10 + caster WIL).
-        /// On FAIL → apply the condition. On SUCCESS → condition resisted.
-        /// </summary>
         private static void ResolveAfflict(
             Unit caster, Unit target, SkillEffectData effect, CombatActionResult result)
         {
@@ -717,12 +634,6 @@ namespace DarkSpire
             ResolveApplyCondition(caster, target, effect, result);
         }
 
-        /// <summary>
-        /// No-roll direct damage (what was SkillEffectType.DirectDamage, now
-        /// reachable via Apply+ApplyKind.Damage). Bypasses DEF and Shields.
-        /// Honors effect.damageStat so a Direct Damage effect can still scale
-        /// off POW/DEX/WIL if the designer wants.
-        /// </summary>
         private static void ResolveDirectDamage(
             Unit caster, Unit target, SkillEffectData effect, CombatActionResult result)
         {
@@ -733,10 +644,6 @@ namespace DarkSpire
             result.didHit = true;
         }
 
-        /// <summary>
-        /// Apply a condition with stacks. Shared by Apply+Condition, Afflict
-        /// (after failed save), and the legacy ApplyCondition path.
-        /// </summary>
         private static void ResolveApplyCondition(
             Unit caster, Unit target, SkillEffectData effect, CombatActionResult result)
         {
@@ -763,14 +670,6 @@ namespace DarkSpire
                 result.defenseGained = stacks;
         }
 
-        /// <summary>
-        /// Compute how many stacks to apply for a condition effect.
-        ///   • Fixed                → conditionStacks directly.
-        ///   • Per<Source>          → floor(sourceValue / stackPer) * conditionStacks.
-        ///                             "Apply 1 Vulnerable per 2 damage dealt" =
-        ///                             conditionStacks=1, stackPer=2, UnblockedDamage.
-        /// stackPer clamps to min 1 to avoid div-by-zero.
-        /// </summary>
         private static int ResolveConditionStacks(
             SkillEffectData effect, Unit caster, Unit target, CombatActionResult result)
         {
@@ -802,13 +701,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Resolves the positional movement keywords. Advance/Withdraw move the
-        /// caster on their own side and always succeed. Pull/Knockback/Shuffle
-        /// move the effect's target — if <c>effect.saveDC &gt; 0</c> and the
-        /// parent skill isn't already WilSave-gated, the target rolls a WIL
-        /// save; success resists the movement.
-        /// </summary>
         private static void ResolveMovement(
             Unit caster, Unit target, bool skillIsWilSave, SkillEffectData effect,
             CombatActionResult result)
@@ -870,13 +762,6 @@ namespace DarkSpire
 
         // ─── Orb effects (Defect) ────────────────────────────────────────────
 
-        /// <summary>
-        /// Channel one or more orbs onto the orb-bearer indicated by
-        /// effect.orbSource: Self = the caster (Defect), TargetAlly = the
-        /// effect's target ally, PerEnemy = one orb per living enemy onto
-        /// the caster. Each orb is resolved through OrbLibrary by orbType,
-        /// or picked at random when orbType == Random.
-        /// </summary>
         private static void ResolveChannelOrb(
             Unit caster, Unit target, SkillEffectData effect, CombatActionResult result)
         {
@@ -915,14 +800,6 @@ namespace DarkSpire
             result.didHit = true;
         }
 
-        /// <summary>
-        /// Evoke an orb on the caster's tray.
-        ///   First    = slot 0 (visually-rightmost). Standard Evoke; Dualcast
-        ///              (evokeCount > 1) fires the same orb repeatedly then
-        ///              consumes once.
-        ///   Leftmost = slot N-1 (visually-leftmost / oldest). Single-fire.
-        ///   All      = drain the whole tray.
-        /// </summary>
         private static void ResolveEvokeOrb(
             Unit caster, SkillEffectData effect, CombatActionResult result)
         {
@@ -943,10 +820,6 @@ namespace DarkSpire
             result.didHit = true;
         }
 
-        /// <summary>Resolve targets based on TargetMode.</summary>
-        /// <param name="pickIndex">For SingleEnemy / SingleAlly: which entry in
-        /// selectedTargets to use. Ignored by non-pick modes. Defaults to 0 so
-        /// external callers and legacy single-pick flows pick the first target.</param>
         public static List<Unit> ResolveTargets(
             TargetMode mode, Unit caster, List<Unit> selectedTargets,
             List<Unit> allPlayerUnits, List<Unit> allEnemyUnits,
@@ -1010,19 +883,6 @@ namespace DarkSpire
 
         // ─── Enemy resolution ────────────────────────────────────────────────
 
-        /// <summary>
-        /// Resolve every intent in an enemy's chosen move. Returns one
-        /// CombatActionResult per (effect, target) pair, in execution order —
-        /// matching the shape ResolveSkill returns so CombatManager can play
-        /// both back through the same per-result pipeline.
-        ///
-        /// Each intent picks its own primary target via
-        /// EnemyAI.SelectTargetForIntent (honoring the intent's range and
-        /// targetPreference). SingleEnemy effects use that pick; AllEnemies /
-        /// Self / AllAllies effects fan out via BuildEffectTargets. When no
-        /// player is in range the offensive effects whiff and Self / AllAllies
-        /// effects still resolve.
-        /// </summary>
         public static List<CombatActionResult> ResolveEnemyMove(
             Unit enemy, EnemyMove move,
             List<Unit> allPlayerUnits, List<Unit> allEnemyUnits)
@@ -1061,11 +921,6 @@ namespace DarkSpire
             return results;
         }
 
-        /// <summary>
-        /// Iterate one intent's effect chain with the same gate / loop /
-        /// per-target-pick logic ResolveSkill uses. No SP cost, no
-        /// FireSkillPlayed trigger — those are skill-only concerns.
-        /// </summary>
         private static void ResolveIntentEffects(
             Unit caster, string actionName, EnemyIntent intent,
             List<Unit> baseTargets, List<Unit> allPlayerUnits, List<Unit> allEnemyUnits,

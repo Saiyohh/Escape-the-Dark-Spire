@@ -1,13 +1,3 @@
-// CombatEvents.cs
-// -----------------------------------------------------------------------------
-// Static event bus for combat. Everything that wants to react to combat state
-// (UI HUDs, floating numbers, dice roll UI, future achievement/SFX systems)
-// subscribes here instead of holding direct refs to CombatManager.
-//
-// CombatManager fires the events. UI / VFX / audio listen.
-// ClearAll() is called from CombatManager.OnDestroy so listeners don't leak
-// across scene reloads.
-// -----------------------------------------------------------------------------
 using System;
 
 namespace DarkSpire

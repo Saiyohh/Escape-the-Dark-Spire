@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Step 5: place the boss-room doorway.
     //
     // Layout:
     //   [Corridor tile (one out from the room)]   <- BossGate entity (blocker)
@@ -14,13 +13,8 @@ namespace DarkSpire
     // is the descent trigger once the boss is defeated.
     //
     // Player flow:
-    //   1. Walk down corridor, hit the gate.   Locked — need N keys.
-    //   2. Get keys, press E adjacent.         Gate unlocks (entity stops blocking).
-    //   3. Walk through the corridor tile onto the stairway perimeter tile.
     //      Pre-boss-defeat: "Defeat the boss first" message; party still
     //      stands on the doorway.
-    //   4. Walk to boss, fight, win.           bossDefeated set in RunStateHolder.
-    //   5. Resume from combat.                 Gate entity is skipped on respawn
     //      (EntitySpawner filters BossGate when bossDefeated). Stairway tile is
     //      naked — walking back onto it descends.
     //

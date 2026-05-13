@@ -41,16 +41,13 @@ namespace DarkSpire
 
             var ctx = new InteractionContext(token, registry);
 
-            // 1. Entity at party's own tile (e.g. shrine the party walked onto).
             if (TryAt(token.GridPos, ctx)) return;
 
-            // 2. Entity at a 4-neighbour tile.
             foreach (var d in Dirs)
             {
                 if (TryAt(token.GridPos + d, ctx)) return;
             }
 
-            // 3. Tile-based interactions (rest tile at party's own position).
             if (walkoverDispatcher != null && walkoverDispatcher.TryTileInteract(token.GridPos))
                 return;
         }

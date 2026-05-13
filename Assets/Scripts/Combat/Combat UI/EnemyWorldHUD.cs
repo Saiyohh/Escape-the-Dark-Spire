@@ -1,32 +1,3 @@
-// EnemyWorldHUD.cs
-// -----------------------------------------------------------------------------
-// World-space enemy HUD. Two regions:
-//   BELOW the sprite: HP bar + text, optional DEF badge
-//   ABOVE the sprite: intent strip (icons for what the enemy will do this turn)
-//                    + a ChanceBox (shown while player is targeting THIS enemy;
-//                                   previews caster→enemy hit %)
-//
-// UnitDisplay spawns this from the enemyWorldHUDPrefab during Initialize, and
-// positions the whole prefab at the enemy's feet (enemyWorldHUDOffset). The
-// intent panel offsets itself UP by intentRelativeY so it sits above the head
-// even though the canvas anchor is at the feet.
-//
-// Prefab setup:
-//   HUD_Enemy (GameObject)
-//     Canvas (World Space, Scale 0.01)
-//     + GraphicRaycaster
-//     RectTransform
-//     ├─ BelowRegion (anchored at bottom)
-//     │    ├─ HpBar (Slider)
-//     │    │    └─ HpText (TMP)
-//     │    └─ DefBadge (Image + TMP) — only shown when defense > 0
-//     └─ AboveRegion (anchored at top; local Y = intentRelativeY)
-//          ├─ IntentContainer (HorizontalLayoutGroup)
-//          │    └─ IntentIconUI children spawn at runtime
-//          └─ ChanceBox (RectTransform anchored top-right of unit's hitbox;
-//                         child of this HUD but positioned to hitbox corner
-//                         by ChanceBox.Initialize using UnitDisplay.HitboxSize)
-// -----------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -131,7 +102,6 @@ namespace DarkSpire
                 // typically 0.01, giving 100 UGUI px per world unit.
                 //
                 // Pull the canvas scale from the SHARED CombatUIManager.WorldCanvas
-                // first (the HUD is now its child); fall back to this transform's
                 // local scale for legacy HUD prefabs that still carry their own
                 // Canvas component.
                 float canvasScale = 1f;
@@ -196,11 +166,6 @@ namespace DarkSpire
         public void Hide() => gameObject.SetActive(false);
         public void Show() => gameObject.SetActive(true);
 
-        /// <summary>
-        /// Fade the HUD's CanvasGroup to zero alpha over deathFadeOutDuration,
-        /// then deactivate. Adds a CanvasGroup at runtime if the prefab doesn't
-        /// have one. Snaps to hidden on duration <= 0.
-        /// </summary>
         private void FadeOutAndHide()
         {
             if (!gameObject.activeInHierarchy)
@@ -233,10 +198,6 @@ namespace DarkSpire
             gameObject.SetActive(false);
         }
 
-        /// <summary>
-        /// Short grow/shrink pulse on the intent strip — called by CombatManager
-        /// right before the enemy executes, to telegraph the incoming action.
-        /// </summary>
         public void PlayIntentPulse()
         {
             if (aboveRegion == null) return;
@@ -352,9 +313,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>Re-render every intent icon's label without rebuilding
-        /// the strip. Cheap — call on condition apply/change/remove so the
-        /// previewed damage tracks Weak / Strength stacks landing mid-turn.</summary>
         private void RefreshIntentLabels()
         {
             for (int i = 0; i < intentIcons.Count; i++)
@@ -437,7 +395,6 @@ namespace DarkSpire
             RefreshIntentLabels();
         }
 
-        /// <summary>Full rebuild — used on Initialize (enemy may spawn pre-afflicted by a debuff).</summary>
         private void RebuildConditions()
         {
             if (conditionsContainer == null) return;

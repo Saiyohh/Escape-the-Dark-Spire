@@ -1,25 +1,3 @@
-// SkillCardUI.cs
-// -----------------------------------------------------------------------------
-// Compact skill button shown in the SkillSubmenuUI list. Just the skill name
-// on the left and SP cost in a box on the right — details (banner, range,
-// description) live in the separate SkillInfoPanelUI which updates on hover.
-//
-// Hover ↔ Info panel link:
-//   • OnPointerEnter   → submenu.ShowInfo(skill)
-//   • OnPointerExit    → submenu.OnCardUnhovered(skill)  (stays on last skill)
-//   • OnPointerClick   → submenu picks the skill, closes, starts targeting
-//
-// Disables itself if the caster can't afford the skill.
-//
-// Prefab setup:
-//   SkillCard (GameObject)
-//     RectTransform preferredWidth = 280, preferredHeight = 36
-//     + Button (background Image — rounded rect)
-//     + SkillCardUI (this component)
-//     ├─ Name (TMP, left-aligned)
-//     └─ CostBox (Image rounded rect tinted with cost color)
-//         └─ CostLabel (TMP, centered, number like "3")
-// -----------------------------------------------------------------------------
 using System;
 using TMPro;
 using UnityEngine;

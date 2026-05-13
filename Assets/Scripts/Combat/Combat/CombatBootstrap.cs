@@ -1,23 +1,3 @@
-// CombatBootstrap.cs
-// -----------------------------------------------------------------------------
-// Scene entry point for the combat scene. Two entry paths:
-//
-//  1. Dungeon handoff (production path).
-//     SceneFlow.LoadCombat populated CombatHandoffPayload.Active before the
-//     scene swap. We read party + encounter from there, run the fight,
-//     subscribe to CombatEvents.OnCombatEnd, and on end write the result
-//     back into CombatHandoffPayload.Result and load the return scene via
-//     SceneFlow.ReturnFromCombat.
-//
-//  2. Editor test path.
-//     If CombatHandoffPayload.Active.encounter is null, we fall back to the
-//     inspector-assigned party + encounter (the original CombatTest workflow).
-//     OnCombatEnd is NOT subscribed in this path so the scene stays loaded
-//     for inspection — same behaviour as before Phase 10.
-//
-// PORT NOTE: Echoes' RelicManager / RelicData / startingRelic wiring was
-// stripped — relics are not ported (replaced by Aspect Tree in Pass 5).
-// -----------------------------------------------------------------------------
 using System.Collections;
 using UnityEngine;
 
@@ -106,7 +86,6 @@ namespace DarkSpire
             //
             // Runs AFTER InitializeCombat so the combat-start Stars grant
             // (Divine Right) and any other init hooks fire on full state
-            // first, then HP/SP get overwritten with persisted values.
             // Stars are intentionally NOT persisted (per-combat resource).
             if (CombatHandoffPayload.Active.encounter != null && RunContext.partyState != null)
             {

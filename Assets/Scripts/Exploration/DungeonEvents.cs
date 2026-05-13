@@ -1,13 +1,3 @@
-// DungeonEvents.cs
-// -----------------------------------------------------------------------------
-// Static event bus for the dungeon-exploration layer. Sibling of CombatEvents.
-// HUD, Minimap, FlashMessageController, and any other dungeon UI subscribe here
-// instead of holding direct refs to entities or RunContext.
-//
-// Entities and walkover dispatch fire the events. UI / VFX listen.
-// ClearAll() is called from DungeonBootstrap.OnDestroy so listeners don't leak
-// across scene reloads.
-// -----------------------------------------------------------------------------
 using System;
 
 namespace DarkSpire

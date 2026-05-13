@@ -1,25 +1,3 @@
-// FloatingFlare.cs
-// -----------------------------------------------------------------------------
-// Self-animating non-arc combat label. Used for condition apply / wear-off and
-// the standalone status words MISS / DODGE / RESIST / CRIT! / +X SHLD.
-//
-// Lifecycle:
-//   1. Fade-in: alpha 0 → 1 while position holds at startScreen.
-//   2. Drift: ease-out toward startScreen + (0, ±driftDistance, 0). Up for
-//      positive valence (gained buffs, wears-off, miss/crit/shields/etc.) and
-//      Down for negative-condition-gained.
-//   3. Fade-out: alpha 1 → 0 while drift continues at the eased rate.
-//   4. Self-destroys.
-//
-// One component drives both prefab variants:
-//   - Text-only flare (gained / miss / crit / dodge / resist / shields):
-//     leaves `icon` and `subtitle` unwired on the prefab.
-//   - Wears-off flare: wires `icon`, `subtitle`, and `label` for the
-//     icon + name + "Wears Off" treatment.
-//
-// All animation is in SCREEN space (pixel coordinates) under the shared
-// Combat (Screen Space - Overlay) canvas — no per-flare Canvas component.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

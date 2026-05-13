@@ -58,12 +58,6 @@ namespace DarkSpire
             return null;
         }
 
-        /// <summary>
-        /// 8-neighbor adjacency check: for every Wall tile, if NO neighbor in
-        /// the 3x3 around it is walkable, demote that wall to Empty. This
-        /// gives "wall = next to a walkable tile, draws the room/corridor
-        /// border" and "empty = far from walkable, ambient void".
-        /// </summary>
         private static void DemoteIsolatedWallsToEmpty(GenContext ctx)
         {
             int w = ctx.config.gridSize.x;

@@ -15,14 +15,12 @@ namespace DarkSpire
 
     public static class TileTypeExtensions
     {
-        /// <summary>True if a unit can stand on / pass through this tile type.</summary>
         public static bool IsWalkable(this TileType t) =>
             t == TileType.Floor
             || t == TileType.Start
             || t == TileType.Stairway
             || t == TileType.Rest;
 
-        /// <summary>True if this tile blocks movement / line of sight (Wall + Empty).</summary>
         public static bool IsImpassable(this TileType t) => !t.IsWalkable();
     }
 }

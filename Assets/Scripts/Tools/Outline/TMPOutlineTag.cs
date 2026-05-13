@@ -1,28 +1,3 @@
-// TMPOutlineTag.cs
-// -----------------------------------------------------------------------------
-// Tints a TMP text's outline per-instance without forking the SDF font asset.
-//
-// Instead of using TMP's inside-of-glyph `_OutlineColor` (which eats glyph
-// face area), this drives the SDF shader's **Underlay** layer — a drop-shadow
-// feature that renders BEHIND the glyph. By setting the underlay offset to
-// zero and dilating outward, the underlay becomes a proper outside-only
-// outline. The font asset itself is untouched; every TMP text using the same
-// font keeps sharing its font texture. Only the per-instance material is
-// modified (TMP_Text.fontMaterial is an auto-instanced copy of the shared
-// material, so setting properties here doesn't leak to other text objects).
-//
-// Tag → (color, dilate) comes from the OutlineProfile, same pattern as
-// SpriteOutline / UIOutline. Override fields let individual instances
-// diverge, with a Reset-to-Default affordance in the custom editor.
-//
-// Reasons this works without a custom shader:
-//   • TMP's UNDERLAY_ON shader keyword is already baked into the standard
-//     Distance Field shader
-//   • TMP materials already expose _UnderlayColor, _UnderlayOffsetX/Y,
-//     _UnderlayDilate, _UnderlaySoftness — we just drive them
-//   • fontMaterial is a per-instance override (Unity cheats it in via the
-//     renderer), so edits don't propagate to other text
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 

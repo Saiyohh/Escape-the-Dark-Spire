@@ -1,31 +1,3 @@
-// EnemyData.cs
-// -----------------------------------------------------------------------------
-// ScriptableObject for enemy stats + AI behavior.
-//
-// Each enemy has:
-//   - Base stats (HP, POW, ATK, DEF, SPD, WIL) — matches Bestiary columns
-//   - A move pattern: weighted-random list of EnemyMoves
-//   - Optionally a per-enemy display prefab (UnitDisplay variant with custom
-//     hitbox / anchor offsets — the per-prefab anchor IS the source of truth
-//     for HUD positioning; there is no per-data Y-offset)
-//
-// Note: enemies use `atk` directly (no weapon) and `spd` for initiative —
-// unlike players who derive both from their DEX stat.
-//
-// Behavior model:
-//   EnemyMove   = one whole "turn move" the enemy can make, weighted-random
-//                 picked at the start of its turn. Has a name (used for
-//                 intent tooltip / combat log) and 1+ intents.
-//   EnemyIntent = one icon shown above the enemy's head — Attack / Buff /
-//                 Debuff / Guard / etc. The intent's behavior is a chain of
-//                 SkillEffectData[] effects, identical to skills (gates,
-//                 loops, derived stacks, save DCs — full fidelity).
-//
-// Resolution: Unit.GetNextEnemyMove() picks via weighted-random during the
-// Enemy Phase prep, EnemyAI.DecideMove returns it, and
-// SkillResolver.ResolveEnemyMove iterates each intent's effects through the
-// shared effect pipeline.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
@@ -121,12 +93,6 @@ namespace DarkSpire
     //  MOVE — one whole turn-action (1+ intents shown side-by-side)
     // ──────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// One move an enemy can pick on its turn. Owns the canonical name (used by
-    /// intent tooltip / combat log) and a list of intents; each intent renders
-    /// one icon over the enemy's head and resolves a chain of SkillEffectData
-    /// effects when the enemy acts.
-    /// </summary>
     [System.Serializable]
     public class EnemyMove
     {
@@ -146,17 +112,6 @@ namespace DarkSpire
     //  INTENT — one icon above the head, one chain of effects
     // ──────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// One intent within an EnemyMove. The intentType picks the icon shown
-    /// over the enemy's head (Attack / Buff / Debuff / Guard / Stunned /
-    /// Unknown). The behavior is authored as SkillEffectData[] — the same
-    /// effect chain skills use, so enemies inherit gates, loops, derived
-    /// stacks, save DCs, and every other skill-level capability.
-    ///
-    /// Intents have NO name field — the move's name is canonical. The
-    /// tooltip folds the move name + a description generated from each
-    /// intent's effects.
-    /// </summary>
     [System.Serializable]
     public class EnemyIntent
     {
@@ -208,16 +163,6 @@ namespace DarkSpire
     //  CONDITIONAL MOVES — interrupts that override the move pattern
     // ──────────────────────────────────────────────────────────
 
-    /// <summary>
-    /// One reactive override for the move pattern. When its trigger condition
-    /// fires, the chosen move is used in place of a weighted-random pick from
-    /// movePattern. Common uses: boss phase shifts (HP &lt; 50%), counter-moves
-    /// when shields go down, fixed scripted turn-N pivots.
-    ///
-    /// Designers list these in priority order on EnemyData; the first trigger
-    /// that fires wins. <c>oncePerCombat</c> latches the trigger after the
-    /// first fire so a sustained low-HP doesn't replay the override every turn.
-    /// </summary>
     [System.Serializable]
     public class EnemyConditionalMove
     {
@@ -250,12 +195,6 @@ namespace DarkSpire
         public bool oncePerCombat = true;
     }
 
-    /// <summary>
-    /// Triggers that drive an EnemyConditionalMove override. State-based triggers
-    /// (HP percent, condition stacks) poll at move-pick time. Event-based triggers
-    /// (OnConditionApplied / OnConditionRemoved) latch a "saw it since last move"
-    /// flag on the unit and fire the next time a move is picked.
-    /// </summary>
     public enum EnemyConditionalTrigger
     {
         HPBelowPercent,         // unit.currentHP / unit.maxHP < percent

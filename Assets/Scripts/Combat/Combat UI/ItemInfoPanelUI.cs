@@ -1,28 +1,3 @@
-// ItemInfoPanelUI.cs
-// -----------------------------------------------------------------------------
-// Detail readout for whichever item is currently hovered in the ItemSubmenuUI.
-// Shows the banner art (masked), item name, action-cost badge, target badge,
-// optional charges badge, and the effect text.
-//
-// Driven by ItemSubmenuUI.ShowInfo(item). Sibling of the card list, not a
-// child — so hovering a card doesn't de-hover by moving onto the info panel.
-//
-// Mirrors SkillInfoPanelUI structurally — same banner-fit math, same empty
-// state — but with item-specific badges (action cost / target / charges)
-// instead of skill-specific (SP / range / stars).
-//
-// Prefab setup:
-//   ItemInfoPanel (GameObject)
-//     Image (background)
-//     ├─ BannerMask (RectTransform + Image + Mask) — wide rectangle
-//     │   └─ Banner (Image — sprite set at Bind from ItemData.GetArtBanner)
-//     ├─ Header (horizontal)
-//     │   ├─ Name (TMP, left)
-//     │   ├─ ActionCostBadge (rounded Image tinted + glyph TMP inside)
-//     │   ├─ TargetBadge (rounded Image tinted + target label inside)
-//     │   └─ ChargesBadge (rounded Image tinted + "×3" TMP — optional)
-//     └─ Description (TMP, wordwrap)
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -59,12 +34,6 @@ namespace DarkSpire
 
         public void Show(ItemData item) => Show(item, instance: null);
 
-        /// <summary>
-        /// Show details for the given item. Pass an ItemInstance when known
-        /// to surface the live charges count; pass null in non-combat
-        /// contexts (e.g. the dungeon inventory panel can call the simpler
-        /// overload).
-        /// </summary>
         public void Show(ItemData item, ItemInstance instance)
         {
             if (item == null) { ShowEmpty(); return; }

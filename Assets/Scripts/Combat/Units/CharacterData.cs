@@ -1,19 +1,3 @@
-// CharacterData.cs
-// -----------------------------------------------------------------------------
-// ScriptableObject describing one playable character: portraits, sprites, base
-// stats, starting loadout. CombatManager spawns a Unit from this in
-// InitializeCombat.
-//
-// Stat sheet matches the Notion Characters DB: HP, SP, POW, DEX, DEF, WIL.
-// Players use DEX for both attack rolls (Unit.baseATK) and initiative
-// (Unit.baseSPD) — there is no separate SPD column on the player sheet.
-//
-// PORT NOTE: `startingRelic` (RelicData) and `skillPool` (SkillPoolData)
-// were stripped during the Pass 1 port — Dark Spire replaces relics with the
-// Aspect Tree and rebuilds the skill-pool concept as the skill-draft system.
-// 5th-pool flags (hasOrbSystem etc.) are retained since they still map to
-// character-specific mechanics Dark Spire will build in Pass 5.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -22,7 +6,6 @@ namespace DarkSpire
     [CreateAssetMenu(fileName = "NewCharacter", menuName = "DarkSpire/Character")]
     public class CharacterData : ScriptableObject
     {
-        // NOTE: no [Header(...)] attributes below — the custom CharacterDataEditor
         // owns section layout and its DrawColoredSectionHeader strips play the
         // same role. Leaving [Header] in would render duplicate inline labels and
         // misalign paired fields (e.g. HP/SP) inside BeginHorizontal rows.
@@ -129,23 +112,5 @@ namespace DarkSpire
         // PORT STUB: skillPool (SkillPoolData) removed — Dark Spire rebuilds
         //            this as the skill-draft pool in Pass 5.
 
-#if UNITY_EDITOR
-        /// <summary>
-        /// Auto-seed signature + highlight from the Alignment when they're still
-        /// left at the Color.white default. Lets designers create a new character
-        /// SO, pick its Alignment, and have sensible palette colors appear
-        /// automatically — while still allowing explicit overrides.
-        /// </summary>
-        private void OnValidate()
-        {
-            bool sigIsDefault = IsEffectivelyWhite(signatureColor);
-            bool hiIsDefault  = IsEffectivelyWhite(highlightColor);
-            if (sigIsDefault) signatureColor = CharacterPalette.DefaultSignature(alignment);
-            if (hiIsDefault)  highlightColor = CharacterPalette.DefaultHighlight(alignment);
-        }
-
-        private static bool IsEffectivelyWhite(Color c) =>
-            c.r > 0.99f && c.g > 0.99f && c.b > 0.99f;
-#endif
     }
 }

@@ -18,7 +18,6 @@ namespace DarkSpire
         public TextEncounterPoolDataSO events;
         public TextEncounterPoolDataSO shrines;
 
-        // Phase 8 wires this in. Optional for the slice — null means no
         // overrides, EM passes Sub-Manager results through unchanged.
         [Header("Roadmap (Phase 8)")]
         public FloorRoadmapAnnotationsSO annotations;

@@ -1,29 +1,3 @@
-// PauseMenuController.cs
-// -----------------------------------------------------------------------------
-// Persistent pause menu — Esc key toggles a small modal panel with Resume +
-// Quit buttons. One singleton across the run; created on first call (typically
-// from MainMenuController.Start) and survives every subsequent scene swap via
-// DontDestroyOnLoad.
-//
-// While open: Time.timeScale = 0 (gameplay coroutines halt; UI animations that
-// use Time.unscaledDeltaTime keep working — including the SceneTransitionOverlay
-// fade for the Quit-to-Menu route).
-//
-// Esc handling cooperates with TargetingSystem: when the player is mid-targeting
-// in combat, TargetingSystem owns Esc to cancel targeting and the pause menu
-// suppresses its own Esc handler that frame. After targeting clears, Esc
-// resumes normal pause-toggle behavior.
-//
-// Future: a sibling TabMenuController (Tab key, no Time.timeScale freeze, full-
-// screen party/inventory view) can mirror this class's structure — singleton
-// access, runtime-built canvas, key-toggle Update loop, scene-transition-aware
-// Quit. Both would coexist via a small shared "modal stack" rule (only one
-// open at a time, dismissed top-to-bottom on Esc).
-//
-// Authored prefab path: Resources/PauseMenu (Canvas + Panel + Button column).
-// If absent, GetOrCreate falls back to a runtime-built canvas with sensible
-// styling so you can verify the loop end-to-end before art lands.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -120,7 +94,6 @@ namespace DarkSpire
 
             if (panelRoot == null) panelRoot = gameObject;
 
-            // NOTE: don't SetActive(false) here when panelRoot == gameObject
             // (would deactivate ourselves before Awake completes). Authoring
             // requirement: the panel root child must start INACTIVE in the
             // prefab; the runtime fallback handles this explicitly below.

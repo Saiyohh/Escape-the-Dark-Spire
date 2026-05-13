@@ -1,22 +1,3 @@
-// SkillCardStyleController.cs
-// -----------------------------------------------------------------------------
-// Pointer-driven style for skill cards. Single controller manages two
-// regions on the card with OPPOSITE flip behaviors:
-//
-//   Card body (background + name label)
-//     • Resting → UI/ButtonNormalBG  + UI/ButtonNormalText
-//     • Hover   → UI/ButtonHoverBG   + UI/ButtonHoverText
-//     (Identical to ButtonHoverStyleController — the card body matches the
-//      action bar visually.)
-//
-//   Cost badge (background + cost label)
-//     • Resting → UI/ButtonHoverBG   + UI/ButtonHoverText
-//     • Hover   → UI/ButtonNormalBG  + UI/ButtonNormalText
-//     (Inverted — when card body is dark, badge is light, and vice versa.)
-//
-// Both regions update from the same pointer event, so the card flips as a
-// unit. No pressed state — pressing acts like hover.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;

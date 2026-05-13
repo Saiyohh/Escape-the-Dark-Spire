@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Step 6: BFS reachability assertions. Returns true if the floor is
     // playable; false signals the top-level driver to discard this attempt
     // and regenerate with a different seed offset.
     internal static class ValidateFloor

@@ -1,21 +1,3 @@
-// CombatDebugHarness.cs
-// -----------------------------------------------------------------------------
-// Temporary Pass-1 driver that stands in for the real combat UI. Without this,
-// you'd have no way to issue player actions until Pass 3 ships the real UI.
-//
-// Two ways to drive it:
-//   A) On-screen IMGUI buttons (default). Flip `showOnScreenButtons` off to
-//      hide them. Renders a vertical stack in the bottom-right of the Game
-//      view during Play mode.
-//   B) Inspector context-menu items. Right-click the component header while
-//      CombatBootstrap is selected in the Hierarchy — same commands, Editor
-//      only.
-//
-// Both paths auto-confirm SingleEnemy targeting on the first alive enemy so
-// you don't have to click the target sprite.
-//
-// Delete this component once Pass 3 ships real Weapon/Skill/Defend buttons.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
@@ -177,15 +159,6 @@ namespace DarkSpire
         [ContextMenu("8. End Turn")]
         public void EndTurn() => CombatManager.Instance?.OnPlayerEndTurn();
 
-        /// <summary>
-        /// Fire the player action. If autoConfirmTargeting is ON and the action
-        /// opened a SingleEnemy prompt, auto-select enemy `idx` for speed.
-        /// Otherwise the targeting arrow appears and the player picks a unit
-        /// by clicking its sprite in the scene — that's what exercises range
-        /// validation + hover highlight.
-        /// Auto-resolve modes (Self, AllEnemies, RandomEnemy, AllAllies) never
-        /// set IsTargeting true, so this helper collapses to just firing the action.
-        /// </summary>
         private void TargetingPick(System.Action beginAction, int enemyIndex)
         {
             if (CombatManager.Instance == null)

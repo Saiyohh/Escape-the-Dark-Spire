@@ -1,25 +1,3 @@
-// NumberEvaluator.cs
-// -----------------------------------------------------------------------------
-// Pure (no allocations once the breakdown list is reused) function that takes a
-// NumberSpec + EvaluationContext and produces (Display, BaseExpected, breakdown).
-//
-// Mirrors the existing damage rules in DamageCalculator:
-//   • Base + StatBonus(caster, stat)
-//   • Weak on caster: × 0.75^stacks (multiplicative, floor, attack only)
-//   • Vulnerable on target: × 1.5 (attack only, floor)
-//   • Crit: doubles base BEFORE adding stat (attack only)
-//
-// "BaseExpected" is the formula evaluated against caster's BASE stats (basePOW
-// etc.) and NO target — i.e. the number a player would see with zero buffs and
-// no debuffs. Display is the live value with all modifiers applied. Coloring
-// rule: Display > BaseExpected → green; Display < BaseExpected → red; equal
-// → default. See DescriptionRenderer for the actual coloring application.
-//
-// Per-condition breakdown rows: every condition contributing a passiveModifier
-// to the matching stat gets its own row in the breakdown ("Strength +1",
-// "Weak -2"), so the NumberCalcBox can show each modifier source. Special-case
-// hard-coded multipliers (Weak attack mult, Vulnerable) get their own Mult rows.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -34,10 +12,6 @@ namespace DarkSpire
             public CalcBreakdown Breakdown;
         }
 
-        /// <summary>Evaluate a number spec against a context. The breakdown is owned
-        /// by the result — caller may reuse the result struct each frame; the
-        /// inner List is freshly allocated per call (small) so updating in place
-        /// is safe.</summary>
         public static Result Evaluate(NumberSpec spec, EvaluationContext ctx)
         {
             var steps = new List<BreakdownStep>(8);
@@ -94,16 +68,6 @@ namespace DarkSpire
 
         // ─── Display: full formula with current effective state ────────────
 
-        /// <summary>
-        /// Walks the formula and (optionally) appends one BreakdownStep per
-        /// contributor: Base, the stat term, each condition that adds to the
-        /// stat, then any multiplicative caster (Weak) / target (Vulnerable)
-        /// modifiers for attack damage.
-        ///
-        /// Returns the final integer Display value. When populateSteps is false
-        /// (used for the crit recomputation), no rows are appended — we just
-        /// want the integer.
-        /// </summary>
         private static int ComputeDisplay(
             NumberSpec spec,
             EvaluationContext ctx,

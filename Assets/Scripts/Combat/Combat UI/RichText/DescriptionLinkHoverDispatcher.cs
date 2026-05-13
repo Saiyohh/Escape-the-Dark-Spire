@@ -1,22 +1,3 @@
-// DescriptionLinkHoverDispatcher.cs
-// -----------------------------------------------------------------------------
-// Sits on the same TMP_Text as DescriptionRenderer. Every LateUpdate, finds
-// the link under the cursor via TMP_TextUtilities.FindIntersectingLink and
-// transitions enter/exit/move events to the right popup presenter:
-//
-//   • Keyword link  → KeywordTooltipPresenter (uses TooltipController pool)
-//   • Number link   → NumberCalcBoxPresenter (small custom popup)
-//
-// Why a separate dispatcher (not a TooltipTrigger subclass): TooltipTrigger
-// assumes one trigger per RectTransform, but a single TMP_Text can host many
-// hoverable spans. Dispatch is per-link, not per-Rect.
-//
-// Re-render-friendly: the renderer notifies us via NotifyRendered() after
-// each Render(), and we re-acquire the active link on the next LateUpdate.
-// Link IDs are stable across re-renders (token index → "t{idx}"), so a
-// re-render that keeps the hovered token in place doesn't flicker — the
-// presenters just refresh their content in place.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -78,7 +59,6 @@ namespace DarkSpire
                 uiCamera = root.worldCamera;
         }
 
-        /// <summary>Called by DescriptionRenderer after each Render().</summary>
         public void NotifyRendered()
         {
             // Recompute link rects on next LateUpdate; nothing else to do here.

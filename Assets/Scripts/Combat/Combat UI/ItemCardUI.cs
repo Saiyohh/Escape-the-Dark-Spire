@@ -1,24 +1,3 @@
-// ItemCardUI.cs
-// -----------------------------------------------------------------------------
-// Compact item button shown in the ItemSubmenuUI list. Mirrors SkillCardUI
-// shape (name + cost on the right, hover → info panel) with item-specific
-// additions:
-//   • Small icon image on the left (items have icons; skills don't)
-//   • Action-cost glyph instead of an SP number — three variants for
-//     Action / FreeAction / ZeroCost
-//   • Charges pill ("×3") for stackable items with charges > 1
-//   • Source chip (Pouch lock / Party shared) so the player can tell at a
-//     glance whether an item is character-locked
-//
-// Hover ↔ Info panel link mirrors SkillCardUI exactly:
-//   • OnPointerEnter   → submenu.ShowInfo(item)
-//   • OnPointerExit    → submenu.OnCardUnhovered  (stays on last item)
-//   • OnPointerClick   → submenu picks the item, starts targeting
-//
-// Disables itself if the user can't currently use the item (Immobilized or
-// the item's action cost is gated). Clicks always reach the handler so the
-// refusal speech bubble can surface.
-// -----------------------------------------------------------------------------
 using System;
 using TMPro;
 using UnityEngine;

@@ -1,25 +1,3 @@
-// ConditionManager.cs
-// -----------------------------------------------------------------------------
-// Per-Unit store of active ConditionInstances. Two responsibilities:
-//
-//   1. Storage — a dictionary of active conditions with stacks + duration,
-//                subscribed to by UI via OnConditionApplied/Removed/Changed.
-//
-//   2. Trigger dispatch — when a combat event fires (TurnStart, TakeDamagePre,
-//                DebuffApplied, SkillPlayed, etc.) the manager walks every
-//                active condition's triggers[], evaluates conditionals, runs
-//                matching actions, and applies stack ops.
-//
-// Trigger authoring is entirely data-driven via ConditionTrigger on the SO.
-// The old hard-coded behaviors (Poison tick in ProcessPoisonTick, Shields
-// absorb in Unit.TakeDamage, Artifact negation in ApplyCondition) are gone —
-// every one of them is now just a trigger on the corresponding SO.
-//
-// Legacy methods (ProcessPoisonTick, ProcessTickEffects, ConsumeShields,
-// GetShields, GetDEFModifier, GetDamageModifier, GetDodgeChance) are kept as
-// thin shims delegating to the new system so existing callers (CombatManager,
-// Unit.GainDefense, SkillResolver weapon on-hit) don't break during migration.
-// -----------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +9,6 @@ namespace DarkSpire
     {
         private Dictionary<ConditionID, ConditionInstance> conditions = new();
 
-        /// <summary>Unit this manager belongs to. Set via Initialize(unit).</summary>
         public Unit Owner { get; private set; }
 
         public event Action<ConditionID, int> OnConditionApplied;
@@ -86,11 +63,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Remove every active condition on this unit that was applied by
-        /// <paramref name="caster"/>. Used by caster-gated conditions like
-        /// Shrink, which should fall off the targets when the source dies.
-        /// </summary>
         public void RemoveConditionsFromSource(Unit caster)
         {
             if (caster == null) return;
@@ -141,11 +113,6 @@ namespace DarkSpire
         //  Passive stat modifiers — summed from active conditions.
         // ═════════════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Sum of `amountPerStack × stacks` across every active condition whose
-        /// passiveModifiers[] targets the given StatKind. Called by Unit's
-        /// Effective* properties.
-        /// </summary>
         public float GetPassiveModifier(StatKind stat)
         {
             float total = 0f;
@@ -188,7 +155,6 @@ namespace DarkSpire
         public void FireMiss(AttackRollContext ctx)            => Fire(TriggerEvent.OnMiss, ctx, ctx?.target);
         public void FireSkillPlayed(SkillPlayedContext ctx)    => Fire(TriggerEvent.OnSkillPlayed, ctx, null);
 
-        /// <summary>Core dispatch: walks conditions, checks triggers, runs actions.</summary>
         private void Fire(TriggerEvent ev, object context, Unit source)
         {
             // Copy to avoid modification-during-iteration (triggers can apply/remove conditions)
@@ -258,7 +224,6 @@ namespace DarkSpire
                            && (sp.skill.tags & c.tagFilter) != 0;
 
                 case ConditionalKind.IsFirstEventThisTurn:
-                    // TODO: per-turn flag on ConditionInstance. For now, always true
                     // so Vigor-style "next attack" conditions still fire (will consume
                     // via ConsumeAll so the scale is correct after first hit).
                     return true;
@@ -520,7 +485,6 @@ namespace DarkSpire
         //  system; the shims let us migrate incrementally.
         // ═════════════════════════════════════════════════════════════════════
 
-        /// <summary>Legacy: fire OnTurnStart (the trigger does the poison tick now).</summary>
         public int ProcessPoisonTick()
         {
             // Caller (CombatManager) previously expected damage amount returned,
@@ -531,7 +495,6 @@ namespace DarkSpire
             return 0;
         }
 
-        /// <summary>Legacy: fire OnCleanup (Regen trigger handles healing directly).</summary>
         public (int damage, int healing) ProcessTickEffects()
         {
             FireCleanup();
@@ -550,17 +513,6 @@ namespace DarkSpire
                 RemoveCondition(id);
         }
 
-        /// <summary>
-        /// Remove all conditions whose ClearTiming matches the given phase.
-        /// Called by CombatManager at the appropriate combat-loop boundaries:
-        ///   OwnerTurnStart — per-unit, right before that unit's turn begins
-        ///   RoundStart     — global, once before player phase of each round
-        ///   RoundEnd       — global, once after enemy phase of each round
-        ///
-        /// Barricade (defensePersists) overrides the clear ONLY for Shields,
-        /// matching the GDD rule that Barricade prevents Shields-reset but not
-        /// general turn-start condition clears.
-        /// </summary>
         public void ClearByTiming(ClearTiming timing)
         {
             bool defenseSticks = HasAnyDefensePersist();
@@ -575,7 +527,6 @@ namespace DarkSpire
             foreach (var id in toRemove) RemoveCondition(id);
         }
 
-        /// <summary>Legacy shim: old callers used this name; routes to OwnerTurnStart.</summary>
         public void ClearTurnStartConditions() => ClearByTiming(ClearTiming.OwnerTurnStart);
 
         private bool HasAnyDefensePersist()
@@ -602,10 +553,8 @@ namespace DarkSpire
             return consumed;
         }
 
-        /// <summary>Legacy: DEF-stat modifier from passive bonuses.</summary>
         public int GetDEFModifier() => Mathf.RoundToInt(GetPassiveModifier(StatKind.DEF));
 
-        /// <summary>Legacy: outgoing-damage modifier from passive bonuses.</summary>
         public int GetDamageModifier() => Mathf.RoundToInt(GetPassiveModifier(StatKind.POW));
 
         public float GetDodgeChance() => GetPassiveModifier(StatKind.DodgeChancePerStack);

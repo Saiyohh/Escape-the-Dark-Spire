@@ -1,8 +1,3 @@
-// PartyHpBar.cs
-// -----------------------------------------------------------------------------
-// One mini HP/SP bar in FloorHUD. Reads from a PartyMemberRuntime — driven
-// by FloorHUD on DungeonEvents.OnPartyHpChanged.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

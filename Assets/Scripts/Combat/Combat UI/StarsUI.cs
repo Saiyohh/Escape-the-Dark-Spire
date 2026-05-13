@@ -1,14 +1,3 @@
-// StarsUI.cs
-// -----------------------------------------------------------------------------
-// HUD widget that displays the current Stars count for the Regent (or any
-// future character with a Star pool). Subscribes to CombatEvents.OnCombatStart
-// to locate the unit flagged hasStarSystem-equivalent (currently identified by
-// CharacterData.startingStars > 0, since there's no dedicated boolean flag —
-// non-Star characters keep startingStars = 0).
-//
-// Layout: a single label (TMP_Text or UnityEngine.UI.Text) plus an optional
-// icon. Updates live via Unit.OnStarsChanged.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -67,11 +56,6 @@ namespace DarkSpire
             Refresh();
         }
 
-        /// <summary>
-        /// Locate a player unit whose CharacterData defines a Star pool.
-        /// Identified by startingStars > 0 (no dedicated hasStarSystem flag —
-        /// the field doubles as gate + value).
-        /// </summary>
         private static Unit FindStarBearer()
         {
             var mgr = CombatManager.Instance;

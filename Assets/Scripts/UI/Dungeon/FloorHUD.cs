@@ -1,19 +1,3 @@
-// FloorHUD.cs
-// -----------------------------------------------------------------------------
-// Dungeon-only HUD: floor number, keys (X/Y), gold, MM:SS timer, and a row of
-// up to 4 mini party-HP bars. Lives inside DungeonFloor.unity (not on the
-// persistent MenuCanvas) so it disappears automatically when the scene
-// transitions to Combat / Victory / GameOver.
-//
-// HAND-AUTHORED ONLY. There is no runtime fallback that builds the HUD from
-// code. The hierarchy MUST be authored in the scene with all serialized
-// references wired in the Inspector. Run
-// Tools > DarkSpire > Scenes > Scaffold FloorHUD into open scene once to
-// generate a starting hierarchy; after that, tweak it freely.
-//
-// Push-driven via DungeonEvents (gold/key/HP). The timer polls
-// RunContext.runTime in Update — cheaper than firing per-frame events.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 
@@ -55,7 +39,6 @@ namespace DarkSpire
             WarnIfMissingRefs();
 
             // Initial hydration so the HUD doesn't lag one event behind on
-            // first scene load.
             HydrateFloor();
             HandleGoldChanged(RunContext.gold);
             HandleKeyCollected(RunContext.keysHeld, ResolveKeysRequired());

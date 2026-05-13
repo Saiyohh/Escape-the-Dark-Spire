@@ -5,7 +5,6 @@ namespace DarkSpire
 {
     // Authored pool for Standard monster encounters. Priority pool plays in
     // order (or randomized order if randomizePriorityOrder = true) for the
-    // first N fights of the floor; general pool is shuffled and forms the
     // randomized tail.
     [CreateAssetMenu(fileName = "MEP_NewFloor", menuName = "DarkSpire/Encounters/Monster Pool")]
     public class MonsterEncounterPoolDataSO : ScriptableObject, IEncounterPoolData

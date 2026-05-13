@@ -1,13 +1,3 @@
-// ChanceIconUI.cs
-// -----------------------------------------------------------------------------
-// One chance icon inside a ChanceBox. Pairs a small sprite (attack sword /
-// afflict skull / etc.) with a percentage label like "75%".
-//
-// Prefab setup:
-//   ChanceIcon (GameObject) — LayoutElement preferredWidth/Height = 40
-//     Image (the chance sprite)
-//     └─ Label (TMP, below or overlaid — shows "75%")
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;

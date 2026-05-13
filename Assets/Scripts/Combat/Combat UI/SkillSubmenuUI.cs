@@ -1,28 +1,3 @@
-// SkillSubmenuUI.cs
-// -----------------------------------------------------------------------------
-// Popup that lists the active player's equipped skills as compact buttons
-// (SkillCardUI, one per skill, stacked vertically) alongside a SkillInfoPanelUI
-// that shows the banner + name + range + description for whichever skill is
-// currently hovered. Clicking a button picks that skill and routes it into
-// CombatManager.OnPlayerChooseSkill, which kicks off targeting.
-//
-// Hover behavior:
-//   • First skill is shown by default when the submenu opens.
-//   • Hovering any card updates the info panel immediately.
-//   • Moving the pointer off a card does NOT revert to empty — the info panel
-//     stays on the last-hovered skill so the player can read it + click.
-//
-// Opens via ActionButtonsUI when the Skill button is clicked; closes after
-// selection, on right-click (cancel), or when the player's turn ends.
-//
-// Prefab setup:
-//   SkillSubmenu (Canvas child)
-//     Panel (Image background)
-//       HorizontalLayoutGroup or two-column grid
-//       ├─ CardsContainer (VerticalLayoutGroup)
-//       │    └─ (SkillCardUI children spawn at runtime)
-//       └─ InfoPanel (SkillInfoPanelUI)
-// -----------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,13 +6,10 @@ namespace DarkSpire
 {
     public class SkillSubmenuUI : MonoBehaviour
     {
-        /// <summary>Fired after the panel opens (already populated with cards).</summary>
         public event Action OnOpened;
 
-        /// <summary>Fired after the panel closes (selection picked, turn ended, cancelled).</summary>
         public event Action OnClosed;
 
-        /// <summary>True while the panel root is active and showing skill cards.</summary>
         public bool IsOpen => panelRoot != null && panelRoot.activeSelf;
 
         [SerializeField] private RectTransform cardsContainer;
@@ -96,7 +68,6 @@ namespace DarkSpire
             CombatEvents.OnActionResolved           -= HandleActionResolved;
         }
 
-        /// <summary>Open the submenu populated with the unit's equipped skills.</summary>
         public void OpenFor(Unit unit, Transform arrowOrigin)
         {
             if (panelRoot == null) panelRoot = gameObject; // lazy init if Awake never ran
@@ -154,7 +125,7 @@ namespace DarkSpire
                     unit, skill,
                     onClicked:   () => OnCardClicked(capturedIndex),
                     onHovered:   () => ShowInfo(capturedSkill),
-                    onUnhovered: () => { /* keep last-hovered showing */ });
+                    onUnhovered: () => {  });
                 spawned.Add(card);
 
                 if (firstSkill == null) firstSkill = skill;
@@ -168,7 +139,6 @@ namespace DarkSpire
             BackButton.Instance?.Bind(this, Close);
 
             // Info panel becomes visible alongside the submenu and loads the
-            // first skill so it isn't empty.
             if (infoPanel != null)
             {
                 infoPanel.gameObject.SetActive(true);
@@ -195,7 +165,6 @@ namespace DarkSpire
             if (wasOpen) OnClosed?.Invoke();
         }
 
-        /// <summary>Called by SkillCardUI on hover. Also usable externally (e.g. keyboard nav).</summary>
         public void ShowInfo(SkillData skill)
         {
             if (infoPanel == null)
@@ -237,12 +206,6 @@ namespace DarkSpire
             if (u == boundUnit && u.hasActedThisTurn) Close();
         }
 
-        /// <summary>
-        /// Close the submenu once a skill actually resolves. Close() hides
-        /// the info panel in lockstep, so the player sees the cards + info
-        /// during the entire targeting phase, then both vanish together when
-        /// the skill commits. Cancelled targeting goes through HandleTargetingCancelled.
-        /// </summary>
         private void HandleActionResolved(CombatActionResult result)
         {
             if (result == null) return;

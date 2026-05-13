@@ -1,12 +1,3 @@
-// UIOutline.cs
-// -----------------------------------------------------------------------------
-// UI-layer outline driver. Wraps Unity's built-in UnityEngine.UI.Outline (which
-// adds 4 offset shadow copies at the vertex level) and drives its effect color
-// + distance from the OutlineProfile tag system.
-//
-// Use on any Graphic (Image, RawImage, TMP text is covered by TMPOutlineTag
-// instead — it uses SDF for nicer results).
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.UI;
 

@@ -1,30 +1,9 @@
-// ConditionalMoveResolver.cs
-// -----------------------------------------------------------------------------
-// Static helper that evaluates an enemy's authored EnemyConditionalMove[] list
-// and returns the override move whose trigger fires (if any). Plugged into
-// EnemyAI.DecideMove ahead of the weighted-random pattern pick so reactive
-// AI overrides take precedence.
-//
-// State-based triggers (HP %, condition stacks, turn number) poll on every
-// call. Event-based triggers (OnConditionApplied / OnConditionRemoved) read
-// the sets the Unit populates from its ConditionManager events; CombatManager
-// clears those sets after the enemy acts so the trigger fires once per gap
-// between actions.
-//
-// First match wins — designers list overrides in priority order. Once-per-
-// combat overrides latch via Unit.firedConditionalIndices.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
 {
     public static class ConditionalMoveResolver
     {
-        /// <summary>
-        /// Walk the enemy's authored conditional moves and return the first
-        /// one whose trigger fires right now. Returns null when nothing
-        /// matches — caller falls back to the weighted-random pattern pick.
-        /// </summary>
         public static EnemyMove PickOverride(Unit enemy)
         {
             if (enemy == null || enemy.enemyData == null) return null;

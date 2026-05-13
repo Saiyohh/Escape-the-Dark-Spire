@@ -1,22 +1,5 @@
-// ItemLibrary.cs
-// -----------------------------------------------------------------------------
-// Central registry of every ItemData SO in the project, keyed by ItemID.
-// Anything that needs an ItemData from an enum ID goes through
-// `ItemLibrary.Instance.Get(id)` — single source of truth. Adding a new
-// ItemData asset auto-registers it (via ItemLibraryPostprocessor); deletes
-// drop from the lookup on the next access.
-//
-// Asset location: `Assets/ScriptableObjects/ItemLibrary.asset`.
-// Create via: DarkSpire → Items → Create Library
-//
-// Mirrors the ConditionLibrary pattern exactly — see ConditionLibrary.cs for
-// the rationale on why we use Preloaded Assets instead of a Resources folder.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace DarkSpire
 {
@@ -33,9 +16,6 @@ namespace DarkSpire
             {
                 if (_instance != null) return _instance;
 
-#if UNITY_EDITOR
-                _instance = AssetDatabase.LoadAssetAtPath<ItemLibrary>(AssetPath);
-#endif
                 if (_instance == null)
                     Debug.LogError(
                         $"[ItemLibrary] Missing asset at {AssetPath}. " +
@@ -71,7 +51,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>Returns the ItemData registered for the given ID, or null.</summary>
         public ItemData Get(ItemID id)
         {
             BuildLookupIfNeeded();
@@ -84,7 +63,6 @@ namespace DarkSpire
             return _lookup.ContainsKey(id);
         }
 
-        /// <summary>Iteration helper for the custom editor and party inventory UI.</summary>
         public IReadOnlyList<ItemData> All
         {
             get
@@ -99,51 +77,5 @@ namespace DarkSpire
             _lookup = null;
         }
 
-#if UNITY_EDITOR
-        public void Register(ItemData item)
-        {
-            if (item == null) return;
-            if (items.Contains(item)) return;
-            items.Add(item);
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-        }
-
-        public void Unregister(ItemData item)
-        {
-            if (item == null) return;
-            if (items.Remove(item))
-            {
-                _lookup = null;
-                EditorUtility.SetDirty(this);
-            }
-        }
-
-        public void RefreshFromProject()
-        {
-            items.Clear();
-            string[] guids = AssetDatabase.FindAssets("t:ItemData");
-            for (int i = 0; i < guids.Length; i++)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
-                var item = AssetDatabase.LoadAssetAtPath<ItemData>(path);
-                if (item != null) items.Add(item);
-            }
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-        }
-
-        /// <summary>
-        /// Editor-only: finds every ItemData asset that uses the given ID.
-        /// Used by ItemDataEditor to surface a duplicate-ID warning.
-        /// </summary>
-        public int CountWithID(ItemID id)
-        {
-            int count = 0;
-            for (int i = 0; i < items.Count; i++)
-                if (items[i] != null && items[i].itemID == id) count++;
-            return count;
-        }
-#endif
     }
 }

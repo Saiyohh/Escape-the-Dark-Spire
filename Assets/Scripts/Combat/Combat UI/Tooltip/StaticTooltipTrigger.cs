@@ -1,14 +1,3 @@
-// StaticTooltipTrigger.cs
-// -----------------------------------------------------------------------------
-// Drop-in tooltip trigger whose content is authored entirely in the inspector.
-// Use on UI elements that don't have a backing data SO yet — chance icons,
-// the Stars HUD widget, etc.
-//
-// If you want to populate a static trigger at runtime instead of authoring
-// in-place, call SetContent(name, icon, body) — useful if a parent component
-// wants to feed text dynamically (e.g. a chance icon that needs to say
-// "Attack — 75%").
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire

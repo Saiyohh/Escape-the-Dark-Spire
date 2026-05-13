@@ -1,15 +1,3 @@
-// PartyTrayUI.cs
-// -----------------------------------------------------------------------------
-// Spawns one PartyMemberCombatPill per party member into a HorizontalLayoutGroup
-// to the left of the action menu. Drives expansion (whichever pill represents
-// the currently-active unit grows) and sibling order (front-most rank renders
-// rightmost).
-//
-// Hierarchy expectation:
-//   Party Info Panel  ← this script
-//     └─ Party Views  ← pillContainer (HorizontalLayoutGroup)
-//          └─ (pills spawn here at runtime)
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 

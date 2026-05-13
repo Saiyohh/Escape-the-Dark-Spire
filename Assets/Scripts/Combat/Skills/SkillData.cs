@@ -1,33 +1,3 @@
-// SkillData.cs
-// -----------------------------------------------------------------------------
-// ScriptableObject describing one active skill. Fields are organized so the
-// custom SkillDataEditor can show sections cleanly:
-//
-// Description rendering (Pass 3):
-//   BuildDescriptionTokens() returns the structured token list that the
-//   DescriptionRenderer (Combat UI/RichText/) uses to inline live computed
-//   numbers, color them vs. the unbuffed baseline, and tooltip glossary
-//   keywords. BuildDescription() (legacy plain string) is now a thin wrapper
-//   around the tokenizer for editor preview / fallback callers.
-//
-//   [Identity]    — name, icon, description, generatedDescription (preview)
-//   [Cost]        — spCost, altCost (HP/Stars/Focus/Souls), actionCostType
-//   [Dice Rule]   — diceRule (AttackRoll / AutoHit / WilSave / Passive)
-//   [Range]       — rangeMin, rangeMax, rangeDisplay
-//   [Tags]        — [Flags] SkillTag
-//   [Effects]     — array of SkillEffectData (custom inspector hides irrelevant fields)
-//   [Meta]        — alignment, rarity, mastery, upgrade tiers
-//
-// SP is the sole use-gate — cooldowns were stripped. Seal (per-skill runtime
-// cooldown applied dynamically by effects) lives in its own runtime system;
-// not a static SO field.
-//
-// Description generation (Pass 2 QoL):
-//   Call BuildDescription() to produce a GDD-keyword-consistent string from
-//   the effects list. The custom editor shows this as a preview and offers a
-//   "Copy to description" button so designers can either hand-write or
-//   template-generate. Runtime still reads from `description`.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -38,7 +8,6 @@ namespace DarkSpire
     [CreateAssetMenu(fileName = "NewSkill", menuName = "DarkSpire/Skill")]
     public class SkillData : ScriptableObject
     {
-        // NOTE: no [Header(...)] attributes — the custom SkillDataEditor owns
         // section layout. Inline Header attributes misalign paired fields like
         // Range Min / Max inside horizontal rows and render duplicate labels.
 
@@ -46,14 +15,6 @@ namespace DarkSpire
         public string skillName;
         [TextArea(2, 4)] public string description;
 
-        /// <summary>
-        /// Optional wide artwork (banner/header) displayed on the skill card.
-        /// Skills do NOT have square icons — this is intentionally a banner
-        /// shape. May be left null; when rendering a skill's art, ALWAYS go
-        /// through <see cref="GetArtBanner"/> so the global placeholder is
-        /// substituted in. Never read <c>artBanner</c> directly at a UI
-        /// call site — a null slip-through will produce an empty frame.
-        /// </summary>
         [Tooltip("Wide artwork panel shown on the skill card. Leave empty to fall back to the global " +
                  "placeholder banner at Resources/UI/DefaultSkillArtBanner.png. " +
                  "Skills have no square icon — this is the only art slot.")]
@@ -149,13 +110,9 @@ namespace DarkSpire
         // Resolves the skill's banner art with a placeholder fallback. UI code
         // should ALWAYS call GetArtBanner() instead of reading `artBanner`
         // directly — that guarantees a non-null sprite as long as the
-        // placeholder asset exists at Resources/UI/DefaultSkillArtBanner.
         //
         // How to wire the placeholder:
-        //   1. Import/author a wide banner sprite.
-        //   2. Place it at Assets/Resources/UI/DefaultSkillArtBanner.png (the
         //      filename must match, no extension in the Resources.Load call).
-        //   3. Any skill with `artBanner == null` will render this sprite.
         //
         // If the placeholder itself is missing the method returns null — let
         // the UI draw its empty-frame fallback rather than crashing.
@@ -165,10 +122,6 @@ namespace DarkSpire
 
         public const string DefaultArtBannerResourcePath = "UI/DefaultSkillArtBanner";
 
-        /// <summary>
-        /// Returns the authored banner, or the global placeholder from
-        /// Resources if the slot is empty. May return null if neither exists.
-        /// </summary>
         public Sprite GetArtBanner()
         {
             if (artBanner != null) return artBanner;
@@ -210,13 +163,6 @@ namespace DarkSpire
             return sb.ToString();
         }
 
-        /// <summary>
-        /// Structured-token description used by DescriptionRenderer to produce
-        /// rich text with hoverable keywords + live-evaluated numbers. Returns
-        /// the same prose as BuildDescription() but tokenized — designers can
-        /// keep authoring effects[]; runtime UI binds via the renderer instead
-        /// of reading the plain string.
-        /// </summary>
         public List<DescriptionToken> BuildDescriptionTokens()
         {
             return DescriptionTokenizer.BuildSkillTokens(this);
@@ -318,7 +264,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>Formats damage magnitude with its stat bonus suffix ("8+POW", "4", "3+DEX").</summary>
         private static string DamageExpr(SkillEffectData e) => e.damageStat switch
         {
             DamageStat.POW => $"{e.magnitude}+POW",

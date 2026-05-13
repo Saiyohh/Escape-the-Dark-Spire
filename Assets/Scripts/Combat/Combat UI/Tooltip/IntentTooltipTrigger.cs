@@ -1,34 +1,3 @@
-// IntentTooltipTrigger.cs
-// -----------------------------------------------------------------------------
-// Tooltip trigger that pulls its content from the IntentIconUI on the same
-// GameObject. Renders one colloquial sentence describing what the enemy
-// intends to do, keyed off the intent's intentType:
-//
-//   Attack  → "Intends to Attack {target} for {damage}."
-//             "Intends to Attack {a}, {b}, and {c} for {damage}."
-//   Debuff  → "Intends to Debuff {target}."         (deliberately vague)
-//   Buff    → "Intends to Buff themselves."         (Self-only)
-//             "Intends to Buff {ally}."             (other enemy)
-//   Guard   → "Intends to brace."
-//   Stunned → "Stunned — cannot act this turn."
-//
-// Target lists honor the locked primary target chosen at intent-set time and
-// expand each effect's TargetMode through SkillResolver.ResolveTargets, so the
-// names in the tooltip match the players the DangerPreviewController would
-// highlight and match who the resolver will actually hit.
-//
-// The intent's danger-aura preview (DangerPreviewController) and this
-// tooltip both subscribe to pointer events on the icon — Unity dispatches
-// IPointerEnter to every handler on the GameObject independently, so the
-// two don't interfere.
-//
-// Authoring is zero-touch — drop the component on the Intent Icon prefab.
-// The trigger finds:
-//   • IntentIconUI         → GetComponent on the same GameObject
-//   • TooltipSpawnPoint    → GetComponentInParent (the enemy HUD root
-//                            should host a spawn point; if missing the
-//                            trigger silently no-ops in non-Verbose mode)
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -74,12 +43,6 @@ namespace DarkSpire
 
         // ─── Header ─────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// The move name is canonical and lives on the EnemyMove. Look it up
-        /// by finding which move on the source enemy contains this intent
-        /// (reference equality). Falls back to a generic header if we can't
-        /// match — better than blanking out.
-        /// </summary>
         private static string ResolveMoveName(Unit source, EnemyIntent intent)
         {
             if (source != null && source.currentMove != null
@@ -157,16 +120,6 @@ namespace DarkSpire
 
         // ─── Target resolution ──────────────────────────────────────────────
 
-        /// <summary>
-        /// Resolve the unique list of units this intent will affect on the
-        /// requested side (players or allies), honoring the locked primary
-        /// target from CombatManager.SetEnemyIntent. Writes into
-        /// <paramref name="output"/> (cleared first).
-        ///
-        /// "Player side" effects: SingleEnemy / AllEnemies / RandomEnemy when
-        /// the caster is the enemy.
-        /// "Ally side" effects: Self / SingleAlly / AllAllies / RandomAlly.
-        /// </summary>
         private static void ResolveTargets(
             EnemyIntent intent, Unit source, bool players, List<Unit> output)
         {
@@ -233,12 +186,6 @@ namespace DarkSpire
 
         // ─── Attack damage aggregation ──────────────────────────────────────
 
-        /// <summary>
-        /// Sum the previewed damage across every Attack effect on the intent
-        /// (per-hit damage × hitCount), applying caster-side Weak/Strength
-        /// via DamageCalculator.PreviewOutgoingDamage. Mirrors IntentIconUI's
-        /// label math so the tooltip number matches the icon number.
-        /// </summary>
         private static int AggregateAttackDamage(EnemyIntent intent, Unit source)
         {
             if (intent.effects == null) return 0;
@@ -258,11 +205,6 @@ namespace DarkSpire
 
         // ─── Name formatting ────────────────────────────────────────────────
 
-        /// <summary>
-        /// Comma-list with Oxford comma. "themselves" substitutes for the
-        /// source enemy when it appears among ally targets (so a buff that
-        /// hits the caster + an ally reads "themselves and Vantom").
-        /// </summary>
         private static string JoinNames(List<Unit> units, Unit source)
         {
             if (units.Count == 0) return "";

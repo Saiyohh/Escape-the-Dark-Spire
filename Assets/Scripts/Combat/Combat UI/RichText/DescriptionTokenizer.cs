@@ -1,18 +1,3 @@
-// DescriptionTokenizer.cs
-// -----------------------------------------------------------------------------
-// Converts data-side authored content (SkillData, WeaponData, ConditionData,
-// hand-written prose) into a flat List<DescriptionToken>. The rendering layer
-// owns the tokens; we just produce them.
-//
-// Mirrors SkillData.BuildEffectClause so prose stays identical to today's
-// output — but every verb that lives in the keyword glossary becomes a
-// Keyword token (pale yellow + tooltip), every numeric value becomes a
-// ComputedNumber token (live re-evaluation + calc box).
-//
-// Inline markup parser: hand-written prose can use [[Keyword]] to mark a word
-// as a glossary keyword. Numbers in prose are NOT magic — they stay plain. If
-// you need a computed number in hand-written text, build it programmatically.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;

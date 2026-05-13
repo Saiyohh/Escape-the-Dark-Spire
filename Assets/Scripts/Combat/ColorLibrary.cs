@@ -1,21 +1,5 @@
-// ColorLibrary.cs
-// -----------------------------------------------------------------------------
-// Singleton ScriptableObject of named colors organized into Categories.
-// Every color belongs to a Category — no free-floating colors. Lookup at
-// runtime is by either ("Category", "Name") or "Category/Name" string,
-// returning a fallback when missing.
-//
-//   Color c = ColorLibrary.Get("UI", "ButtonHover");
-//   Color c = ColorLibrary.Get("UI/ButtonHover");
-//
-// Asset location: Assets/ScriptableObjects/ColorLibrary.asset
-// Mirrors ConditionLibrary / CharacterLibrary — preloaded for runtime access.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace DarkSpire
 {
@@ -49,9 +33,6 @@ namespace DarkSpire
             get
             {
                 if (_instance != null) return _instance;
-#if UNITY_EDITOR
-                _instance = AssetDatabase.LoadAssetAtPath<ColorLibrary>(AssetPath);
-#endif
                 return _instance;
             }
         }
@@ -65,17 +46,11 @@ namespace DarkSpire
             _lookup = null;
         }
 
-#if UNITY_EDITOR
-        private void OnValidate() => _lookup = null;
-#endif
-
         // ── Static API ──────────────────────────────────────────────────────
 
-        /// <summary>Lookup by ("Category", "Name"). Returns fallback on miss.</summary>
         public static Color Get(string category, string name, Color fallback)
             => Get($"{category}/{name}", fallback);
 
-        /// <summary>Lookup by "Category/Name" composite key. Returns fallback on miss.</summary>
         public static Color Get(string compositeKey, Color fallback)
         {
             var lib = Instance;
@@ -84,7 +59,6 @@ namespace DarkSpire
             return lib._lookup.TryGetValue(compositeKey ?? string.Empty, out var c) ? c : fallback;
         }
 
-        /// <summary>Magenta-fallback variant for loud "you forgot to wire this" misses.</summary>
         public static Color Get(string category, string name)
             => Get(category, name, new Color(1f, 0f, 1f, 1f));
 
@@ -125,52 +99,5 @@ namespace DarkSpire
             }
         }
 
-#if UNITY_EDITOR
-        // Editor helpers used by the custom inspector buttons.
-
-        public Category AddCategory(string name = "New Category")
-        {
-            var cat = new Category { name = name };
-            categories.Add(cat);
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-            return cat;
-        }
-
-        public void RemoveCategory(int index)
-        {
-            if (index < 0 || index >= categories.Count) return;
-            categories.RemoveAt(index);
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-        }
-
-        public NamedColor AddColor(int categoryIndex, string name = "New Color", Color color = default)
-        {
-            if (categoryIndex < 0 || categoryIndex >= categories.Count) return null;
-            if (color == default) color = Color.white;
-            var nc = new NamedColor { name = name, color = color };
-            categories[categoryIndex].colors.Add(nc);
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-            return nc;
-        }
-
-        public void RemoveColor(int categoryIndex, int colorIndex)
-        {
-            if (categoryIndex < 0 || categoryIndex >= categories.Count) return;
-            var list = categories[categoryIndex].colors;
-            if (colorIndex < 0 || colorIndex >= list.Count) return;
-            list.RemoveAt(colorIndex);
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-        }
-
-        public void NotifyMutated()
-        {
-            _lookup = null;
-            EditorUtility.SetDirty(this);
-        }
-#endif
     }
 }

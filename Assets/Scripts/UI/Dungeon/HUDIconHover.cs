@@ -1,18 +1,3 @@
-// HUDIconHover.cs
-// -----------------------------------------------------------------------------
-// Drop on any HUD icon (Gold, Key, Timer, etc.) for a little hover reactivity:
-//   • Scale: smoothly lerps from 1.0 → hoverScale on pointer enter, and back
-//     on pointer exit.
-//   • Rotation: a damped sine "shake" kicked off when the pointer enters.
-//     One-shot, decays to 0 over shakeDuration. Re-entering re-triggers it.
-//
-// Requires a Graphic (Image / RawImage / TMP_Text) with Raycast Target enabled
-// on the same GameObject, and a GraphicRaycaster on the parent Canvas — both
-// of which the FloorHUD scaffold already gives you.
-//
-// Uses Time.unscaledDeltaTime so hover reactivity still feels alive when the
-// RestMenu pause has set Time.timeScale = 0.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -57,18 +42,6 @@ namespace DarkSpire
             rt = (RectTransform)transform;
             baseScale = rt.localScale;
         }
-
-#if UNITY_EDITOR
-        // Fires only on first-add of this component (or when "Reset" is chosen
-        // in the Inspector cog menu). Defaults LayoutElement.ignoreLayout = true
-        // so the hover pop doesn't reflow neighbouring HUD items. Existing
-        // setups aren't disturbed.
-        private void Reset()
-        {
-            var le = GetComponent<LayoutElement>();
-            if (le != null) le.ignoreLayout = true;
-        }
-#endif
 
         private void OnEnable()
         {

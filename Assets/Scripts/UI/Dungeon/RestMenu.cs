@@ -1,23 +1,3 @@
-// RestMenu.cs
-// -----------------------------------------------------------------------------
-// Modal panel opened by stepping onto a Rest tile (Campsite). Per the design
-// shift, rest-tile and campsite are the same mechanic — the dispatcher routes
-// TileType.Rest walkover to RestMenu.Open(tilePos).
-//
-// Buttons:
-//   Restore HP/SP — sets each party member's currentHP/SP to their max
-//   Revive KO'd   — same loop, but only members with currentHP <= 0
-//                   (per design: revive to FULL HP/SP)
-//   View Stats    — read-only sub-panel listing each member
-//   Leave         — close the modal, resume time
-//
-// Tile consumption: the caller in DungeonWalkoverDispatcher adds the tile to
-// RunStateHolder.usedRestTiles when Open is called (consume on open, matches
-// existing semantics).
-//
-// Time freeze: Time.timeScale = 0 while open. Run-timer keeps ticking because
-// DungeonBootstrap uses Time.unscaledDeltaTime.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;

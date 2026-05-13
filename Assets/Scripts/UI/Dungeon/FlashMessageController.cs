@@ -1,18 +1,3 @@
-// FlashMessageController.cs
-// -----------------------------------------------------------------------------
-// Bottom-center flash messages for short-lived gameplay feedback ("Need 2 keys",
-// "Defeat the boss first", "!" on monster Alert, etc.). One message visible at
-// a time; subsequent enqueues queue behind. Consecutive identical enqueues are
-// de-duped to suppress monster-Alert "!" spam.
-//
-// Subscribes to DungeonEvents.OnFlashMessage so most callers never touch this
-// class directly — they fire DungeonEvents.InvokeFlashMessage(text) and the
-// HUD layer hears it.
-//
-// Mirrors PickupNotificationManager: Resources/FlashMessages prefab takes
-// precedence; otherwise a runtime canvas is built so the loop is verifiable
-// before art lands.
-// -----------------------------------------------------------------------------
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;

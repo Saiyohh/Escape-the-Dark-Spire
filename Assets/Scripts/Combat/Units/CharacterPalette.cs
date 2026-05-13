@@ -1,27 +1,9 @@
-// CharacterPalette.cs
-// -----------------------------------------------------------------------------
-// Default signature + highlight colors per Alignment. Runtime-accessible so
-// UI layers (future HUD, damage number tints, portrait borders, callout text)
-// can share the same palette as the editor inspectors.
-//
-// "Signature" = the character's primary color, fully saturated. Designed for
-// use as a solid background behind white text (callouts, badges, name plates).
-//
-// "Highlight" = a lighter variant for background fills, selection glows,
-// subtle tints. Readable as a soft accent that doesn't dominate.
-//
-// Individual CharacterData assets override these defaults via their own
-// signatureColor / highlightColor fields. CharacterLibrary.Instance.Get(alignment)
-// returns the authored CharacterData at runtime; if no asset exists for an
-// alignment, call sites fall back to DefaultSignature/Highlight here.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire
 {
     public static class CharacterPalette
     {
-        /// <summary>Fully-saturated primary color. Solid background + white text works.</summary>
         public static Color DefaultSignature(Alignment a) => a switch
         {
             Alignment.Ironclad    => new Color(0.85f, 0.28f, 0.26f),  // red
@@ -33,7 +15,6 @@ namespace DarkSpire
             _                     => new Color(0.60f, 0.60f, 0.60f),  // neutral gray
         };
 
-        /// <summary>Lighter variant for highlights, fills, soft tints. ~35% lerped to white.</summary>
         public static Color DefaultHighlight(Alignment a)
         {
             var sig = DefaultSignature(a);

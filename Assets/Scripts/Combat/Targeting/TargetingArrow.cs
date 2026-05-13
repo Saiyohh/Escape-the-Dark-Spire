@@ -1,16 +1,3 @@
-// TargetingArrow.cs
-// -----------------------------------------------------------------------------
-// Bezier-curve targeting arrow rendered on a Screen-Space Overlay Canvas.
-// Subscribes to TargetingSystem to auto-show when manual targeting begins,
-// auto-hide when it ends, and tint red/green for enemy/ally hover states.
-//
-// Inspired by STS2's NTargetingArrow — 19 sprite segments + an arrowhead
-// placed along a quadratic bezier from source (active unit or the action's
-// origin Transform) to the mouse cursor, with size growing toward the tip.
-//
-// Auto-resolve target modes (Self, AllEnemies, RandomEnemy, AllAllies) never
-// flip IsTargeting true, so the arrow stays hidden for those.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -176,10 +163,6 @@ namespace DarkSpire
             TrySubscribe();
         }
 
-        /// <summary>
-        /// Fallback: if TargetingSystem.Instance wasn't ready in OnEnable
-        /// (Awake execution order race), subscribe in Start instead.
-        /// </summary>
         private void Start()
         {
             TrySubscribe();
@@ -411,11 +394,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Compute the control point for the quadratic bezier.
-        /// Creates an upward arch proportional to the distance between source and target.
-        /// Adapted from STS2's NTargetingArrow.UpdateArrowPosition().
-        /// </summary>
         private Vector2 ComputeControlPoint(Vector2 from, Vector2 to)
         {
             Vector2 control;
@@ -432,10 +410,6 @@ namespace DarkSpire
             return control;
         }
 
-        /// <summary>
-        /// Standard quadratic bezier: B(t) = (1-t)² P0 + 2(1-t)t C + t² P1
-        /// Direct port from STS2's MathHelper.BezierCurve.
-        /// </summary>
         private static Vector2 BezierCurve(Vector2 p0, Vector2 p1, Vector2 control, float t)
         {
             float u = 1f - t;

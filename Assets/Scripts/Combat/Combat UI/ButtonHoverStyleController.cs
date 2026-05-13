@@ -1,19 +1,3 @@
-// ButtonHoverStyleController.cs
-// -----------------------------------------------------------------------------
-// Pointer-driven state machine for buttons that need to swap MORE than just
-// the background color on hover/press. Pulls all four states' colors from
-// ColorLibrary's "UI" category so global theme changes propagate to every
-// button without reauthoring per-component.
-//
-// Library keys consumed:
-//   UI/ButtonNormalBG       UI/ButtonHoverBG       UI/ButtonPressedBG
-//   UI/ButtonNormalText     UI/ButtonHoverText
-//   UI/ButtonOutlineColor   (used in Hover + Pressed states only)
-//
-// Outline WIDTH stays serialized per-component so different button sizes can
-// pick their own thickness. Disabled state is also serialized — adding it
-// to the library is a one-line change if/when wanted.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;

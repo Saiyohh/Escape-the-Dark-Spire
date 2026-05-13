@@ -1,26 +1,3 @@
-// FloatingNumberManager.cs
-// -----------------------------------------------------------------------------
-// Spawns the three floating combat overlays:
-//
-//   1. Floating Number — number-only arc. Damage / crit-damage / heal. Spawns
-//      at the unit's foot, arcs to the pivot (top-of-hitbox), and falls back
-//      down past the foot, shrinking + fading off-screen.
-//
-//   2. Condition Flare — text-only label. Used for condition gained (positive
-//      rises, negative descends), and the standalone status words MISS /
-//      DODGE / RESIST / CRIT! / +X SHLD. Drifts in one direction with
-//      fade-in / hold / fade-out.
-//
-//   3. Wears-Off Flare — icon + name + "Wears Off" subtitle. Always rises
-//      regardless of valence (the condition is leaving the unit).
-//
-// All three are parented under the SHARED Combat (Screen Space - Overlay)
-// canvas so draw calls stay bounded.
-//
-// Subscribes to CombatEvents.OnActionResolved (damage/heal/miss/etc.) plus
-// CombatEvents.OnConditionApplied / OnConditionRemoved so any combat outcome
-// auto-spawns the right overlay.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -159,11 +136,6 @@ namespace DarkSpire
             SpawnConditionAppliedInternal(target, id, stacks);
         }
 
-        /// <summary>
-        /// Manual entry point used by CombatManager during ordered skill
-        /// playback. Mirrors HandleConditionApplied so the floater reads
-        /// identically to the autonomous path.
-        /// </summary>
         public void SpawnConditionApplied(Unit target, ConditionID id, int stacks)
             => SpawnConditionAppliedInternal(target, id, stacks);
 
@@ -301,13 +273,6 @@ namespace DarkSpire
 
         // ─── Flare spawn ─────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Instantiate a flare prefab at the unit's pivot (top of hitbox) plus
-        /// an optional vertical screen-space offset. Caller picks direction
-        /// (Up = rise, Down = descend) and which prefab to use. Icon and
-        /// subtitle are optional — only consumed if the prefab wires those
-        /// fields.
-        /// </summary>
         private void SpawnFlareAtPivot(Unit unit, string text, Color color,
             FlareDirection direction, Sprite icon, string subtitle,
             float pivotYOffsetPixels, GameObject prefab)
@@ -334,13 +299,6 @@ namespace DarkSpire
             }
         }
 
-        /// <summary>
-        /// Compute the horizontal world-space offset for a new arc on this
-        /// unit. First spawn = random side at minOffset; consecutive spawns
-        /// nudge outward by offsetNudge until they hit the hitbox edge, at
-        /// which point the direction flips and magnitude resets.
-        /// Resets entirely after offsetResetTime seconds without a spawn.
-        /// </summary>
         private float ComputeOffset(Unit unit, float halfWidth)
         {
             float now = Time.time;

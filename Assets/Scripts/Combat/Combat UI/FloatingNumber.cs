@@ -1,24 +1,3 @@
-// FloatingNumber.cs
-// -----------------------------------------------------------------------------
-// Self-animating floating combat number with parabolic-arc trajectory.
-// Ported from Echoes of the Spire's UI/FloatingNumber.cs.
-//
-// Lifecycle:
-//   1. Spawns at unit's foot in screen space (small — minScale), offset
-//      horizontally along the hitbox width.
-//   2. Rises to the unit's indicator anchor (top) along an ease-out parabola.
-//      Scale grows from minScale → maxScale during the rise.
-//   3. Falls from apex to foot Y on an ease-in (accelerating). Scale shrinks
-//      back from maxScale → minScale, alpha fades to 40%.
-//   4. Falloff: continues straight down past foot, scale shrinks further,
-//      alpha fades to 0%.
-//   5. Self-destroys when totalDuration elapses.
-//
-// All animation is in SCREEN space (pixel coordinates), so the popup stays
-// crisp regardless of camera zoom. Driven by FloatingNumberManager.SpawnArc().
-// Parented under the shared Combat (Screen Space - Overlay) canvas — no
-// per-popup Canvas component.
-// -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
 
@@ -48,10 +27,6 @@ namespace DarkSpire
         private float wobbleFrequency;
         private float wobblePhase;
 
-        /// <summary>
-        /// Full arc spawn — rise from foot to apex, fall back down past the
-        /// foot. Caller pre-converts world positions to screen space.
-        /// </summary>
         public void Setup(string value, Color color,
             Vector3 startScreen, Vector3 apexScreen, float footY,
             float rise, float fall, float falloff,
@@ -94,7 +69,6 @@ namespace DarkSpire
 
             if (elapsed <= riseTime)
             {
-                // Phase 1 — Rise (ease-out quad). Snappy launch, settling at apex.
                 float t = elapsed / riseTime;
                 float eased = 1f - (1f - t) * (1f - t);
 
@@ -103,7 +77,6 @@ namespace DarkSpire
             }
             else if (elapsed <= riseTime + fallTime)
             {
-                // Phase 2 — Fall (ease-in quad). Accelerates back toward foot Y,
                 // shrinking maxScale → minScale and fading 1 → 0.4.
                 float t = (elapsed - riseTime) / fallTime;
                 float eased = t * t;
@@ -117,7 +90,6 @@ namespace DarkSpire
             }
             else
             {
-                // Phase 3 — Falloff. Straight down off-screen, shrinking past
                 // minScale and fading to 0.
                 float t = (elapsed - riseTime - fallTime) / falloffTime;
                 Vector3 pos = new Vector3(apexScreenPos.x, footScreenY - t * 200f, 0f);

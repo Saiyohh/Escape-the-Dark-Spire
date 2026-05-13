@@ -1,16 +1,3 @@
-// CombatEventLogger.cs
-// -----------------------------------------------------------------------------
-// Passive observer that mirrors every CombatEvents.On* into the Unity Console
-// during Play mode. Useful when you want a flat text stream without opening
-// the CombatLogWindow.
-//
-// Usage: add to any GameObject in the combat scene. Toggle individual event
-// categories via the Inspector if a firehose of logs is too noisy.
-//
-// Safe to leave on forever — no state, no allocation beyond Debug.Log strings.
-// CombatEvents.ClearAll() in CombatManager.OnDestroy handles unsubscription
-// on scene teardown.
-// -----------------------------------------------------------------------------
 using UnityEngine;
 
 namespace DarkSpire

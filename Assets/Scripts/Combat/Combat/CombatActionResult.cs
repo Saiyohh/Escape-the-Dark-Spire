@@ -1,10 +1,3 @@
-// CombatActionResult.cs
-// -----------------------------------------------------------------------------
-// Data object returned by SkillResolver / EnemyAI after an action resolves.
-// Carries everything the UI + event system needs to render the outcome:
-// who did what to whom, the dice roll, damage, healing, conditions applied.
-// CombatManager passes it into CombatEvents.InvokeActionResolved.
-// -----------------------------------------------------------------------------
 using System.Collections.Generic;
 
 namespace DarkSpire
