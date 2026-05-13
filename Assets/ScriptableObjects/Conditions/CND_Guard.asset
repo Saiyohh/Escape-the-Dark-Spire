@@ -14,20 +14,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.ConditionData
   conditionID: 5
   displayName: Guard
-  description: DEF is increased by 4 until the start of the next Round.
+  description: Increases the unit's DEFENSE by {X} for this round.
   icon: {fileID: 21300000, guid: ad975609287a9fc45b9d6e4e2dc6c7cb, type: 3}
   tintColor: {r: 1, g: 1, b: 1, a: 1}
-  stackType: 1
-  timing: 1
+  iconGrayscale: 1
+  iconBwReds: 0.4
+  iconBwYellows: 0.6
+  iconBwGreens: 0.4
+  iconBwCyans: 0.6
+  iconBwBlues: 0.2
+  iconBwMagentas: 0.8
+  stackType: 0
   isDebuff: 0
   ticksDown: 1
   maxStacks: 0
   passiveModifiers:
   - stat: 2
-    amountPerStack: 4
+    amountPerStack: 1
   triggers: []
   preventsAction: 0
-  clearTiming: 1
+  clearTiming: 2
   defensePersists: 0
   bypassesShields: 0
   bypassesDEF: 0

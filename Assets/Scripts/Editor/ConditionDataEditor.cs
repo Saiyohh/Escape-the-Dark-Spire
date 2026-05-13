@@ -33,7 +33,7 @@ namespace DarkSpire.EditorTools
         private SerializedProperty iconGrayscaleProp;
         private SerializedProperty iconBwRedsProp, iconBwYellowsProp, iconBwGreensProp,
                                    iconBwCyansProp, iconBwBluesProp, iconBwMagentasProp;
-        private SerializedProperty stackTypeProp, timingProp, isDebuffProp, ticksDownProp, maxStacksProp;
+        private SerializedProperty stackTypeProp, isDebuffProp, ticksDownProp, maxStacksProp;
         private SerializedProperty passiveModifiersProp, triggersProp;
         private SerializedProperty preventsActionProp, clearTimingProp;
         private SerializedProperty defensePersistsProp, bypassesShieldsProp, bypassesDEFProp;
@@ -58,7 +58,6 @@ namespace DarkSpire.EditorTools
             iconBwBluesProp       = serializedObject.FindProperty("iconBwBlues");
             iconBwMagentasProp    = serializedObject.FindProperty("iconBwMagentas");
             stackTypeProp         = serializedObject.FindProperty("stackType");
-            timingProp            = serializedObject.FindProperty("timing");
             isDebuffProp          = serializedObject.FindProperty("isDebuff");
             ticksDownProp         = serializedObject.FindProperty("ticksDown");
             maxStacksProp         = serializedObject.FindProperty("maxStacks");
@@ -142,10 +141,29 @@ namespace DarkSpire.EditorTools
 
             EditorGUILayout.PropertyField(displayNameProp);
             EditorGUILayout.PropertyField(descriptionProp);
+            DrawDescriptionPlaceholderGuide();
             EditorGUILayout.PropertyField(iconProp);
             EditorGUILayout.PropertyField(tintColorProp);
 
             DrawIconGrayscalePreview();
+        }
+
+        /// <summary>
+        /// Short reference card for the description placeholder tokens that
+        /// ConditionDescriptionFormatter resolves at tooltip-show time. Lives
+        /// directly under the Description field so designers see it the moment
+        /// they start authoring text. Compact (three lines) — leans on the
+        /// formatter source for full semantics.
+        /// </summary>
+        private void DrawDescriptionPlaceholderGuide()
+        {
+            EditorGUILayout.HelpBox(
+                "Placeholders (resolved at runtime):\n" +
+                "  {X}        first passive modifier's amount/stack (e.g. \"+{X} DEF\" → \"+1 DEF\")\n" +
+                "  {stacks}   live stack count on the hovered unit (0 in skill-description hovers)\n" +
+                "  {total}    {X} × {stacks}. Use for absolute current totals on a unit icon.\n" +
+                "Example: \"Increases this unit's DEFENSE by {X} for this round.\"",
+                MessageType.None);
         }
 
         /// <summary>
@@ -266,8 +284,6 @@ namespace DarkSpire.EditorTools
                 EditorGUILayout.PropertyField(ticksDownProp,
                     new GUIContent("Ticks Down", "Legacy flag — stack auto-decrement used by old tick system."));
             }
-            EditorGUILayout.PropertyField(timingProp,
-                new GUIContent("Timing (legacy)", "Deprecated — prefer triggers[]. Only read by legacy fallbacks."));
         }
 
         // ═══ Presets ════════════════════════════════════════════════════════════
@@ -296,10 +312,28 @@ namespace DarkSpire.EditorTools
 
                 EditorGUILayout.Space(4);
                 EditorGUILayout.LabelField("Passive-modifier patterns", EditorStyles.boldLabel);
-                if (GUILayout.Button("Strength-style POW buff (+1 per stack)")) Preset.AddPassive(passiveModifiersProp, StatKind.POW, 1f);
-                if (GUILayout.Button("Weak-style POW debuff (-2 per stack)")) Preset.AddPassive(passiveModifiersProp, StatKind.POW, -2f);
-                if (GUILayout.Button("Guarding-style DEF buff (+4, clears at owner's turn)")) { Preset.AddPassive(passiveModifiersProp, StatKind.DEF, 4f); clearTimingProp.enumValueIndex = (int)ClearTiming.OwnerTurnStart; }
-                if (GUILayout.Button("Vulnerable-style damage amp (+50% taken)")) Preset.AddDamageAmp(triggersProp, 0.5f);
+                if (GUILayout.Button("POW buff (+1 per stack — Strength)"))
+                    Preset.AddPassive(passiveModifiersProp, StatKind.POW, 1f);
+                if (GUILayout.Button("POW debuff (-2 per stack — passive POW reduction)"))
+                    Preset.AddPassive(passiveModifiersProp, StatKind.POW, -2f);
+                if (GUILayout.Button("Guard (DEF +1/stack, clears at round start)"))
+                {
+                    Preset.AddPassive(passiveModifiersProp, StatKind.DEF, 1f);
+                    clearTimingProp.enumValueIndex = (int)ClearTiming.RoundStart;
+                }
+                if (GUILayout.Button("Per-turn DEF buff (+4 flat, clears at owner's turn — old Guarding)"))
+                {
+                    Preset.AddPassive(passiveModifiersProp, StatKind.DEF, 4f);
+                    clearTimingProp.enumValueIndex = (int)ClearTiming.OwnerTurnStart;
+                }
+                // NOTE: previously had a "Vulnerable-style damage amp" preset that
+                // installed a ModifyIncomingDamagePercent trigger. Removed because
+                // it duplicated the hardcoded ×1.5 in DamageCalculator.CalculateDamage
+                // → stacked into a double-amp on whatever condition it was added to.
+                // If you need a real damage-amp condition, choose ONE of:
+                //   (a) Use the same hardcoded path (modify DamageCalculator), or
+                //   (b) Remove the hardcoded path and use this trigger pattern.
+                // Don't combine both.
             }
         }
 
@@ -498,12 +532,19 @@ namespace DarkSpire.EditorTools
                     case TriggerActionKind.ModifyOutgoingDamagePerStack:
                     case TriggerActionKind.ModifyAttackRollByPerStack:
                     case TriggerActionKind.GrantGuardPerStack:
+                    case TriggerActionKind.ModifyIncomingDamagePerStack:
                         EditorGUILayout.PropertyField(el.FindPropertyRelative("amountPerStack"));
                         break;
                     case TriggerActionKind.ModifyIncomingDamagePercent:
                     case TriggerActionKind.ModifyOutgoingDamagePercent:
                         EditorGUILayout.Slider(el.FindPropertyRelative("percentValue"), -1f, 2f,
                             new GUIContent("±% (0.5 = +50%, -0.25 = −25%)"));
+                        break;
+                    case TriggerActionKind.ModifyIncomingDamagePercentPerStack:
+                    case TriggerActionKind.ModifyOutgoingDamagePercentPerStack:
+                        EditorGUILayout.Slider(el.FindPropertyRelative("percentValue"), -1f, 2f,
+                            new GUIContent("±% per stack (compound — (1+p)^stacks). " +
+                                           "-0.25 with 3 stacks → ×0.42."));
                         break;
                     case TriggerActionKind.ApplyCondition:
                     case TriggerActionKind.ApplyConditionPerStack:
@@ -568,11 +609,14 @@ namespace DarkSpire.EditorTools
             TriggerActionKind.NegateIncomingEffect           => "NEGATE",
             TriggerActionKind.GrantGuard                     => "GUARD",
             TriggerActionKind.GrantGuardPerStack             => "GUARD/stk",
-            TriggerActionKind.ModifyIncomingDamageFlat       => "IN ±",
-            TriggerActionKind.ModifyIncomingDamagePercent    => "IN %",
-            TriggerActionKind.ModifyOutgoingDamageFlat       => "OUT ±",
-            TriggerActionKind.ModifyOutgoingDamagePerStack   => "OUT/stk",
-            TriggerActionKind.ModifyOutgoingDamagePercent    => "OUT %",
+            TriggerActionKind.ModifyIncomingDamageFlat            => "IN ±",
+            TriggerActionKind.ModifyIncomingDamagePercent         => "IN %",
+            TriggerActionKind.ModifyIncomingDamagePerStack        => "IN/stk",
+            TriggerActionKind.ModifyIncomingDamagePercentPerStack => "IN %/stk",
+            TriggerActionKind.ModifyOutgoingDamageFlat            => "OUT ±",
+            TriggerActionKind.ModifyOutgoingDamagePerStack        => "OUT/stk",
+            TriggerActionKind.ModifyOutgoingDamagePercent         => "OUT %",
+            TriggerActionKind.ModifyOutgoingDamagePercentPerStack => "OUT %/stk",
             TriggerActionKind.ModifyAttackRollBy             => "ROLL ±",
             TriggerActionKind.ModifyAttackRollByPerStack     => "ROLL/stk",
             TriggerActionKind.ModifyStat                     => "STAT",
@@ -685,13 +729,6 @@ namespace DarkSpire.EditorTools
             var c = AddConditional(t, ConditionalKind.StacksAtLeast);
             c.FindPropertyRelative("intParam").intValue = 1; // designer bumps to HP threshold in practice
             AddAction(t, TriggerActionKind.KillTarget);
-        }
-
-        public static void AddDamageAmp(SerializedProperty triggersProp, float percent)
-        {
-            var t = AddTrigger(triggersProp, TriggerEvent.OnTakeDamagePre, StackOp.NoChange);
-            var a = AddAction(t, TriggerActionKind.ModifyIncomingDamagePercent);
-            a.FindPropertyRelative("percentValue").floatValue = percent;
         }
 
         public static void AddPassive(SerializedProperty passiveProp, StatKind stat, float amountPerStack)

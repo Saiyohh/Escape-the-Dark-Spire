@@ -416,9 +416,12 @@ namespace DarkSpire.EditorTools
                 case TriggerActionKind.DamageSourcePerStack:
                 case TriggerActionKind.ModifyIncomingDamageFlat:
                 case TriggerActionKind.ModifyIncomingDamagePercent:
+                case TriggerActionKind.ModifyIncomingDamagePerStack:
+                case TriggerActionKind.ModifyIncomingDamagePercentPerStack:
                 case TriggerActionKind.ModifyOutgoingDamageFlat:
                 case TriggerActionKind.ModifyOutgoingDamagePerStack:
                 case TriggerActionKind.ModifyOutgoingDamagePercent:
+                case TriggerActionKind.ModifyOutgoingDamagePercentPerStack:
                     return ActDamage;
 
                 case TriggerActionKind.HealTarget:

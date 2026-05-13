@@ -88,6 +88,21 @@ namespace DarkSpire
                     return enemy.conditions != null
                         && enemy.conditions.GetStacks(entry.conditionId) >= Mathf.Max(1, entry.stacks);
 
+                case EnemyConditionalTrigger.AnyTargetLacksCondition:
+                {
+                    var mgr = CombatManager.Instance;
+                    if (mgr == null) return false;
+                    var party = mgr.GetAlivePlayerUnits();
+                    if (party == null) return false;
+                    for (int i = 0; i < party.Count; i++)
+                    {
+                        var p = party[i];
+                        if (p?.conditions == null) continue;
+                        if (p.conditions.GetStacks(entry.conditionId) <= 0) return true;
+                    }
+                    return false;
+                }
+
                 default:
                     return false;
             }

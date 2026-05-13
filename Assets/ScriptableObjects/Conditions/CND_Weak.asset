@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.ConditionData
   conditionID: 3
   displayName: Weak
-  description: 
+  description: Reduces damage dealt by 25% for {stacks} turn(s).
   icon: {fileID: 21300000, guid: 14712fc120e354d4babd97bc20f4d537, type: 3}
   tintColor: {r: 1, g: 1, b: 1, a: 1}
   iconGrayscale: 1
@@ -25,7 +25,6 @@ MonoBehaviour:
   iconBwBlues: 1.12
   iconBwMagentas: 1.58
   stackType: 1
-  timing: 0
   isDebuff: 1
   ticksDown: 1
   maxStacks: 0

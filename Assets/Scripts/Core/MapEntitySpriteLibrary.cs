@@ -74,8 +74,42 @@ namespace DarkSpire
         public Sprite goldPile;
         public Sprite stairway;
         public Sprite stairwayLocked;
-        public Sprite bossGate;
-        public Sprite bossGateOpen;
+
+        [Header("Boss Gate (directional)")]
+        [Tooltip("Direction-facing variants of the boss gate. PlaceBossGate writes " +
+                 "the cardinal direction from gate → room into EntityPlacement.strPayload " +
+                 "(\"N\"/\"S\"/\"E\"/\"W\") and the renderer picks the matching sprite.")]
+        public Sprite bossGateNorth;
+        public Sprite bossGateSouth;
+        public Sprite bossGateEast;
+        public Sprite bossGateWest;
+        public Sprite bossGateOpenNorth;
+        public Sprite bossGateOpenSouth;
+        public Sprite bossGateOpenEast;
+        public Sprite bossGateOpenWest;
+
+        /// <summary>
+        /// Picks the boss-gate sprite for the given facing code ("N"/"S"/"E"/"W",
+        /// matching what PlaceBossGate writes to EntityPlacement.strPayload).
+        /// Returns null if the corresponding slot is empty.
+        /// </summary>
+        public Sprite GetBossGateSprite(string facing, bool open) => open
+            ? facing switch
+              {
+                  "N" => bossGateOpenNorth,
+                  "S" => bossGateOpenSouth,
+                  "E" => bossGateOpenEast,
+                  "W" => bossGateOpenWest,
+                  _   => null,
+              }
+            : facing switch
+              {
+                  "N" => bossGateNorth,
+                  "S" => bossGateSouth,
+                  "E" => bossGateEast,
+                  "W" => bossGateWest,
+                  _   => null,
+              };
 
         [Header("Tile types")]
         public Sprite floorTile;
@@ -112,8 +146,6 @@ namespace DarkSpire
             MapSpriteKey.GoldPile         => goldPile,
             MapSpriteKey.Stairway         => stairway,
             MapSpriteKey.StairwayLocked   => stairwayLocked,
-            MapSpriteKey.BossGate         => bossGate,
-            MapSpriteKey.BossGateOpen     => bossGateOpen,
             MapSpriteKey.FloorTile        => floorTile,
             MapSpriteKey.WallTile         => wallTile,
             MapSpriteKey.EmptyTile        => emptyTile,

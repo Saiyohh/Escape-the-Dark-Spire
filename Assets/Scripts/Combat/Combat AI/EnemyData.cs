@@ -264,5 +264,6 @@ namespace DarkSpire
         OnConditionApplied,     // conditionId was applied to this unit since last move-pick
         OnConditionRemoved,     // conditionId was removed since last move-pick (e.g. Shields stripped)
         OnConditionAtStacks,    // unit.conditions.GetStacks(conditionId) >= stacks
+        AnyTargetLacksCondition,// at least one living player has zero stacks of conditionId — for re-applier mooks
     }
 }

@@ -718,13 +718,8 @@ namespace DarkSpire
             if (TargetingSystem.Instance != null && TargetingSystem.Instance.IsValidTarget(LinkedUnit))
                 SetHighlighted(true);
 
-            // Show the per-enemy ChanceBox when hovering an enemy with an
-            // intent targeting party members. The box reparents itself to
-            // CombatUIManager.WorldCanvas at Initialize, so it's no longer
-            // a child of this UnitDisplay — use the registered reference
-            // instead of GetComponentInChildren.
-            if (LinkedUnit != null && !LinkedUnit.isPlayerControlled && registeredChanceBox != null)
-                registeredChanceBox.ShowHover();
+            // ChanceBox visibility is now driven by TargetingSystem events
+            // inside ChanceBox itself — no hover wiring needed here.
 
             // HUD hover overlay: fade HP/SP/etc bars out, fade name label in.
             // Fires for both player and enemy units; the HUD gates internally.
@@ -737,9 +732,6 @@ namespace DarkSpire
             if (isDead) return;
             SetHighlighted(false);
             TargetingSystem.Instance?.NotifyTargetUnhovered();
-
-            if (LinkedUnit != null && !LinkedUnit.isPlayerControlled && registeredChanceBox != null)
-                registeredChanceBox.HideHover();
 
             if (worldHUD != null) worldHUD.OnUnitHoverExit();
             if (enemyWorldHUD != null) enemyWorldHUD.OnUnitHoverExit();

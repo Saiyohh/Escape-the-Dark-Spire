@@ -96,6 +96,18 @@ namespace DarkSpire
         // this to find the owner's pouch in O(1).
         public PartyMemberRuntime partyMember;
 
+        // ── Telegraphed enemy move (enemies only) ──────────────────────────
+        // Set by CombatManager.SetEnemyIntent at combat start and after every
+        // enemy turn. `currentMove` is the move the enemy has committed to
+        // execute on their next action; `lockedIntentTargets` is the per-intent
+        // primary target picked AT INTENT-SET TIME, indexed parallel to
+        // `currentMove.intents`. Both preview (DangerPreviewController /
+        // IntentTargetResolver) and resolution (SkillResolver.ResolveEnemyMove)
+        // read from this cache so they agree — fresh Random.Range rolls only
+        // happen once per intent-set, never per-hover or per-resolve.
+        [System.NonSerialized] public EnemyMove currentMove;
+        [System.NonSerialized] public Unit[] lockedIntentTargets;
+
         // ── Conditional-move state (enemies only) ─────────────────────────
         // Tracks event-style triggers between AI move-picks. Populated by the
         // ConditionManager event subscriptions (OnConditionApplied/Removed)
@@ -290,7 +302,7 @@ namespace DarkSpire
             conditions.FireTakeDamagePost(damageCtx);
 
             if (currentHP <= 0)
-                OnDeath?.Invoke();
+                HandleDeath();
         }
 
         public void TakeDirectDamage(int damage)
@@ -299,8 +311,25 @@ namespace DarkSpire
             currentHP = Mathf.Max(0, currentHP - damage);
             OnDamageTaken?.Invoke(damage);
             if (currentHP <= 0)
-                OnDeath?.Invoke();
+                HandleDeath();
             OnStatsChanged?.Invoke();
+        }
+
+        // Single death-edge entry point: strip every caster-gated condition
+        // (Shrink, etc.) sourced by this unit from everyone on the field,
+        // then notify subscribers. Run BEFORE OnDeath.Invoke so UI listeners
+        // see the conditions already gone.
+        private void HandleDeath()
+        {
+            var combat = CombatManager.Instance;
+            if (combat != null)
+            {
+                foreach (var p in combat.PlayerUnits)
+                    p?.conditions?.RemoveConditionsFromSource(this);
+                foreach (var e in combat.EnemyUnits)
+                    e?.conditions?.RemoveConditionsFromSource(this);
+            }
+            OnDeath?.Invoke();
         }
 
         public void Heal(int amount)

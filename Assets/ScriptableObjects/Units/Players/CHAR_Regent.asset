@@ -20,7 +20,7 @@ MonoBehaviour:
   maxHP: 70
   maxSP: 26
   pow: 2
-  dex: 2
+  dex: 3
   def: 11
   wil: 2
   displayPrefab: {fileID: 0}
@@ -32,6 +32,7 @@ MonoBehaviour:
   startingSkills:
   - {fileID: 11400000, guid: 380bb779dc6100c44b5feca1da0ef40d, type: 2}
   - {fileID: 11400000, guid: 04f881f86daa7b84998eaf3fe56c6a4a, type: 2}
+  startingPouch: 
   hasOrbSystem: 0
   hasSpellbook: 0
   hasPotionSack: 0

@@ -5,39 +5,34 @@
 // persistent MenuCanvas) so it disappears automatically when the scene
 // transitions to Combat / Victory / GameOver.
 //
+// HAND-AUTHORED ONLY. There is no runtime fallback that builds the HUD from
+// code. The hierarchy MUST be authored in the scene with all serialized
+// references wired in the Inspector. Run
+// Tools > DarkSpire > Scenes > Scaffold FloorHUD into open scene once to
+// generate a starting hierarchy; after that, tweak it freely.
+//
 // Push-driven via DungeonEvents (gold/key/HP). The timer polls
 // RunContext.runTime in Update — cheaper than firing per-frame events.
 // -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace DarkSpire
 {
     public class FloorHUD : MonoBehaviour
     {
-        [Header("Top bar labels")]
+        [Header("Top bar labels (required)")]
         [SerializeField] private TMP_Text floorLabel;
         [SerializeField] private TMP_Text keysLabel;
         [SerializeField] private TMP_Text goldLabel;
         [SerializeField] private TMP_Text timerLabel;
 
-        [Header("Party HP bars")]
+        [Header("Party HP bars (optional — leave empty to hide the row)")]
         [SerializeField] private RectTransform hpBarContainer;
         [SerializeField] private PartyHpBar[] hpBars;
 
         private int lastWholeSecond = -1;
-
-        // ─── Public API ──────────────────────────────────────────────────────
-
-        public static FloorHUD GetOrCreateInScene(Transform parent)
-        {
-            var existing = FindAnyObjectByType<FloorHUD>();
-            if (existing != null) return existing;
-            var go = BuildRuntimeFallback();
-            if (parent != null) go.transform.SetParent(parent, false);
-            return go.GetComponent<FloorHUD>();
-        }
+        private bool warnedAboutMissingRefs;
 
         // ─── Lifecycle ───────────────────────────────────────────────────────
 
@@ -57,6 +52,8 @@ namespace DarkSpire
 
         private void Start()
         {
+            WarnIfMissingRefs();
+
             // Initial hydration so the HUD doesn't lag one event behind on
             // first scene load.
             HydrateFloor();
@@ -69,6 +66,21 @@ namespace DarkSpire
         private void Update()
         {
             UpdateTimerLabel(RunContext.runTime, force: false);
+        }
+
+        private void WarnIfMissingRefs()
+        {
+            if (warnedAboutMissingRefs) return;
+            if (floorLabel != null && keysLabel != null &&
+                goldLabel != null && timerLabel != null) return;
+
+            warnedAboutMissingRefs = true;
+            Debug.LogWarning(
+                "[FloorHUD] One or more required label references are not wired " +
+                "in the Inspector (floorLabel / keysLabel / goldLabel / timerLabel). " +
+                "Author the HUD in the scene — run " +
+                "Tools > DarkSpire > Scenes > Scaffold FloorHUD into open scene " +
+                "for a starting layout.", this);
         }
 
         // ─── Handlers ────────────────────────────────────────────────────────
@@ -125,109 +137,6 @@ namespace DarkSpire
         {
             var cfg = RunContext.currentFloorConfig;
             return cfg != null ? cfg.keysRequired : 0;
-        }
-
-        // ─── Runtime fallback ────────────────────────────────────────────────
-
-        private static GameObject BuildRuntimeFallback()
-        {
-            var go = new GameObject("FloorHUD");
-
-            var canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 600; // below pickups (700)
-
-            var scaler = go.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
-            go.AddComponent<GraphicRaycaster>();
-
-            // Top bar root — anchored top-stretch.
-            var bar = new GameObject("TopBar");
-            bar.transform.SetParent(go.transform, false);
-            var rt = bar.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot     = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, 0f);
-            rt.sizeDelta = new Vector2(0f, 80f);
-
-            var bg = bar.AddComponent<Image>();
-            bg.color = new Color(0f, 0f, 0f, 0.55f);
-
-            var hlg = bar.AddComponent<HorizontalLayoutGroup>();
-            hlg.padding = new RectOffset(24, 24, 12, 12);
-            hlg.spacing = 24f;
-            hlg.childAlignment = TextAnchor.MiddleLeft;
-            hlg.childControlWidth = true;
-            hlg.childControlHeight = true;
-            hlg.childForceExpandWidth = false;
-            hlg.childForceExpandHeight = true;
-
-            var floorLabel = BuildBarLabel(bar.transform, "Floor 1");
-            var keysLabel  = BuildBarLabel(bar.transform, "Keys 0/0");
-            var goldLabel  = BuildBarLabel(bar.transform, "Gold 0");
-            var timerLabel = BuildBarLabel(bar.transform, "00:00");
-
-            // Spacer pushes timer to the right.
-            var spacer = new GameObject("Spacer");
-            spacer.transform.SetParent(bar.transform, false);
-            spacer.AddComponent<RectTransform>();
-            var sle = spacer.AddComponent<LayoutElement>();
-            sle.flexibleWidth = 999f;
-            // Reorder so spacer sits before timer.
-            timerLabel.transform.SetAsLastSibling();
-            spacer.transform.SetSiblingIndex(timerLabel.transform.GetSiblingIndex());
-
-            // HP bar container — under the top bar.
-            var hpRow = new GameObject("HPBars");
-            hpRow.transform.SetParent(go.transform, false);
-            var hprt = hpRow.AddComponent<RectTransform>();
-            hprt.anchorMin = new Vector2(0f, 1f);
-            hprt.anchorMax = new Vector2(1f, 1f);
-            hprt.pivot     = new Vector2(0.5f, 1f);
-            hprt.anchoredPosition = new Vector2(0f, -80f);
-            hprt.sizeDelta = new Vector2(0f, 60f);
-
-            var hpHlg = hpRow.AddComponent<HorizontalLayoutGroup>();
-            hpHlg.padding = new RectOffset(24, 24, 4, 4);
-            hpHlg.spacing = 12f;
-            hpHlg.childAlignment = TextAnchor.MiddleLeft;
-            hpHlg.childControlWidth = false;
-            hpHlg.childControlHeight = true;
-            hpHlg.childForceExpandWidth = false;
-            hpHlg.childForceExpandHeight = true;
-
-            var bars = new PartyHpBar[4];
-            for (int i = 0; i < 4; i++)
-                bars[i] = PartyHpBar.BuildRuntime(hpRow.transform);
-
-            var hud = go.AddComponent<FloorHUD>();
-            hud.floorLabel = floorLabel;
-            hud.keysLabel  = keysLabel;
-            hud.goldLabel  = goldLabel;
-            hud.timerLabel = timerLabel;
-            hud.hpBarContainer = hprt;
-            hud.hpBars = bars;
-            return go;
-        }
-
-        private static TMP_Text BuildBarLabel(Transform parent, string text)
-        {
-            var go = new GameObject(text);
-            go.transform.SetParent(parent, false);
-            go.AddComponent<RectTransform>();
-            var tmp = go.AddComponent<TextMeshProUGUI>();
-            tmp.text = text;
-            tmp.fontSize = 28f;
-            tmp.alignment = TextAlignmentOptions.MidlineLeft;
-            tmp.color = Color.white;
-            tmp.textWrappingMode = TextWrappingModes.NoWrap;
-            var le = go.AddComponent<LayoutElement>();
-            le.minWidth = 130f;
-            le.preferredWidth = 180f;
-            return tmp;
         }
     }
 }

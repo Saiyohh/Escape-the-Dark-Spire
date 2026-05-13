@@ -13,7 +13,12 @@ MonoBehaviour:
   m_Name: MEP_Floor1
   m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.MonsterEncounterPoolDataSO
   priorityPool:
-  - {fileID: 11400000, guid: ea6d485a3a8d0bc49bd24fca2f3c5749, type: 2}
+  - {fileID: 11400000, guid: e495d767d6824887a10b4d7aae552c60, type: 2}
+  - {fileID: 11400000, guid: 40c859468f454388a18bef57203248e7, type: 2}
+  - {fileID: 11400000, guid: f5855b0bcb864cd68e7c75010151fda7, type: 2}
+  - {fileID: 11400000, guid: 4468d7d72ea841e7babda17be727906d, type: 2}
   generalPool:
-  - {fileID: 11400000, guid: ea6d485a3a8d0bc49bd24fca2f3c5749, type: 2}
+  - {fileID: 11400000, guid: 79065fc4b6c84197a2e5e1179b344283, type: 2}
+  - {fileID: 11400000, guid: 6a2696ae80c64834bc751a362d209f7a, type: 2}
+  - {fileID: 11400000, guid: ab97fb1347ca41e9971b577aa21c110e, type: 2}
   randomizePriorityOrder: 1

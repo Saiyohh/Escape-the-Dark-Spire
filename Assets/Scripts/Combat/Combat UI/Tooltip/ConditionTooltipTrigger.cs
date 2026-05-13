@@ -42,8 +42,13 @@ namespace DarkSpire
             var data = conditionIcon.Data;
             if (data == null) return false;
 
-            content = TooltipContent.ForCondition(
-                data.displayName, data.icon, data.description);
+            // Resolve {X}/{stacks}/{total} placeholders against the icon's live
+            // stack count. Lets one authored description ("Increases DEF by {X}
+            // for this round.") serve both the keyword tooltip in skill
+            // descriptions (stacks=0 path) and the live unit-icon tooltip here.
+            string body = ConditionDescriptionFormatter.Format(data, conditionIcon.Stacks);
+
+            content = TooltipContent.ForCondition(data.displayName, data.icon, body);
             return true;
         }
     }

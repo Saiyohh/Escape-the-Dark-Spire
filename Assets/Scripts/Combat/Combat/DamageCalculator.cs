@@ -3,9 +3,16 @@
 // Computes final damage for weapon hits and skill damage effects.
 // Called by SkillResolver during player + enemy actions.
 //
-// Vulnerable is a damage amp (×1.5), not an accuracy debuff — intentional
-// and distinct from Weak (which reduces POW). Applied here as a post-
-// modifier on the target side.
+// Pipeline (per hit):
+//   1. CalculateDamage         — base + stat, floored. Pure, no triggers fire.
+//   2. ApplyOutgoingTriggers   — fire attacker.conditions OnDealDamage; this is
+//                                where Weak / Vigor / future outgoing rules apply.
+//   3. target.TakeDamage(...)  — fires target.conditions OnTakeDamagePre; this is
+//                                where Vulnerable / Shields / Dodge apply.
+//
+// Vulnerable was historically a hardcoded ×1.5 here in CalculateDamage AND
+// a trigger on CND_Vulnerable that did the same thing — double-amping every
+// hit. The hardcoded path is gone now; the trigger is authoritative.
 // -----------------------------------------------------------------------------
 using UnityEngine;
 
@@ -13,33 +20,47 @@ namespace DarkSpire
 {
     public static class DamageCalculator
     {
+        // Reusable context object so the OnDealDamage hot path doesn't allocate
+        // per hit. Single-threaded combat → fine to share one static instance.
+        private static readonly OutgoingDamageContext sharedOutgoingCtx = new();
+
         /// <summary>
-        /// Calculate final damage for a weapon/skill hit.
-        /// Formula: (baseDmg * critMult) + attacker<stat> — Weak is applied on the
-        /// stat side via EffectivePOW already.
-        /// Crit: doubles base damage BEFORE adding stat.
-        /// Vulnerable on target: ×1.5 final (round down) — damage amp only,
-        /// does NOT stack with any DEF change.
+        /// Pre-modifier hit damage: (base × critMult) + attacker&lt;stat&gt;, floored at 0.
+        /// All other buffs/debuffs are applied by the trigger system afterwards:
+        /// caller is responsible for chaining <see cref="ApplyOutgoingTriggers"/>
+        /// before passing the result to <see cref="Unit.TakeDamage"/>.
         /// </summary>
-        /// <param name="stat">Which caster stat adds to damage. Defaults to POW
-        /// so existing weapon and skill call sites behave as before.</param>
+        /// <param name="stat">Which caster stat adds to damage. Defaults to POW.</param>
         public static int CalculateDamage(
             int baseDamage, Unit attacker, Unit target, bool isCrit,
             DamageStat stat = DamageStat.POW)
         {
             int base_ = isCrit ? baseDamage * 2 : baseDamage;
-
-            // Stat bonus from the caster.
             int damage = base_ + StatBonus(attacker, stat);
-
-            // Floor at 0
-            damage = Mathf.Max(0, damage);
-
-            // Vulnerable on target: ×1.5
-            if (target.conditions.HasCondition(ConditionID.Vulnerable))
-                damage = Mathf.FloorToInt(damage * 1.5f);
-
             return Mathf.Max(0, damage);
+        }
+
+        /// <summary>
+        /// Run the attacker's OnDealDamage triggers so caster-side outgoing
+        /// modifiers (Weak's ×0.75, Vigor's +N, future Burn-style amps) can
+        /// adjust the damage before it lands. Call this between
+        /// <see cref="CalculateDamage"/> and <see cref="Unit.TakeDamage"/> on
+        /// every actual-damage resolution path.
+        /// </summary>
+        public static int ApplyOutgoingTriggers(
+            int damage, Unit attacker, Unit target, bool isCrit, bool didHit)
+        {
+            if (attacker == null || attacker.conditions == null) return Mathf.Max(0, damage);
+
+            sharedOutgoingCtx.attacker = attacker;
+            sharedOutgoingCtx.defender = target;
+            sharedOutgoingCtx.amount   = damage;
+            sharedOutgoingCtx.isCrit   = isCrit;
+            sharedOutgoingCtx.didHit   = didHit;
+
+            attacker.conditions.FireDealDamage(sharedOutgoingCtx);
+
+            return Mathf.Max(0, sharedOutgoingCtx.amount);
         }
 
         /// <summary>
@@ -55,20 +76,15 @@ namespace DarkSpire
         }
 
         /// <summary>
-        /// Non-mutating preview of what an outgoing damage value would be
-        /// AFTER the attacker's own modifiers (Strength, Weak, …). Used by
-        /// IntentIconUI so the displayed enemy intent damage reflects, e.g.,
-        /// a Weak stack landing on the enemy before they attack.
+        /// Non-mutating preview of what an outgoing damage value would be after
+        /// the attacker's own modifiers. Used by IntentIconUI for enemy intents.
         ///
-        /// Excludes target-side modifiers (Vulnerable, DEF, Shields) because
-        /// the intent preview doesn't know which party member will take the
-        /// hit. Excludes crit (intent assumes a normal hit).
-        ///
-        /// Currently models the slice's two main outgoing-damage modifiers:
-        ///   • Strength is already in EffectivePOW via passive POW modifier.
-        ///   • Weak is a -25%/stack multiplicative reduction applied here.
-        /// Add new modifiers (e.g. Enraged, Crippled) by extending the
-        /// `attacker.conditions.GetStacks` checks below.
+        /// SIMULATION (intentional duplication): mirrors the actual trigger
+        /// behavior on CND_Weak (-25% flat per the SO's trigger configuration).
+        /// We don't actually fire the trigger here because Fire() has side
+        /// effects (StackOp consumes, ApplyCondition actions, etc.) that we
+        /// don't want during a hover/preview. If you add new outgoing-damage
+        /// triggers (Vigor, Enraged, …) update this method too.
         /// </summary>
         public static int PreviewOutgoingDamage(
             int baseDamage, Unit attacker, DamageStat stat = DamageStat.POW)
@@ -77,9 +93,11 @@ namespace DarkSpire
 
             if (attacker != null && attacker.conditions != null)
             {
-                int weak = attacker.conditions.GetStacks(ConditionID.Weak);
-                if (weak > 0)
-                    damage = Mathf.FloorToInt(damage * Mathf.Pow(0.75f, weak));
+                // Matches CND_Weak.asset's trigger: ModifyOutgoingDamagePercent(-0.25).
+                // Flat -25% when Weak is present, not per-stack compound. If you
+                // want compounding Weak, change both this and the trigger setup.
+                if (attacker.conditions.HasCondition(ConditionID.Weak))
+                    damage = Mathf.FloorToInt(damage * 0.75f);
             }
             return Mathf.Max(0, damage);
         }
@@ -98,14 +116,12 @@ namespace DarkSpire
         }
 
         /// <summary>
-        /// Description-system hook: the multiplicative damage modifier the
-        /// target's currently-active conditions would impose on incoming attack
-        /// damage. Today: Vulnerable → ×1.5. Returns false when nothing applies.
+        /// Description-system hook: target-side multiplicative modifier the
+        /// hovered target would impose on incoming attack damage. Used by the
+        /// number calc box to show "× Vulnerable (1.5x)" in the breakdown.
         ///
-        /// Kept here (not in NumberEvaluator) so the rule lives next to
-        /// CalculateDamage's hardcoded ×1.5 — when a new target-side amp lands
-        /// (e.g. Bruise rules), update both call sites here and the description
-        /// breakdown picks it up automatically.
+        /// Stays in sync with whatever target-side triggers exist on the SO —
+        /// when a new amp lands (e.g. Bruise rules), add a case here.
         /// </summary>
         public static bool TryGetIncomingMultiplier(Unit target, out float multiplier, out string label)
         {
@@ -113,9 +129,7 @@ namespace DarkSpire
             label = null;
             if (target == null || target.conditions == null) return false;
 
-            // Vulnerable: ×1.5 (matches CalculateDamage). Only emits a single
-            // multiplier today; if multiple amps stack later, return their
-            // product and a combined label, or restructure to emit a list.
+            // Vulnerable: ×1.5 (mirrors CND_Vulnerable's OnTakeDamagePre trigger).
             if (target.conditions.HasCondition(ConditionID.Vulnerable))
             {
                 multiplier = 1.5f;

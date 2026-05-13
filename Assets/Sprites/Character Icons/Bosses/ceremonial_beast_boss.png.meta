@@ -52,12 +52,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 300
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -106,13 +106,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: ceremonial_beast_boss_0
+      name: Sprite_Char_Ironclad_0
       rect:
         serializedVersion: 2
-        x: 2
-        y: 7
-        width: 81
-        height: 77
+        x: 220
+        y: 0
+        width: 577
+        height: 1003
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -121,52 +121,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b1d8705b9775d0300800000000000000
-      internalID: 219928137050852635
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: ceremonial_beast_boss_1
-      rect:
-        serializedVersion: 2
-        x: 71
-        y: 79
-        width: 6
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a68c9c63bc18a8350800000000000000
-      internalID: 6019766561731627114
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: ceremonial_beast_boss_2
-      rect:
-        serializedVersion: 2
-        x: 71
-        y: 30
-        width: 14
-        height: 13
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1da44ff13e70d8440800000000000000
-      internalID: 4939613038370376401
+      spriteID: 74a34d4e7fad77c40800000000000000
+      internalID: 5510113427341982279
       vertices: []
       indices: 
       edges: []
@@ -175,7 +131,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -185,9 +141,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      ceremonial_beast_boss_0: 219928137050852635
-      ceremonial_beast_boss_1: 6019766561731627114
-      ceremonial_beast_boss_2: 4939613038370376401
+      Sprite_Char_Ironclad_0: 5510113427341982279
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -20,8 +20,8 @@ MonoBehaviour:
   maxHP: 75
   maxSP: 30
   pow: 2
-  dex: 4
-  def: 12
+  dex: 5
+  def: 13
   wil: 3
   displayPrefab: {fileID: 0}
   partyTrayPortraitScale: 2.7
@@ -33,6 +33,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ee925001b46f7ec4f9834bc628e865b8, type: 2}
   - {fileID: 11400000, guid: cb29477d7d1539446854b3531b70ef73, type: 2}
   - {fileID: 11400000, guid: a420fce149f04e444b13a34c4ff204b8, type: 2}
+  startingPouch: 
   hasOrbSystem: 0
   hasSpellbook: 0
   hasPotionSack: 0

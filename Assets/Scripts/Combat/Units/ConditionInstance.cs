@@ -17,6 +17,11 @@ namespace DarkSpire
         public int stacks;
         public int duration;
 
+        // The unit that applied this instance, if known. Set by ConditionManager.ApplyCondition.
+        // Used by caster-gated conditions (Shrink) to self-clear when the source dies.
+        // Non-serialized — runtime-only reference, must be re-established each combat.
+        [System.NonSerialized] public Unit sourceUnit;
+
         public ConditionInstance(ConditionData data, int amount)
         {
             this.data = data;

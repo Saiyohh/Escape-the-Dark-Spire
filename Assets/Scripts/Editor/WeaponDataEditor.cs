@@ -140,7 +140,7 @@ namespace DarkSpire.EditorTools
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.LabelField(
-                    $"→ {data.name}  ·  {data.stackType}  ·  {data.timing}",
+                    $"→ {data.name}  ·  {data.stackType}  ·  {(data.isDebuff ? "debuff" : "buff")}",
                     EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
             }

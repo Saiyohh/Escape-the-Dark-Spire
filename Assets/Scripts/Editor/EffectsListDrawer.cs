@@ -467,7 +467,7 @@ namespace DarkSpire.EditorTools
             if (data != null)
             {
                 EditorGUI.indentLevel++;
-                string summary = $"→ {data.name}  ·  {data.stackType}  ·  {data.timing}";
+                string summary = $"→ {data.name}  ·  {data.stackType}  ·  {(data.isDebuff ? "debuff" : "buff")}";
                 EditorGUILayout.LabelField(summary, EditorStyles.miniLabel);
                 EditorGUI.indentLevel--;
             }

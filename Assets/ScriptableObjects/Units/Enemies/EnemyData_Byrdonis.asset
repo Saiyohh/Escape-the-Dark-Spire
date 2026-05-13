@@ -31,7 +31,9 @@ MonoBehaviour:
   bwCyans: 1.326
   bwBlues: 1.442
   bwMagentas: 2.003
-  startingConditions: []
+  startingConditions:
+  - conditionId: 36
+    stacks: 1
   movePattern:
   - name: Swoop
     weight: 1

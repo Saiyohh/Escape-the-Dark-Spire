@@ -1,0 +1,177 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8358920df88b40f4b9b99988798333a5, type: 3}
+  m_Name: EnemyData_Inklet
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.EnemyData
+  enemyName: Inklet
+  combatSprite: {fileID: 21300000, guid: e9fadd9cbe3368c4dbe56eba40d89488, type: 3}
+  enemyType: 0
+  mapIcon: {fileID: 0}
+  displayPrefab: {fileID: 0}
+  minHP: 11
+  maxHP: 17
+  pow: 1
+  atk: 2
+  def: 10
+  spd: 2
+  wil: 1
+  bwGrayscale: 0
+  bwReds: 0.4
+  bwYellows: 0.6
+  bwGreens: 0.4
+  bwCyans: 0.6
+  bwBlues: 0.2
+  bwMagentas: 0.8
+  startingConditions:
+  - conditionId: 34
+    stacks: 1
+  movePatternMode: 1
+  movePattern:
+  - name: Jab
+    weight: 1
+    intents:
+    - intentType: 0
+      rangeMin: 1
+      rangeMax: 5
+      targetPreference: 0
+      preferredCondition: 0
+      effects:
+      - effectType: 0
+        applyKind: 0
+        gate: 0
+        sameTargetAsGate: 1
+        loopLinkIndex: -1
+        targetMode: 0
+        targetPickIndex: 0
+        magnitude: 2
+        damageStat: 1
+        hitCount: 1
+        conditionID: 0
+        conditionStacks: 0
+        stackCountKind: 0
+        stackPer: 1
+        saveDC: 0
+        movementKind: 0
+        movementMagnitude: 1
+        orbType: 0
+        orbCount: 1
+        orbSource: 0
+        evokeKind: 0
+        evokeCount: 1
+        companionTarget: 0
+        bindDuration: 1
+        pouchItemType: 0
+        itemSO: {fileID: 0}
+        itemQuantity: 1
+        resourceAmount: 1
+        sealTarget: 0
+        sealDuration: 1
+        extraActionKind: 0
+        triggerDuration: 1
+        retaliateDamage: 0
+        scalingMultiplier: 1
+        saveType: 0
+  - name: Windup Punch
+    weight: 1
+    intents:
+    - intentType: 0
+      rangeMin: 1
+      rangeMax: 4
+      targetPreference: 0
+      preferredCondition: 0
+      effects:
+      - effectType: 0
+        applyKind: 0
+        gate: 0
+        sameTargetAsGate: 1
+        loopLinkIndex: -1
+        targetMode: 1
+        targetPickIndex: 0
+        magnitude: 0
+        damageStat: 1
+        hitCount: 2
+        conditionID: 0
+        conditionStacks: 0
+        stackCountKind: 0
+        stackPer: 1
+        saveDC: 0
+        movementKind: 0
+        movementMagnitude: 1
+        orbType: 0
+        orbCount: 1
+        orbSource: 0
+        evokeKind: 0
+        evokeCount: 1
+        companionTarget: 0
+        bindDuration: 1
+        pouchItemType: 0
+        itemSO: {fileID: 0}
+        itemQuantity: 1
+        resourceAmount: 1
+        sealTarget: 0
+        sealDuration: 1
+        extraActionKind: 0
+        triggerDuration: 1
+        retaliateDamage: 0
+        scalingMultiplier: 1
+        saveType: 0
+  - name: Piercing Gaze
+    weight: 1
+    intents:
+    - intentType: 0
+      rangeMin: 2
+      rangeMax: 6
+      targetPreference: 1
+      preferredCondition: 0
+      effects:
+      - effectType: 0
+        applyKind: 0
+        gate: 0
+        sameTargetAsGate: 1
+        loopLinkIndex: -1
+        targetMode: 0
+        targetPickIndex: 0
+        magnitude: 8
+        damageStat: 1
+        hitCount: 1
+        conditionID: 0
+        conditionStacks: 0
+        stackCountKind: 0
+        stackPer: 1
+        saveDC: 0
+        movementKind: 0
+        movementMagnitude: 1
+        orbType: 0
+        orbCount: 1
+        orbSource: 0
+        evokeKind: 0
+        evokeCount: 1
+        companionTarget: 0
+        bindDuration: 1
+        pouchItemType: 0
+        itemSO: {fileID: 0}
+        itemQuantity: 1
+        resourceAmount: 1
+        sealTarget: 0
+        sealDuration: 1
+        extraActionKind: 0
+        triggerDuration: 1
+        retaliateDamage: 0
+        scalingMultiplier: 1
+        saveType: 0
+  conditionalMoves: []
+  hasTurn1MoveOverride: 0
+  turn1MoveOverride:
+    name: 
+    weight: 1
+    intents: []
+  expValue: 0

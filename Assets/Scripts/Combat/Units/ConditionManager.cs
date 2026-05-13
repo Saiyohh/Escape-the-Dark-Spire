@@ -70,6 +70,7 @@ namespace DarkSpire
             if (conditions.TryGetValue(data.conditionID, out var existing))
             {
                 existing.Apply(ctx.stacks);
+                if (existing.sourceUnit == null) existing.sourceUnit = source;
                 OnConditionChanged?.Invoke(data.conditionID, existing.GetDisplayValue());
                 // Mirror to the global bus so floater spawners / VFX systems
                 // get one event regardless of which unit was affected.
@@ -77,10 +78,29 @@ namespace DarkSpire
             }
             else
             {
-                conditions[data.conditionID] = new ConditionInstance(data, ctx.stacks);
+                var inst = new ConditionInstance(data, ctx.stacks);
+                inst.sourceUnit = source;
+                conditions[data.conditionID] = inst;
                 OnConditionApplied?.Invoke(data.conditionID, ctx.stacks);
                 CombatEvents.InvokeConditionApplied(Owner, data.conditionID, ctx.stacks);
             }
+        }
+
+        /// <summary>
+        /// Remove every active condition on this unit that was applied by
+        /// <paramref name="caster"/>. Used by caster-gated conditions like
+        /// Shrink, which should fall off the targets when the source dies.
+        /// </summary>
+        public void RemoveConditionsFromSource(Unit caster)
+        {
+            if (caster == null) return;
+            var toRemove = new List<ConditionID>();
+            foreach (var kvp in conditions)
+            {
+                if (kvp.Value.sourceUnit == caster)
+                    toRemove.Add(kvp.Key);
+            }
+            foreach (var id in toRemove) RemoveCondition(id);
         }
 
         public void RemoveCondition(ConditionID id)
@@ -336,6 +356,53 @@ namespace DarkSpire
                         // Vigor-style amp would use percentValue = +0.25 → × 1.25.
                         oc3.amount = Mathf.Max(0, Mathf.FloorToInt(oc3.amount * (1f + a.percentValue)));
                         return true;
+                    }
+                    return false;
+
+                // ── Extended damage-modifier actions ─────────────────────────
+                case TriggerActionKind.ModifyIncomingDamagePerStack:
+                    if (ctx is DamageContext dcps)
+                    {
+                        dcps.amount = Mathf.Max(0, dcps.amount + a.amountPerStack * inst.stacks);
+                        return true;
+                    }
+                    return false;
+                case TriggerActionKind.ModifyIncomingDamagePercentPerStack:
+                    if (ctx is DamageContext dcpp)
+                    {
+                        // Compound: (1 + p)^stacks. Each stack multiplies independently.
+                        // -0.25 × 3 stacks = ×0.75^3 = ×0.4219 → 42% damage taken.
+                        // +0.5  × 2 stacks = ×1.5^2  = ×2.25.
+                        float mult = Mathf.Pow(1f + a.percentValue, inst.stacks);
+                        dcpp.amount = Mathf.Max(0, Mathf.FloorToInt(dcpp.amount * mult));
+                        return true;
+                    }
+                    return false;
+                case TriggerActionKind.ModifyOutgoingDamagePercentPerStack:
+                    if (ctx is OutgoingDamageContext ocpp)
+                    {
+                        // Compound: (1 + p)^stacks. Same shape as the incoming variant.
+                        float mult = Mathf.Pow(1f + a.percentValue, inst.stacks);
+                        ocpp.amount = Mathf.Max(0, Mathf.FloorToInt(ocpp.amount * mult));
+                        return true;
+                    }
+                    return false;
+
+                case TriggerActionKind.CapIncomingDamageAt:
+                    if (ctx is DamageContext dcCap)
+                    {
+                        // Hits below the cap aren't softened — only run the
+                        // clamp when the incoming damage actually exceeds it
+                        // so afterFiring=ConsumeIfActionLanded works correctly
+                        // for "first N significant hits" patterns. We also
+                        // return false on no-op so a Slippery stack isn't
+                        // burned by a hit that already deals ≤ cap.
+                        if (dcCap.amount > a.amount)
+                        {
+                            dcCap.amount = Mathf.Max(0, a.amount);
+                            return true;
+                        }
+                        return false;
                     }
                     return false;
 

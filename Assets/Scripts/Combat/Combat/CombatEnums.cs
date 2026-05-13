@@ -161,11 +161,24 @@ namespace DarkSpire
         PerEnemy,      // One per enemy in combat (Chill)
     }
 
+    // Which orb(s) an Evoke effect targets. Names follow on-screen layout: in
+    // this game new channels push into slot 0, which renders on the right, so
+    // slot 0 = visually rightmost and slot N-1 = visually leftmost.
+    //   First    = slot 0 (the visually-rightmost orb). Standard Evoke target;
+    //              evokeCount > 1 fires the same orb repeatedly (Dualcast).
+    //   Leftmost = slot N-1 (the visually-leftmost / oldest orb). Useful for a
+    //              "drain from the back of the queue" mechanic. Single-fire
+    //              only — multi-fire Dualcast targets rightmost.
+    //   All      = drain every slotted orb.
+    //
+    // Serialization note: enum index 1 was previously named "Rightmost" — it's
+    // renamed to "Leftmost" here for clarity. Existing skill assets with
+    // evokeKind: 1 keep working; Unity serializes by integer.
     public enum EvokeKind
     {
-        First,         // Default: first orb's Evoke (consumes orb)
-        Rightmost,     // Last orb (Dualcast targets this one)
-        All,           // Every currently-slotted orb
+        First,
+        Leftmost,
+        All,
     }
 
     public enum PouchItemType
@@ -274,11 +287,17 @@ namespace DarkSpire
         Cursed,
         Shields,     // Stackable damage absorb (1 per stack) — replaces temporaryDefense.
                      // clearTiming=RoundStart on the SO; Barricade (defensePersists) overrides.
+        Slippery,    // Caps the next N incoming damage instances to 1 (one stack consumed per hit).
+        Shrink,      // -25% outgoing damage; auto-clears when the applying caster dies.
+        Territorial, // OnTurnEnd: grants Strength per stack (Byrdonis ramp passive).
     }
 
     public enum ConditionStackType { Counter, Duration, Single }
 
-    public enum ConditionTiming { Passive, TurnStart, TurnEnd, Cleanup, OnHit, OnApply }
+    // ConditionTiming (Passive/TurnStart/...) was removed — it was a legacy
+    // single-event scheduler superseded by the compositional triggers[] +
+    // clearTiming model. No runtime code referenced it; the enum is gone and
+    // the field has been dropped from ConditionData.
 
     // Retained from Echoes so ported files compile. Powers/Relics themselves
     // are NOT ported — this enum is dead data until Aspect Trees replace it.

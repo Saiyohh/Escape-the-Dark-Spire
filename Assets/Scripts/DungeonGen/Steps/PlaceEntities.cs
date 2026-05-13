@@ -78,20 +78,92 @@ namespace DarkSpire
             var corridorTiles = CollectCorridorTiles(ctx);
             if (corridorTiles.Count == 0) return;
 
-            // Sample roughly evenly along corridor space.
+            // Spawn safety bubble: keep enemies far enough from the player's
+            // spawn that they can't immediately see/chase. Measured as path
+            // distance through walkable tiles, not Manhattan, so a monster on
+            // the other side of a wall right next to the start room still
+            // counts as far away.
+            int safeSpawnDist = Mathf.Max(
+                8, Mathf.CeilToInt(ctx.config.enemyDetectionRadius) + 5);
+
+            // Min walkable-path distance between two corridor monsters. Path
+            // distance (not Manhattan) is what matters in 1-tile corridors —
+            // two monsters at Manhattan 4 in the same passage still cork it.
+            const int MinMonsterPathDist = 6;
+
             int count = ctx.config.corridorMonsterCount;
             ctx.rng.Shuffle(corridorTiles);
 
+            var placedStarts = new HashSet<Vector2Int>();
             int placed = 0;
             foreach (var tile in corridorTiles)
             {
                 if (placed >= count) break;
-                if (TooCloseToOtherMonster(ctx, tile, 4)) continue;
+
+                var distField = GridBfs.DistanceField(
+                    ctx.tiles, tile, t => t.IsWalkable());
+
+                int distFromStart = distField[ctx.startPos.x, ctx.startPos.y];
+                if (distFromStart < 0 || distFromStart < safeSpawnDist) continue;
+
+                if (TooCloseToOtherMonsterByPath(distField, placedStarts, MinMonsterPathDist))
+                    continue;
+
+                // Don't seal off any room: simulate the dungeon with this
+                // monster + every previously placed corridor monster acting
+                // as walls, and require every room center to remain reachable
+                // from the start. Catches "two enemies completely block you
+                // off" without any geometric special-casing.
+                if (WouldBlockProgression(ctx, tile, placedStarts)) continue;
 
                 var route = BuildCorridorPatrol(ctx, tile, 5);
                 ctx.monsters.Add(new MonsterSpawn(MonsterTier.Standard, tile, route));
+                placedStarts.Add(tile);
                 placed++;
             }
+        }
+
+        private static bool TooCloseToOtherMonsterByPath(
+            int[,] distField, HashSet<Vector2Int> others, int minDist)
+        {
+            foreach (var p in others)
+            {
+                int d = distField[p.x, p.y];
+                if (d >= 0 && d < minDist) return true;
+            }
+            return false;
+        }
+
+        // BFS from start treating `candidate` and every already-placed corridor
+        // monster as a wall. Returns true if any room becomes unreachable —
+        // i.e. placing the candidate would block player progression.
+        private static bool WouldBlockProgression(
+            GenContext ctx, Vector2Int candidate, HashSet<Vector2Int> blockerStarts)
+        {
+            int w = ctx.config.gridSize.x, h = ctx.config.gridSize.y;
+            var visited = new HashSet<Vector2Int> { ctx.startPos };
+            var queue = new Queue<Vector2Int>();
+            queue.Enqueue(ctx.startPos);
+
+            while (queue.Count > 0)
+            {
+                var cur = queue.Dequeue();
+                foreach (var d in Dirs4)
+                {
+                    var n = cur + d;
+                    if (n.x < 0 || n.y < 0 || n.x >= w || n.y >= h) continue;
+                    if (visited.Contains(n)) continue;
+                    if (n == candidate) continue;
+                    if (blockerStarts.Contains(n)) continue;
+                    if (!ctx.tiles[n.x, n.y].IsWalkable()) continue;
+                    visited.Add(n);
+                    queue.Enqueue(n);
+                }
+            }
+
+            foreach (var room in ctx.rooms)
+                if (!visited.Contains(room.Center)) return true;
+            return false;
         }
 
         private static void PlaceRoamingElite(GenContext ctx)
@@ -151,16 +223,6 @@ namespace DarkSpire
                     list.Add(p);
                 }
             return list;
-        }
-
-        private static bool TooCloseToOtherMonster(GenContext ctx, Vector2Int tile, int minDist)
-        {
-            foreach (var m in ctx.monsters)
-            {
-                int d = Mathf.Abs(m.start.x - tile.x) + Mathf.Abs(m.start.y - tile.y);
-                if (d < minDist) return true;
-            }
-            return false;
         }
 
         // Walk along passable tiles from `start`, picking up to `length` waypoints.

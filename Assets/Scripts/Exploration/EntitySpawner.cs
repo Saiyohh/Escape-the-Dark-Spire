@@ -139,7 +139,10 @@ namespace DarkSpire
                     EntityKind.Chest    => lib.chest,
                     EntityKind.GoldPile => lib.goldPile,
                     EntityKind.Shrine   => lib.shrine,
-                    EntityKind.BossGate => lib.bossGate,
+                    // strPayload carries the cardinal facing ("N"/"S"/"E"/"W")
+                    // written by PlaceBossGate. Resolver falls back to the
+                    // non-directional sprite when a slot is unassigned.
+                    EntityKind.BossGate => lib.GetBossGateSprite(e.strPayload, open: false),
                     _ => null,
                 };
             }

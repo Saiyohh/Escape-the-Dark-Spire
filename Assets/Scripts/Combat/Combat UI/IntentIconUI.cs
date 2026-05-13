@@ -16,11 +16,12 @@
 // -----------------------------------------------------------------------------
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace DarkSpire
 {
-    public class IntentIconUI : MonoBehaviour
+    public class IntentIconUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text label;
@@ -34,6 +35,11 @@ namespace DarkSpire
 
         private EnemyIntent intent;
         private Unit source;
+
+        /// <summary>The intent this icon is bound to. Null until Bind() runs.</summary>
+        public EnemyIntent Intent => intent;
+        /// <summary>The enemy that authored the intent. Null until Bind() runs.</summary>
+        public Unit Source => source;
 
         public void Bind(EnemyIntent intent, Unit source = null)
         {
@@ -189,6 +195,22 @@ namespace DarkSpire
             if (iconImage == null) return;
             iconImage.sprite = s;
             iconImage.enabled = s != null;
+        }
+
+        // ─── Hover → DangerPreviewController ────────────────────────────────
+        // Drives the red/purple "in danger" auras over players this intent
+        // would target. Per-intent precision: hover each intent icon
+        // independently to preview that intent alone.
+
+        public void OnPointerEnter(PointerEventData _)
+        {
+            if (intent == null || source == null || !source.IsAlive) return;
+            DangerPreviewController.Instance?.ShowFor(source, intent);
+        }
+
+        public void OnPointerExit(PointerEventData _)
+        {
+            DangerPreviewController.Instance?.Hide();
         }
     }
 }

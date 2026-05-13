@@ -36,11 +36,17 @@ namespace DarkSpire
         [SerializeField] private Material blackAndWhiteMaterial;
 
         private ConditionData data;
+        private int stacks;
         private Material runtimeBWMaterial;
 
         /// <summary>The currently-bound condition (or null before Bind has run).
         /// Read by ConditionTooltipTrigger to populate the hover tooltip.</summary>
         public ConditionData Data => data;
+
+        /// <summary>Live stack count last passed to SetStacks. Read by
+        /// ConditionTooltipTrigger so the tooltip body can resolve
+        /// {stacks}/{total} placeholders against the actual instance.</summary>
+        public int Stacks => stacks;
 
         private static readonly int PropWR = Shader.PropertyToID("_WR");
         private static readonly int PropWY = Shader.PropertyToID("_WY");
@@ -89,9 +95,13 @@ namespace DarkSpire
 
         public void SetStacks(int stacks)
         {
+            this.stacks = stacks;
             if (stackText == null) return;
-            // Hide the label entirely if stacks ≤ 1 (single-instance buffs don't need "×1").
-            stackText.text = stacks > 1 ? $"×{stacks}" : "";
+            // Show the bare count whenever the condition is active. Bare number
+            // (no "×" prefix) matches standard card-game convention and reads
+            // unambiguously — players just see "3" overlaid on the Guard icon.
+            // Hidden only when stacks drop to 0 (about to be removed).
+            stackText.text = stacks >= 1 ? stacks.ToString() : "";
         }
 
         private void OnDestroy()

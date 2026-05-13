@@ -13,17 +13,28 @@ namespace DarkSpire
             int n = ctx.rooms.Count;
             if (n < 2) return;
 
-            var mst = ComputeMST(ctx);
+            int bossIdx = -1;
+            for (int i = 0; i < n; i++)
+                if (ctx.rooms[i].kind == RoomKind.Boss) { bossIdx = i; break; }
+
+            var mst = ComputeMST(ctx, bossIdx);
             CarveAll(ctx, mst);
 
-            // Extra edges: pick from non-MST edges at random.
+            // Extra edges: pick from non-MST edges at random — but never an
+            // edge that touches the boss room. The boss gate must remain the
+            // single chokepoint into the boss area; an extra connection that
+            // bypassed the gate would let players skip the lock entirely.
             var allEdges = AllEdges(n);
             var mstSet = new HashSet<(int, int)>();
             foreach (var (a, b) in mst) mstSet.Add(NormalizeEdge(a, b));
 
             var candidates = new List<(int, int)>();
             foreach (var (a, b) in allEdges)
-                if (!mstSet.Contains(NormalizeEdge(a, b))) candidates.Add((a, b));
+            {
+                if (mstSet.Contains(NormalizeEdge(a, b))) continue;
+                if (a == bossIdx || b == bossIdx) continue;
+                candidates.Add((a, b));
+            }
 
             ctx.rng.Shuffle(candidates);
             int extras = Mathf.Min(ctx.config.extraConnections, candidates.Count);
@@ -42,7 +53,7 @@ namespace DarkSpire
             return edges;
         }
 
-        private static List<(int, int)> ComputeMST(GenContext ctx)
+        private static List<(int, int)> ComputeMST(GenContext ctx, int bossIdx)
         {
             int n = ctx.rooms.Count;
             var inTree = new bool[n];
@@ -56,11 +67,20 @@ namespace DarkSpire
             var result = new List<(int, int)>();
             for (int step = 0; step < n - 1; step++)
             {
+                // Defer the boss room until every other room has joined the
+                // tree. This guarantees the boss room ends up as a leaf with
+                // exactly one MST edge — no other room is connected through
+                // it, so no key can land "behind" the gate.
+                bool nonBossPending = false;
+                for (int i = 0; i < n; i++)
+                    if (!inTree[i] && i != bossIdx) { nonBossPending = true; break; }
+
                 int next = -1;
                 int bestDist = int.MaxValue;
                 for (int i = 0; i < n; i++)
                 {
                     if (inTree[i]) continue;
+                    if (nonBossPending && i == bossIdx) continue;
                     if (minEdge[i].dist < bestDist)
                     {
                         bestDist = minEdge[i].dist;
@@ -90,10 +110,30 @@ namespace DarkSpire
                 CarveCorridor(ctx, ctx.rooms[a].Center, ctx.rooms[b].Center);
         }
 
-        // L-shaped corridor: pick horizontal-first or vertical-first at random.
+        // L-shaped corridor: pick horizontal-first or vertical-first at random,
+        // but prefer the orientation that doesn't slice through the boss room.
+        // (Even if the boss room is a leaf in the MST, an L corridor between
+        // two other rooms can still cut through it, punching extra entrances
+        // that bypass the gate.)
         private static void CarveCorridor(GenContext ctx, Vector2Int from, Vector2Int to)
         {
             bool horizontalFirst = ctx.rng.NextInt(2) == 0;
+
+            var bossRoom = ctx.FirstRoomOfKind(RoomKind.Boss);
+            if (bossRoom.HasValue)
+            {
+                var b = bossRoom.Value.bounds;
+                bool fromInBoss = b.Contains(from);
+                bool toInBoss = b.Contains(to);
+                if (!fromInBoss && !toInBoss)
+                {
+                    bool hCrosses = LCrossesRect(from, to, true, b);
+                    bool vCrosses = LCrossesRect(from, to, false, b);
+                    if (hCrosses && !vCrosses) horizontalFirst = false;
+                    else if (!hCrosses && vCrosses) horizontalFirst = true;
+                }
+            }
+
             if (horizontalFirst)
             {
                 CarveHorizontal(ctx, from.x, to.x, from.y);
@@ -104,6 +144,36 @@ namespace DarkSpire
                 CarveVertical(ctx, from.y, to.y, from.x);
                 CarveHorizontal(ctx, from.x, to.x, to.y);
             }
+        }
+
+        private static bool LCrossesRect(
+            Vector2Int from, Vector2Int to, bool horizontalFirst, RectInt rect)
+        {
+            if (horizontalFirst)
+            {
+                if (HSegCrossesRect(from.x, to.x, from.y, rect)) return true;
+                if (VSegCrossesRect(from.y, to.y, to.x, rect)) return true;
+            }
+            else
+            {
+                if (VSegCrossesRect(from.y, to.y, from.x, rect)) return true;
+                if (HSegCrossesRect(from.x, to.x, to.y, rect)) return true;
+            }
+            return false;
+        }
+
+        private static bool HSegCrossesRect(int x0, int x1, int y, RectInt rect)
+        {
+            if (y < rect.yMin || y >= rect.yMax) return false;
+            int xMin = Mathf.Min(x0, x1), xMax = Mathf.Max(x0, x1);
+            return xMax >= rect.xMin && xMin < rect.xMax;
+        }
+
+        private static bool VSegCrossesRect(int y0, int y1, int x, RectInt rect)
+        {
+            if (x < rect.xMin || x >= rect.xMax) return false;
+            int yMin = Mathf.Min(y0, y1), yMax = Mathf.Max(y0, y1);
+            return yMax >= rect.yMin && yMin < rect.yMax;
         }
 
         private static void CarveHorizontal(GenContext ctx, int x0, int x1, int y)

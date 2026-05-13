@@ -4367,6 +4367,7 @@ GameObject:
   - component: {fileID: 1402225276}
   - component: {fileID: 1402225277}
   - component: {fileID: 1402225278}
+  - component: {fileID: 1402225279}
   m_Layer: 5
   m_Name: Combat UI
   m_TagString: Untagged
@@ -4589,6 +4590,19 @@ MonoBehaviour:
   showDelayOverride: 0.05
   hideGraceOverride: -1
   verboseLogging: 0
+--- !u!114 &1402225279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1402225268}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0cd8212a65ca6b49904f6ad072d535a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.DangerPreviewController
+  auraPrefab: {fileID: 8978261133076856702, guid: 310d20a67f17b174d9ca2e8c379c596e, type: 3}
 --- !u!1 &1531432175
 GameObject:
   m_ObjectHideFlags: 0

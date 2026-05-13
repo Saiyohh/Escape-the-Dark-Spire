@@ -32,7 +32,7 @@ MonoBehaviour:
   bwBlues: 0.2
   bwMagentas: 0.8
   startingConditions: []
-  movePatternMode: 0
+  movePatternMode: 1
   movePattern:
   - name: Butt
     weight: 2

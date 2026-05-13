@@ -49,12 +49,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 300
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -103,13 +103,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: the_kin_boss_0
+      name: Sprite_Char_Ironclad_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 7
-        width: 6
-        height: 6
+        x: 220
+        y: 0
+        width: 577
+        height: 1003
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -118,30 +118,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8fcffce098b2041e0800000000000000
-      internalID: -2215723149007258376
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: the_kin_boss_1
-      rect:
-        serializedVersion: 2
-        x: 4
-        y: 7
-        width: 77
-        height: 77
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 600953e68664f0a60800000000000000
-      internalID: 7642404507010568198
+      spriteID: 74a34d4e7fad77c40800000000000000
+      internalID: 5510113427341982279
       vertices: []
       indices: 
       edges: []
@@ -150,7 +128,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -160,8 +138,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      the_kin_boss_0: -2215723149007258376
-      the_kin_boss_1: 7642404507010568198
+      Sprite_Char_Ironclad_0: 5510113427341982279
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

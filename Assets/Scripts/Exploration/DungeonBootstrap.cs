@@ -87,19 +87,35 @@ namespace DarkSpire
             EnsureRenderers();
             EnsureRegistry();
             BuildFloor();
-            EnsureDungeonUI();
+            BindDungeonUI();
         }
 
-        // Scene-scoped HUD + Minimap. Parented under this bootstrap so they
-        // disappear automatically on scene swap (combat, victory, game over).
-        private FloorHUD floorHUD;
-        private Minimap minimap;
+        // Scene-scoped HUD + Minimap. MUST be authored in DungeonFloor.unity.
+        // Bootstrap only finds them — it does not create them. Use the
+        // scaffolder menu items the first time:
+        //   Tools > DarkSpire > Scenes > Scaffold FloorHUD into open scene
+        //   Tools > DarkSpire > Scenes > Scaffold Minimap into open scene
+        [Header("Dungeon UI (auto-found in scene)")]
+        [SerializeField] private FloorHUD floorHUD;
+        [SerializeField] private Minimap minimap;
 
-        private void EnsureDungeonUI()
+        private void BindDungeonUI()
         {
-            if (floorHUD == null) floorHUD = FloorHUD.GetOrCreateInScene(transform);
-            if (minimap == null)  minimap  = Minimap.GetOrCreateInScene(transform);
-            if (minimap != null && ActiveFloor != null)
+            if (floorHUD == null)
+                floorHUD = FindAnyObjectByType<FloorHUD>(FindObjectsInactive.Include);
+            if (minimap == null)
+                minimap = FindAnyObjectByType<Minimap>(FindObjectsInactive.Include);
+
+            if (floorHUD == null)
+                Debug.LogWarning(
+                    "[DungeonBootstrap] No FloorHUD in scene. Scaffold one via " +
+                    "Tools > DarkSpire > Scenes > Scaffold FloorHUD into open scene.");
+
+            if (minimap == null)
+                Debug.LogWarning(
+                    "[DungeonBootstrap] No Minimap in scene. Scaffold one via " +
+                    "Tools > DarkSpire > Scenes > Scaffold Minimap into open scene.");
+            else if (ActiveFloor != null)
                 minimap.Bind(ActiveFloor, fogOfWar, partyToken);
         }
 

@@ -85,6 +85,8 @@ namespace DarkSpire
                     }
 
                     int damage = DamageCalculator.CalculateDamage(baseDmg, attacker, target, crit);
+                    // Caster-side outgoing modifiers (Weak, Vigor, etc.) fire here.
+                    damage = DamageCalculator.ApplyOutgoingTriggers(damage, attacker, target, crit, didHit: true);
                     target.TakeDamage(damage, attacker);
                     totalDamage += damage;
 
@@ -661,6 +663,7 @@ namespace DarkSpire
                     {
                         int damage = DamageCalculator.CalculateDamage(
                             effect.magnitude, caster, target, crit, effect.damageStat);
+                        damage = DamageCalculator.ApplyOutgoingTriggers(damage, caster, target, crit, didHit: true);
                         target.TakeDamage(damage, caster);
                         result.damageDealt += damage;
                         anyHit = true;
@@ -670,6 +673,7 @@ namespace DarkSpire
                 {
                     int damage = DamageCalculator.CalculateDamage(
                         effect.magnitude, caster, target, false, effect.damageStat);
+                    damage = DamageCalculator.ApplyOutgoingTriggers(damage, caster, target, false, didHit: true);
                     target.TakeDamage(damage, caster);
                     result.damageDealt += damage;
                     anyHit = true;
@@ -912,9 +916,12 @@ namespace DarkSpire
         }
 
         /// <summary>
-        /// Evoke an orb on the caster's tray. evokeKind selects which:
-        /// First = leftmost (the standard Evoke keyword), Rightmost = newest
-        /// (Dualcast pattern), All = drain the whole tray.
+        /// Evoke an orb on the caster's tray.
+        ///   First    = slot 0 (visually-rightmost). Standard Evoke; Dualcast
+        ///              (evokeCount > 1) fires the same orb repeatedly then
+        ///              consumes once.
+        ///   Leftmost = slot N-1 (visually-leftmost / oldest). Single-fire.
+        ///   All      = drain the whole tray.
         /// </summary>
         private static void ResolveEvokeOrb(
             Unit caster, SkillEffectData effect, CombatActionResult result)
@@ -924,14 +931,10 @@ namespace DarkSpire
             switch (effect.evokeKind)
             {
                 case EvokeKind.First:
-                    // Dualcast pattern: fire the SAME orb's Evoke `count` times,
-                    // then consume once. evokeCount=1 falls through to standard
-                    // single-fire behavior.
                     OrbManager.EvokeFirstRepeated(caster, count);
                     break;
-                case EvokeKind.Rightmost:
-                    // No multi-fire variant for Rightmost yet — call once.
-                    OrbManager.EvokeRightmost(caster);
+                case EvokeKind.Leftmost:
+                    OrbManager.EvokeLeftmost(caster);
                     break;
                 case EvokeKind.All:
                     OrbManager.EvokeAll(caster);
@@ -1032,7 +1035,21 @@ namespace DarkSpire
                 var intent = move.intents[i];
                 if (intent == null) continue;
 
-                Unit primaryTarget = EnemyAI.SelectTargetForIntent(enemy, intent, allPlayerUnits);
+                // Read the target locked in at intent-set time so resolution
+                // matches the danger-preview the player saw. Fall back to a
+                // live pick only if locking didn't happen (e.g. debug paths
+                // that bypass CombatManager.SetEnemyIntent).
+                Unit primaryTarget = null;
+                if (enemy.lockedIntentTargets != null
+                    && i < enemy.lockedIntentTargets.Length)
+                {
+                    primaryTarget = enemy.lockedIntentTargets[i];
+                }
+                if (primaryTarget == null || !primaryTarget.IsAlive)
+                {
+                    primaryTarget = EnemyAI.SelectTargetForIntent(enemy, intent, allPlayerUnits);
+                }
+
                 var baseTargets = primaryTarget != null
                     ? new List<Unit> { primaryTarget }
                     : new List<Unit>();

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: FED_Floor1
   m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.FloorEncounterDataSO
   monsters: {fileID: 11400000, guid: 0d8b203cb1d749c42aaef675a3302006, type: 2}
-  elites: {fileID: 0}
-  bosses: {fileID: 0}
+  elites: {fileID: 11400000, guid: 700025ce222d4f64b9b154af8ddafe41, type: 2}
+  bosses: {fileID: 11400000, guid: e587ec8bb6e13624d8e0d54f273e7676, type: 2}
   campsites: {fileID: 11400000, guid: bbce2af75c8e9284c89aad16fec8643a, type: 2}
   events: {fileID: 11400000, guid: bbce2af75c8e9284c89aad16fec8643a, type: 2}
   shrines: {fileID: 11400000, guid: bbce2af75c8e9284c89aad16fec8643a, type: 2}

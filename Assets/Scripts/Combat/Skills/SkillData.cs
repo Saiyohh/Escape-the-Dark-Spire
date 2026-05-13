@@ -288,9 +288,9 @@ namespace DarkSpire
                 case SkillEffectType.EvokeOrb:
                     return e.evokeKind switch
                     {
-                        EvokeKind.First     => "Evoke your first Orb.",
-                        EvokeKind.Rightmost => "Evoke your rightmost Orb.",
-                        EvokeKind.All       => "Evoke all your Orbs.",
+                        EvokeKind.First    => "Evoke your rightmost Orb.",
+                        EvokeKind.Leftmost => "Evoke your leftmost Orb.",
+                        EvokeKind.All      => "Evoke all your Orbs.",
                         _ => "Evoke an Orb.",
                     };
 

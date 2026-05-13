@@ -56,7 +56,6 @@ namespace DarkSpire
 
         // ─── Stacking ──────────────────────────────────────────────────────
         public ConditionStackType stackType;
-        public ConditionTiming timing;   // Kept for legacy; prefer triggers[] for new content
         public bool isDebuff;
         public bool ticksDown = true;
         public int maxStacks; // 0 = unlimited

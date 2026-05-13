@@ -17,8 +17,6 @@ namespace DarkSpire
 
         Stairway,
         StairwayLocked,
-        BossGate,
-        BossGateOpen,
 
         FloorTile,
         WallTile,

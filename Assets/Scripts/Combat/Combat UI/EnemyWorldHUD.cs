@@ -3,7 +3,8 @@
 // World-space enemy HUD. Two regions:
 //   BELOW the sprite: HP bar + text, optional DEF badge
 //   ABOVE the sprite: intent strip (icons for what the enemy will do this turn)
-//                    + a ChanceBox (hover-only; shows hit/afflict %)
+//                    + a ChanceBox (shown while player is targeting THIS enemy;
+//                                   previews caster→enemy hit %)
 //
 // UnitDisplay spawns this from the enemyWorldHUDPrefab during Initialize, and
 // positions the whole prefab at the enemy's feet (enemyWorldHUDOffset). The
@@ -63,7 +64,7 @@ namespace DarkSpire
                  "Usually the same prefab used by UnitWorldHUD.")]
         [SerializeField] private GameObject conditionIconPrefab;
 
-        [Header("Chance Box (hover-only)")]
+        [Header("Chance Box (shown during player targeting of this enemy)")]
         [SerializeField] private ChanceBox chanceBox;
 
         [Header("Intent Pulse")]
@@ -324,7 +325,6 @@ namespace DarkSpire
             currentMove = move;
             var intents = move != null ? move.intents : System.Array.Empty<EnemyIntent>();
             RebuildIntent(intents);
-            if (chanceBox != null) chanceBox.Refresh(intents);
         }
 
         private void RebuildIntent(IReadOnlyList<EnemyIntent> intents)

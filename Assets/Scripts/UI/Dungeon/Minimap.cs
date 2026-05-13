@@ -5,6 +5,13 @@
 // FogOfWar.IsRevealed for the visible mask and PartyToken.GridPos for the
 // party-position dot.
 //
+// HAND-AUTHORED ONLY. The Canvas + frame + RawImage hierarchy MUST be authored
+// in the scene. The `display` RawImage is the only required Inspector ref;
+// `fog` and `party` are resolved at runtime from DungeonBootstrap.Bind(...).
+// Run Tools > DarkSpire > Scenes > Scaffold Minimap into open scene once to
+// generate a starting frame; the size/position you set there is what the
+// minimap will use at runtime.
+//
 // LateUpdate redraws only the deltas: tiles that flipped from unrevealed to
 // revealed since the last frame, plus the party-token tile (and the previous
 // one — cleared back to its base color).
@@ -16,13 +23,20 @@ namespace DarkSpire
 {
     public class Minimap : MonoBehaviour
     {
-        [Header("Display")]
+        [Header("Display (required — author in scene)")]
+        [Tooltip("RawImage that the runtime texture is assigned to. " +
+                 "Its RectTransform size on the Canvas IS the on-screen " +
+                 "minimap size — set it however you like in the Inspector.")]
         [SerializeField] private RawImage display;
+
+        [Tooltip("Pixels per tile in the painted texture. Higher = chunkier " +
+                 "blocks. The RawImage's RectTransform stretches the texture, " +
+                 "so this controls internal pixel-art resolution, not on-screen size.")]
         [SerializeField] private int tileSize = 4;
 
-        [Header("Sources")]
-        [SerializeField] private FogOfWar fog;
-        [SerializeField] private PartyToken party;
+        // Resolved at runtime by DungeonBootstrap via Bind(...). Not authored.
+        private FogOfWar fog;
+        private PartyToken party;
 
         // Palette.
         private static readonly Color ColorUnrevealed = new(0f, 0f, 0f, 0.85f);
@@ -43,27 +57,29 @@ namespace DarkSpire
         private bool[,] paintedRevealed;
         private Vector2Int prevPartyTile = new(-1, -1);
         private bool dirty;
+        private bool warnedAboutMissingDisplay;
 
         // ─── Public API ──────────────────────────────────────────────────────
-
-        public static Minimap GetOrCreateInScene(Transform parent)
-        {
-            var existing = FindAnyObjectByType<Minimap>();
-            if (existing != null) return existing;
-            var go = BuildRuntimeFallback();
-            if (parent != null) go.transform.SetParent(parent, false);
-            return go.GetComponent<Minimap>();
-        }
 
         public void Bind(GeneratedFloorData floorIn, FogOfWar fogIn, PartyToken partyIn)
         {
             floor = floorIn;
             fog = fogIn;
             party = partyIn;
+            if (display == null)
+            {
+                WarnAboutMissingDisplay();
+                return;
+            }
             BuildTexture();
         }
 
         // ─── Lifecycle ───────────────────────────────────────────────────────
+
+        private void Start()
+        {
+            if (display == null) WarnAboutMissingDisplay();
+        }
 
         private void LateUpdate()
         {
@@ -75,6 +91,18 @@ namespace DarkSpire
                 texture.Apply(updateMipmaps: false);
                 dirty = false;
             }
+        }
+
+        private void WarnAboutMissingDisplay()
+        {
+            if (warnedAboutMissingDisplay) return;
+            warnedAboutMissingDisplay = true;
+            Debug.LogWarning(
+                "[Minimap] No `display` RawImage assigned. Author the minimap " +
+                "in the scene — run " +
+                "Tools > DarkSpire > Scenes > Scaffold Minimap into open scene " +
+                "for a starting frame, then wire the inner RawImage to the " +
+                "Minimap component's Display field.", this);
         }
 
         // ─── Texture build + paint ───────────────────────────────────────────
@@ -101,7 +129,7 @@ namespace DarkSpire
             paintedRevealed = new bool[floor.gridSize.x, floor.gridSize.y];
             prevPartyTile = new Vector2Int(-1, -1);
 
-            if (display != null) display.texture = texture;
+            display.texture = texture;
         }
 
         private void RepaintRevealedDeltas()
@@ -181,51 +209,6 @@ namespace DarkSpire
             for (int dx = 0; dx < tileSize; dx++)
                 for (int dy = 0; dy < tileSize; dy++)
                     texture.SetPixel(x0 + dx, y0 + dy, c);
-        }
-
-        // ─── Runtime fallback ────────────────────────────────────────────────
-
-        private static GameObject BuildRuntimeFallback()
-        {
-            var go = new GameObject("Minimap");
-
-            var canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 610;
-
-            var scaler = go.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.matchWidthOrHeight = 0.5f;
-            go.AddComponent<GraphicRaycaster>();
-
-            // Frame — top-right corner.
-            var frame = new GameObject("Frame");
-            frame.transform.SetParent(go.transform, false);
-            var rt = frame.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(1f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot     = new Vector2(1f, 1f);
-            rt.anchoredPosition = new Vector2(-24f, -180f); // below the HUD top bar
-            rt.sizeDelta = new Vector2(220f, 220f);
-            var bg = frame.AddComponent<Image>();
-            bg.color = new Color(0f, 0f, 0f, 0.65f);
-
-            // Inner display — small inset so the frame border shows.
-            var displayGO = new GameObject("Display");
-            displayGO.transform.SetParent(frame.transform, false);
-            var drt = displayGO.AddComponent<RectTransform>();
-            drt.anchorMin = Vector2.zero;
-            drt.anchorMax = Vector2.one;
-            drt.offsetMin = new Vector2(4f, 4f);
-            drt.offsetMax = new Vector2(-4f, -4f);
-            var raw = displayGO.AddComponent<RawImage>();
-            raw.color = Color.white;
-
-            var minimap = go.AddComponent<Minimap>();
-            minimap.display = raw;
-            minimap.tileSize = 4;
-            return go;
         }
     }
 }

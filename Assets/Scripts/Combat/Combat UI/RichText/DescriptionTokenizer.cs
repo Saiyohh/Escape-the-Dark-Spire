@@ -187,15 +187,27 @@ namespace DarkSpire
 
                 case SkillEffectType.EvokeOrb:
                 {
-                    string body = e.evokeKind switch
-                    {
-                        EvokeKind.First     => " your first Orb.",
-                        EvokeKind.Rightmost => " your rightmost Orb.",
-                        EvokeKind.All       => " all your Orbs.",
-                        _                   => " an Orb.",
-                    };
                     tokens.Add(DescriptionToken.Keyword("Evoke"));
-                    tokens.Add(DescriptionToken.Plain(body));
+
+                    // Names follow on-screen layout: slot 0 renders on the right
+                    // (First = rightmost), slot N-1 renders on the left (Leftmost).
+                    string orbPhrase = e.evokeKind switch
+                    {
+                        EvokeKind.All      => " all your Orbs",
+                        EvokeKind.Leftmost => " your leftmost Orb",
+                        _                  => " your rightmost Orb", // First
+                    };
+                    tokens.Add(DescriptionToken.Plain(orbPhrase));
+
+                    // Tail: count suffix + period. evokeCount drives Dualcast and
+                    // any future multi-fire orb skills.
+                    if (e.evokeCount == 2)
+                        tokens.Add(DescriptionToken.Plain(" twice."));
+                    else if (e.evokeCount > 2)
+                        tokens.Add(DescriptionToken.Plain($" {e.evokeCount} times."));
+                    else
+                        tokens.Add(DescriptionToken.Plain("."));
+
                     return;
                 }
 

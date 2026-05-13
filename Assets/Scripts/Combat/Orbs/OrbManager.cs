@@ -95,7 +95,13 @@ namespace DarkSpire
             if (!suppressOrbsChanged) defect.RaiseOrbsChanged();
         }
 
-        public static void EvokeRightmost(Unit defect)
+        /// <summary>
+        /// Evoke the LEFTMOST orb on screen — slot N-1 in the array, the
+        /// oldest channel still in the tray. Single-fire only; the Dualcast
+        /// "fire the same orb N times" pattern targets the rightmost (slot 0)
+        /// via EvokeFirstRepeated.
+        /// </summary>
+        public static void EvokeLeftmost(Unit defect)
         {
             if (defect == null || defect.orbs == null || defect.orbs.Count == 0) return;
             int idx = defect.orbs.Count - 1;

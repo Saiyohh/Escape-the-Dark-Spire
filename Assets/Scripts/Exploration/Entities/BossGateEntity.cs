@@ -30,7 +30,9 @@ namespace DarkSpire
             if (RunStateHolder.Instance != null && RunStateHolder.Instance.IsGateUnlocked(GridPos))
             {
                 unlocked = true;
-                var openSprite = library != null ? library.bossGateOpen : null;
+                var openSprite = library != null
+                    ? library.GetBossGateSprite(placement.strPayload, open: true)
+                    : null;
                 SwapSprite(openSprite, new Color(0.50f, 0.50f, 0.50f, 0.65f));
             }
         }
@@ -44,7 +46,9 @@ namespace DarkSpire
                 unlocked = true;
                 RunStateHolder.Instance?.unlockedGates.Add(GridPos);
                 Debug.Log($"[BossGate] Unlocked with {RunContext.keysHeld} keys.");
-                var openSprite = library != null ? library.bossGateOpen : null;
+                var openSprite = library != null
+                    ? library.GetBossGateSprite(placement.strPayload, open: true)
+                    : null;
                 SwapSprite(openSprite, new Color(0.50f, 0.50f, 0.50f, 0.65f));
                 DungeonEvents.InvokeFlashMessage("Gate unlocked.");
             }

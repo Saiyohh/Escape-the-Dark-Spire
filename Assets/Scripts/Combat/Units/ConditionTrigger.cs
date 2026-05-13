@@ -179,6 +179,15 @@ namespace DarkSpire
 
         // Death / lifecycle
         KillTarget,                  // Doom's execute
+
+        // ── Extended damage modifiers (appended to preserve serialization) ──
+        // New entries land at the end so existing assets' int indices stay valid.
+        ModifyIncomingDamagePerStack,        // -N flat × stacks incoming (per-stack flat ward)
+        ModifyIncomingDamagePercentPerStack, // Compound: amount × (1 + percentValue)^stacks. -0.25 × 3 stacks = ×0.422
+        ModifyOutgoingDamagePercentPerStack, // Compound: same formula on outgoing. Use for stacking Weak-like debuffs that scale per stack.
+        CapIncomingDamageAt,                 // Clamps incoming damage to min(damage, amount). Pairs with afterFiring = ConsumeN
+                                             // to model "first N hits are softened" patterns (Slippery: cap to 1, consume 1/hit).
+                                             // OnTakeDamagePre only.
     }
 
     public enum ActionTarget

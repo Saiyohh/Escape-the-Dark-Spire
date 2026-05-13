@@ -248,6 +248,18 @@ namespace DarkSpire
             string name = glossary != null ? glossary.GetDisplayName(entry) : entry.displayName ?? entry.key;
             string body = glossary != null ? glossary.GetDescription(entry) : entry.description;
             Sprite icon = glossary != null ? glossary.GetIcon(entry) : entry.icon;
+
+            // Condition-linked entries: resolve {X}/{stacks}/{total} placeholders
+            // in the body via the SO data. Skill-description hovers have no live
+            // unit context, so stacks defaults to 0 — {X} still substitutes
+            // correctly for "Increases DEF by 1 for this round."-style rule text.
+            if (entry.isConditionLinked && ConditionLibrary.Instance != null)
+            {
+                var data = ConditionLibrary.Instance.Get(entry.linkedCondition);
+                if (data != null)
+                    body = ConditionDescriptionFormatter.Format(data, stacks: 0);
+            }
+
             view.SetContent(TooltipContent.ForCondition(name, icon, body));
         }
 

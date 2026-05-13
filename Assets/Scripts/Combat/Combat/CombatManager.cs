@@ -186,12 +186,22 @@ namespace DarkSpire
             }
 
             // Create enemy units (same rank convention on the enemy side).
+            // Fixed roster spawns first (always-present mechanical anchors —
+            // bosses, scripted miniboss escorts, signature mooks). Then we
+            // top up with random picks from possibleEnemies, capped by the
+            // available enemy positions in the scene.
             EnemyUnits.Clear();
-            int enemyCount = Random.Range(encounter.minEnemies, encounter.maxEnemies + 1);
-            enemyCount = Mathf.Min(enemyCount, enemyPositions.Length);
-            for (int i = 0; i < enemyCount; i++)
+            int fixedCount = encounter.fixedEnemies != null ? encounter.fixedEnemies.Length : 0;
+            int extraRoll = (encounter.possibleEnemies != null && encounter.possibleEnemies.Length > 0)
+                ? Random.Range(encounter.minEnemies, encounter.maxEnemies + 1)
+                : 0;
+            int totalEnemies = Mathf.Min(fixedCount + extraRoll, enemyPositions.Length);
+            for (int i = 0; i < totalEnemies; i++)
             {
-                var enemyData = encounter.possibleEnemies[Random.Range(0, encounter.possibleEnemies.Length)];
+                EnemyData enemyData = i < fixedCount
+                    ? encounter.fixedEnemies[i]
+                    : encounter.possibleEnemies[Random.Range(0, encounter.possibleEnemies.Length)];
+                if (enemyData == null) continue;
                 var unit = new Unit(enemyData);
                 unit.SetRank(i + 1);
                 EnemyUnits.Add(unit);
@@ -830,12 +840,33 @@ namespace DarkSpire
         /// the end of every enemy phase. Routes through EnemyAI.DecideMove
         /// (turn-1 + conditional overrides considered) so the telegraphed
         /// intent matches what will actually execute.
+        ///
+        /// Locks per-intent primary targets here too — Random / preference
+        /// rolls happen ONCE when the intent is set, not every time the
+        /// player hovers or every time the resolver runs. This keeps the
+        /// "in danger" preview honest: the player they see highlighted is
+        /// the player who'll actually be hit.
         /// </summary>
         private void SetEnemyIntent(Unit enemy)
         {
             var move = EnemyAI.DecideMove(enemy);
-            if (move != null)
+            enemy.currentMove = move;
+            enemy.lockedIntentTargets = null;
+
+            if (move != null && move.intents != null)
+            {
+                var locked = new Unit[move.intents.Length];
+                for (int i = 0; i < move.intents.Length; i++)
+                {
+                    var intent = move.intents[i];
+                    locked[i] = intent != null
+                        ? EnemyAI.SelectTargetForIntent(enemy, intent, PlayerUnits)
+                        : null;
+                }
+                enemy.lockedIntentTargets = locked;
+
                 CombatEvents.InvokeEnemyMoveSet(enemy, move);
+            }
         }
 
         /// <summary>

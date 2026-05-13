@@ -22,10 +22,16 @@ MonoBehaviour:
   chest: {fileID: 244765665826304046, guid: b2936bb0fd7bd1f40b80d1d1ea68ad11, type: 3}
   chestOpen: {fileID: -3083205697992774611, guid: b2936bb0fd7bd1f40b80d1d1ea68ad11, type: 3}
   goldPile: {fileID: 21300000, guid: 4e0ec339e69957d49bad5c445a1c2f7e, type: 3}
-  stairway: {fileID: -1993265122, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
-  stairwayLocked: {fileID: 210505854, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
-  bossGate: {fileID: 1382765479, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
-  bossGateOpen: {fileID: -1075571954, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  stairway: {fileID: 210505854, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  stairwayLocked: {fileID: -1993265122, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateNorth: {fileID: -1993265122, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateSouth: {fileID: -2063783067, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateEast: {fileID: 1313058402, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateWest: {fileID: -173475235, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateOpenNorth: {fileID: 1438627424, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateOpenSouth: {fileID: 1925466028, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateOpenEast: {fileID: -818151909, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
+  bossGateOpenWest: {fileID: 425991940, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
   floorTile: {fileID: 405056698, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
   wallTile: {fileID: 5139769989838995918, guid: b2936bb0fd7bd1f40b80d1d1ea68ad11, type: 3}
   emptyTile: {fileID: 87412315, guid: a71c696f24f71ce45b9e5382fbe7e62c, type: 3}
