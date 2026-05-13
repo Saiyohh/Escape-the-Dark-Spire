@@ -3,11 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Shared stub class for Campsite / Event / Shrine in the slice. Each
-    // GetNext returns an EncounterResult with displayText set instead of
-    // an EncounterSO ref. When the real interaction systems land, swap
-    // the data type to the appropriate SO and update GetNext to populate
-    // .encounter — the EM contract doesn't change.
     public class TextEncounterSubManager : IEncounterSubManager
     {
         private readonly Queue<string> activeQueue = new();

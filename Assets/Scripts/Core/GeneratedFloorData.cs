@@ -3,9 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Runtime output of the procedural generator. Plain class (not a SO) since
-    // it lives only in memory during a run. The Floor Generator Window's
-    // "Export as Asset" path serializes this into a GeneratedFloorSO snapshot.
     public class GeneratedFloorData
     {
         public Vector2Int gridSize;

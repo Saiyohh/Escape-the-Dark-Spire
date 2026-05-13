@@ -44,7 +44,6 @@ namespace DarkSpire
 
         private IEnumerator ShowRoutine(string message)
         {
-            // Reset state
             canvasGroup.alpha = 0f;
             if (label != null)
             {
@@ -52,7 +51,6 @@ namespace DarkSpire
                 label.maxVisibleCharacters = 0;
             }
 
-            // Fade in (kick off the typewriter mid-fade for a soft, layered feel)
             float t = 0f;
             float typewriterStartT = Mathf.Min(typewriterDelay, fadeInDuration);
             bool typewriterStarted = false;
@@ -71,17 +69,14 @@ namespace DarkSpire
             }
             canvasGroup.alpha = 1f;
 
-            // Edge case: very short fade-in finished before the typewriter started.
             if (!typewriterStarted)
                 typewriterCo = StartCoroutine(TypewriterRoutine(message));
 
-            // Wait for typewriter to finish, then hold.
             if (typewriterCo != null)
                 yield return typewriterCo;
 
             yield return new WaitForSeconds(holdDuration);
 
-            // Fade out — bubble + text fade together since both share the CanvasGroup.
             t = 0f;
             while (t < fadeOutDuration)
             {

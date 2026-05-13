@@ -24,8 +24,6 @@ namespace DarkSpire
 
         private float prevTimeScale = 1f;
 
-        // ─── Public API ──────────────────────────────────────────────────────
-
         public static RestMenu GetOrCreate()
         {
             if (Instance != null) return Instance;
@@ -48,8 +46,6 @@ namespace DarkSpire
             if (panelRoot != null) panelRoot.SetActive(false);
             Time.timeScale = prevTimeScale;
         }
-
-        // ─── Lifecycle ───────────────────────────────────────────────────────
 
         private void Awake()
         {
@@ -74,8 +70,6 @@ namespace DarkSpire
         {
             if (Instance == this) Instance = null;
         }
-
-        // ─── Button handlers ─────────────────────────────────────────────────
 
         private void OnRestore()
         {
@@ -154,8 +148,6 @@ namespace DarkSpire
             toasts?.ShowMulti(lines);
         }
 
-        // ─── Runtime fallback ────────────────────────────────────────────────
-
         private static GameObject BuildRuntimeFallback()
         {
             var go = new GameObject("RestMenu");
@@ -170,7 +162,6 @@ namespace DarkSpire
             scaler.matchWidthOrHeight = 0.5f;
             go.AddComponent<GraphicRaycaster>();
 
-            // Dim backdrop covers the screen, blocks clicks.
             var backdrop = new GameObject("Backdrop");
             backdrop.transform.SetParent(go.transform, false);
             var brt = backdrop.AddComponent<RectTransform>();
@@ -182,7 +173,6 @@ namespace DarkSpire
             bgImg.color = new Color(0f, 0f, 0f, 0.5f);
             bgImg.raycastTarget = true;
 
-            // Panel — center, 520x420.
             var panel = new GameObject("Panel");
             panel.transform.SetParent(backdrop.transform, false);
             var prt = panel.AddComponent<RectTransform>();
@@ -201,7 +191,6 @@ namespace DarkSpire
             vlg.childControlHeight = false;
             vlg.childForceExpandWidth = true;
 
-            // Title.
             var title = BuildLabel(panel.transform, "Campsite", 36, TextAlignmentOptions.Center, 56f);
 
             var restoreBtn  = BuildButton(panel.transform, "Restore HP/SP");
@@ -209,7 +198,6 @@ namespace DarkSpire
             var viewBtn     = BuildButton(panel.transform, "View Stats");
             var leaveBtn    = BuildButton(panel.transform, "Leave");
 
-            // Stats sub-panel — sibling under panel, hidden by default.
             var stats = new GameObject("Stats");
             stats.transform.SetParent(panel.transform, false);
             var srt = stats.AddComponent<RectTransform>();
@@ -217,7 +205,6 @@ namespace DarkSpire
             var sImg = stats.AddComponent<Image>();
             sImg.color = new Color(0f, 0f, 0f, 0.4f);
             var statsLabel = BuildLabel(stats.transform, "", 22, TextAlignmentOptions.TopLeft, 0f);
-            // Make label fill the stats sub-panel.
             var slrt = statsLabel.rectTransform;
             slrt.anchorMin = Vector2.zero;
             slrt.anchorMax = Vector2.one;

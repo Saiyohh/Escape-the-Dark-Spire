@@ -48,7 +48,6 @@ namespace DarkSpire
 
         public IReadOnlyList<Entry> Entries => entries;
 
-        // ── Singleton ───────────────────────────────────────────────────────
         private static KeywordGlossary _instance;
         public static KeywordGlossary Instance
         {
@@ -97,10 +96,6 @@ namespace DarkSpire
             BuildLookupIfNeeded();
             return _byCondition.TryGetValue(id, out var e) ? e : null;
         }
-
-        // ── Resolution helpers ──────────────────────────────────────────────
-        // Encapsulate the "is this entry condition-linked? then pull from
-        // ConditionData" branch so callers don't all duplicate it.
 
         public string GetDisplayName(Entry e)
         {

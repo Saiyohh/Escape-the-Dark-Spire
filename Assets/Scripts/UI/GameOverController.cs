@@ -14,7 +14,6 @@ namespace DarkSpire
 
         private void Start()
         {
-            // Tear down run-scoped UI now so the menu re-enters clean.
             MenuCanvasController.DestroyIfPresent();
 
             if (tryAgainButton != null) tryAgainButton.onClick.AddListener(OnTryAgainClicked);
@@ -27,8 +26,6 @@ namespace DarkSpire
 
         private void OnTryAgainClicked()
         {
-            // MainMenuController.Start clears RunStateHolder + RunContext, so
-            // we don't have to do that here.
             var overlay = SceneTransitionOverlay.GetOrCreate();
             if (overlay != null)
                 overlay.LoadSceneTransition(mainMenuSceneName);

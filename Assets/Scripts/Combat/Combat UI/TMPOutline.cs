@@ -10,7 +10,6 @@ namespace DarkSpire
         {
             if (!IsReady(text)) return;
 
-            // fontMaterial property auto-creates an instance on first access.
             var mat = text.fontMaterial;
             if (mat == null) return;
 
@@ -19,8 +18,6 @@ namespace DarkSpire
             mat.SetFloat(ShaderUtilities.ID_OutlineSoftness, Mathf.Clamp01(softness));
             mat.SetFloat(ShaderUtilities.ID_FaceDilate,      Mathf.Clamp(faceDilate, -1f, 1f));
 
-            // Recalculate padding so wider outlines don't clip against the glyph
-            // rect — especially important on UI canvases with masks.
             text.UpdateMeshPadding();
         }
 

@@ -16,11 +16,9 @@ namespace DarkSpire
                  "so this controls internal pixel-art resolution, not on-screen size.")]
         [SerializeField] private int tileSize = 4;
 
-        // Resolved at runtime by DungeonBootstrap via Bind(...). Not authored.
         private FogOfWar fog;
         private PartyToken party;
 
-        // Palette.
         private static readonly Color ColorUnrevealed = new(0f, 0f, 0f, 0.85f);
         private static readonly Color ColorWall       = new(0.18f, 0.18f, 0.20f, 1f);
         private static readonly Color ColorFloor      = new(0.55f, 0.55f, 0.55f, 1f);
@@ -41,8 +39,6 @@ namespace DarkSpire
         private bool dirty;
         private bool warnedAboutMissingDisplay;
 
-        // ─── Public API ──────────────────────────────────────────────────────
-
         public void Bind(GeneratedFloorData floorIn, FogOfWar fogIn, PartyToken partyIn)
         {
             floor = floorIn;
@@ -55,8 +51,6 @@ namespace DarkSpire
             }
             BuildTexture();
         }
-
-        // ─── Lifecycle ───────────────────────────────────────────────────────
 
         private void Start()
         {
@@ -87,8 +81,6 @@ namespace DarkSpire
                 "Minimap component's Display field.", this);
         }
 
-        // ─── Texture build + paint ───────────────────────────────────────────
-
         private void BuildTexture()
         {
             if (floor == null) return;
@@ -102,7 +94,6 @@ namespace DarkSpire
                 wrapMode = TextureWrapMode.Clamp,
             };
 
-            // Initialize all to unrevealed.
             var pixels = new Color[w * h];
             for (int i = 0; i < pixels.Length; i++) pixels[i] = ColorUnrevealed;
             texture.SetPixels(pixels);
@@ -136,7 +127,6 @@ namespace DarkSpire
             var cur = party.GridPos;
             if (cur == prevPartyTile) return;
 
-            // Restore previous tile's base color.
             if (prevPartyTile.x >= 0 && prevPartyTile.y >= 0)
             {
                 if (fog.IsRevealed(prevPartyTile))
@@ -145,7 +135,6 @@ namespace DarkSpire
                     PaintTile(prevPartyTile.x, prevPartyTile.y, ColorUnrevealed);
             }
 
-            // Paint party dot.
             if (cur.x >= 0 && cur.y >= 0 && cur.x < floor.gridSize.x && cur.y < floor.gridSize.y)
                 PaintTile(cur.x, cur.y, ColorParty);
 
@@ -155,8 +144,6 @@ namespace DarkSpire
 
         private Color ResolveTileColor(int x, int y)
         {
-            // Entity overlay takes precedence over base tile color so the dot is
-            // visible at a glance.
             if (floor.entities != null)
             {
                 for (int i = 0; i < floor.entities.Count; i++)

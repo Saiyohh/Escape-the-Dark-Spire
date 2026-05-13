@@ -90,14 +90,9 @@ namespace DarkSpire
             if (lastChar >= text.textInfo.characterInfo.Length)
                 lastChar = text.textInfo.characterInfo.Length - 1;
 
-            // Use the first character's top edge — if the link wraps to a
-            // second line we still want the popup pinned to the first line so
-            // the cursor doesn't have to chase down a moved popup mid-hover.
             var firstInfo = text.textInfo.characterInfo[firstChar];
             var lastInfo = text.textInfo.characterInfo[lastChar];
 
-            // If the link wraps lines, lastInfo.topRight may be far below
-            // firstInfo.topLeft. Clamp horizontally to the first line's width.
             float topY = firstInfo.topLeft.y;
             float minX = firstInfo.topLeft.x;
             float maxX = lastInfo.topRight.x;
@@ -107,10 +102,6 @@ namespace DarkSpire
             Vector3 localMid = new Vector3((minX + maxX) * 0.5f, topY, 0f);
             Vector3 worldMid = text.transform.TransformPoint(localMid);
 
-            // Find UI camera via the text's parent canvas, then walk to the root
-            // — sub-canvases inherit render mode but may have null worldCamera,
-            // so trusting the immediate parent here would mis-convert under
-            // Camera-mode setups.
             var canvas = text.GetComponentInParent<Canvas>();
             Camera cam = null;
             if (canvas != null)

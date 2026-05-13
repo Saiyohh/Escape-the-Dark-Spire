@@ -2,11 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Spawns map-side entity and monster representations from a
-    // GeneratedFloorData. Phase 3 ships with placeholder sprite glyphs (same
-    // white-sprite + tint fallback as FloorRenderer); Phase 6 swaps in real
-    // prefabs (KeyEntity / ChestEntity / RestTileEntity / ...) and Phase 9
-    // swaps in MapMonsterEntity prefabs.
     public class EntitySpawner : MonoBehaviour
     {
         [Tooltip("Optional override. Leave null to use the singleton " +
@@ -25,7 +20,6 @@ namespace DarkSpire
         private MapEntitySpriteLibrary Library =>
             MapEntitySpriteLibrary.ResolveOrSingleton(spriteLibrary);
 
-        // run AFTER the party token exists (monsters need a target).
         public void SpawnEntities(GeneratedFloorData floor)
         {
             EnsureWhiteSprite();
@@ -40,9 +34,6 @@ namespace DarkSpire
                     skipped++;
                     continue;
                 }
-                // Boss is dead AND the gate sits on the staircase tile —
-                // skip the gate so the stairway tile underneath is naked
-                // and the player can step onto it to descend.
                 if (e.kind == EntityKind.BossGate && holder != null && holder.bossDefeated)
                 {
                     skipped++;
@@ -52,8 +43,6 @@ namespace DarkSpire
                 kept++;
             }
 
-            // Diagnostic: makes it obvious whether the resume path is filtering
-            // already-collected pickups (the gold-pile / key respawn check).
             if (holder != null)
             {
                 Debug.Log($"[EntitySpawner] Spawned {kept} entities, skipped " +
@@ -77,8 +66,6 @@ namespace DarkSpire
             }
         }
 
-        // Back-compat shim — kept so old call sites don't break, but it now
-        // only spawns entities (monsters need the party).
         public void Spawn(GeneratedFloorData floor) => SpawnEntities(floor);
 
         public void Clear()
@@ -138,9 +125,6 @@ namespace DarkSpire
                     EntityKind.Chest    => lib.chest,
                     EntityKind.GoldPile => lib.goldPile,
                     EntityKind.Shrine   => lib.shrine,
-                    // strPayload carries the cardinal facing ("N"/"S"/"E"/"W")
-                    // written by PlaceBossGate. Resolver falls back to the
-                    // non-directional sprite when a slot is unassigned.
                     EntityKind.BossGate => lib.GetBossGateSprite(e.strPayload, open: false),
                     _ => null,
                 };
@@ -162,8 +146,6 @@ namespace DarkSpire
                 go.transform.localScale = new Vector3(0.55f, 0.55f, 1f);
             }
 
-            // Attach the gameplay component matching the kind. Each component
-            // self-registers with DungeonRegistry.Instance in Initialize.
             MapEntityBase entity = e.kind switch
             {
                 EntityKind.Key      => go.AddComponent<KeyEntity>(),
@@ -193,11 +175,6 @@ namespace DarkSpire
                 {
                     MonsterTier.Standard => lib.standardMonster,
                     MonsterTier.Elite    => lib.eliteMonster,
-                    // Boss spawns can override the library icon by setting
-                    // EnemyData.mapIcon on the boss enemy in this floor's
-                    // encounter pool. Peek the boss encounter (no consume)
-                    // and pull the override; fall back to the library sprite
-                    // when no override is wired.
                     MonsterTier.Boss     => ResolveBossMapIcon() ?? lib.boss,
                     _ => null,
                 };
@@ -232,7 +209,6 @@ namespace DarkSpire
             var encounter = peeked?.encounter;
             if (encounter == null || encounter.possibleEnemies == null) return null;
 
-            // Prefer the icon from a boss-flagged enemy first.
             for (int i = 0; i < encounter.possibleEnemies.Length; i++)
             {
                 var e = encounter.possibleEnemies[i];
@@ -240,9 +216,6 @@ namespace DarkSpire
                 if (e.enemyType == EnemyType.Boss && e.mapIcon != null) return e.mapIcon;
             }
 
-            // Fall back to the first authored mapIcon in the pool — covers
-            // single-enemy boss encounters where the EnemyType wasn't flagged
-            // explicitly.
             for (int i = 0; i < encounter.possibleEnemies.Length; i++)
             {
                 var e = encounter.possibleEnemies[i];

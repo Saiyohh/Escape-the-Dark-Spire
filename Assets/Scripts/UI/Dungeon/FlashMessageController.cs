@@ -22,8 +22,6 @@ namespace DarkSpire
         private string lastEnqueued;
         private Coroutine pump;
 
-        // ─── Public API ──────────────────────────────────────────────────────
-
         public static FlashMessageController GetOrCreate()
         {
             if (Instance != null) return Instance;
@@ -35,15 +33,11 @@ namespace DarkSpire
         public void Enqueue(string text)
         {
             if (string.IsNullOrEmpty(text)) return;
-            // De-dupe consecutive identical entries (prevents Alert "!" spam
-            // when multiple monsters trip Alert on the same frame).
             if (text == lastEnqueued) return;
             lastEnqueued = text;
             queue.Enqueue(text);
             if (pump == null) pump = StartCoroutine(Pump());
         }
-
-        // ─── Lifecycle ───────────────────────────────────────────────────────
 
         private void Awake()
         {
@@ -73,8 +67,6 @@ namespace DarkSpire
             if (Instance == this) Instance = null;
         }
 
-        // ─── Pump ────────────────────────────────────────────────────────────
-
         private IEnumerator Pump()
         {
             while (queue.Count > 0)
@@ -82,18 +74,13 @@ namespace DarkSpire
                 string text = queue.Dequeue();
                 if (label != null) label.text = text;
 
-                // Fade in.
                 yield return Fade(0f, 1f, fadeSeconds);
 
-                // Hold.
                 yield return new WaitForSecondsRealtime(Mathf.Max(0.05f, displaySeconds));
 
-                // Fade out.
                 yield return Fade(1f, 0f, fadeSeconds);
             }
 
-            // Reset de-dupe gate once the queue drains so the same string can
-            // be shown again later if the situation repeats.
             lastEnqueued = null;
             pump = null;
         }
@@ -111,8 +98,6 @@ namespace DarkSpire
             group.alpha = to;
         }
 
-        // ─── Runtime fallback ────────────────────────────────────────────────
-
         private static GameObject BuildRuntimeFallback()
         {
             var go = new GameObject("FlashMessages");
@@ -127,7 +112,6 @@ namespace DarkSpire
             scaler.matchWidthOrHeight = 0.5f;
             go.AddComponent<GraphicRaycaster>();
 
-            // Flash root — bottom-center, fixed width.
             var flashGO = new GameObject("Flash");
             flashGO.transform.SetParent(go.transform, false);
             var rt = flashGO.AddComponent<RectTransform>();

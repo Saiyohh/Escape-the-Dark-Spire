@@ -34,7 +34,6 @@ namespace DarkSpire
         [SerializeField] private Color disabledBg   = new Color(0.30f, 0.30f, 0.30f);
         [SerializeField] private Color disabledText = new Color(0.55f, 0.55f, 0.55f);
 
-        // Fallbacks for when the library / keys aren't present.
         private static readonly Color FallbackNormalBg   = Color.white;
         private static readonly Color FallbackHoverBg    = Color.black;
         private static readonly Color FallbackNormalText = Color.black;
@@ -63,8 +62,6 @@ namespace DarkSpire
             }
         }
 
-        // ─── Pointer events ──────────────────────────────────────────────────
-
         public void OnPointerEnter(PointerEventData _)
         {
             if (button != null && !button.interactable) return;
@@ -78,36 +75,24 @@ namespace DarkSpire
             ApplyState();
         }
 
-        // ─── State application ──────────────────────────────────────────────
-
         private void ApplyState()
         {
             if (button != null && !button.interactable)
             {
-                // No outline at all in disabled state — keeps the muted look readable.
                 ApplyBody(disabledBg, disabledText, new Color(0, 0, 0, 0), 0f);
                 ApplyBadge(disabledBg, disabledText, new Color(0, 0, 0, 0), 0f);
                 return;
             }
 
-            // Pull all five library colors once per state change so the body
-            // and badge flips stay in lockstep.
             Color normalBg     = ColorLibrary.Get("UI", "ButtonNormalBG",   FallbackNormalBg);
             Color hoverBg      = ColorLibrary.Get("UI", "ButtonHoverBG",    FallbackHoverBg);
             Color normalText   = ColorLibrary.Get("UI", "ButtonNormalText", FallbackNormalText);
             Color hoverText    = ColorLibrary.Get("UI", "ButtonHoverText",  FallbackHoverText);
             Color outlineColor = ColorLibrary.Get("UI", "ButtonOutlineColor", Color.black);
 
-            // Outline width pattern matches ButtonHoverStyleController:
-            //   resting  → normalOutlineWidth (often 0 = no outline)
-            //   hovered  → hoverOutlineWidth
             float widthBody  = isHovered ? hoverOutlineWidth : normalOutlineWidth;
             float widthBadge = isHovered ? hoverOutlineWidth : normalOutlineWidth;
 
-            // The outline COLOR also needs to read against whatever BG the
-            // region currently has. Body and badge BGs always invert each
-            // other, so an outline color that contrasts the body BG already
-            // contrasts the badge text-color region.
             Color outlineForBody  = outlineColor;
             Color outlineForBadge = outlineColor;
 

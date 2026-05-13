@@ -23,7 +23,6 @@ namespace DarkSpire
         private Canvas parentCanvas;
         private Camera uiCamera;
 
-        // Currently active link's token index (-1 = none).
         private int activeTokenIndex = -1;
 
         private void Awake()
@@ -36,7 +35,6 @@ namespace DarkSpire
 
         private void OnEnable()
         {
-            // Re-resolve canvas/camera when this component re-enables (parent may have changed).
             parentCanvas = GetComponentInParent<Canvas>();
             ResolveUiCamera();
         }
@@ -51,9 +49,6 @@ namespace DarkSpire
             uiCamera = null;
             if (parentCanvas == null) return;
 
-            // Walk to the root canvas — sub-canvases inherit render mode but
-            // may have a null worldCamera, which would make FindIntersectingLink
-            // silently miss every hover under a Camera-mode setup.
             var root = parentCanvas.rootCanvas != null ? parentCanvas.rootCanvas : parentCanvas;
             if (root.renderMode != RenderMode.ScreenSpaceOverlay)
                 uiCamera = root.worldCamera;
@@ -61,11 +56,6 @@ namespace DarkSpire
 
         public void NotifyRendered()
         {
-            // Recompute link rects on next LateUpdate; nothing else to do here.
-            // We don't synthesize an enter — if the cursor is still over the
-            // same link, the LateUpdate transition logic will see it's the
-            // same activeTokenIndex and do nothing (keeping content in place
-            // without flicker).
         }
 
         private void LateUpdate()
@@ -75,12 +65,8 @@ namespace DarkSpire
 
             Vector2 mouseScreen = Mouse.current.position.ReadValue();
 
-            // First-pass: precise hit-test (matches what TMP samples use).
             int linkIdx = TMP_TextUtilities.FindIntersectingLink(text, mouseScreen, uiCamera);
 
-            // Fallback: inflated hit-test, but only against ComputedNumber tokens.
-            // Numbers are 1-2 characters and hard to land precisely; keywords are
-            // already wide enough to grab without help.
             if (linkIdx < 0 && numberHitboxInflation > 0f)
             {
                 linkIdx = LinkRectMath.FindIntersectingLinkPadded(
@@ -114,21 +100,15 @@ namespace DarkSpire
 
             if (tokenIndex == activeTokenIndex)
             {
-                // Still on the same link — refresh content in case the renderer
-                // re-rendered with a new value.
                 ShowFor(tokenIndex, linkIdx, isRefresh: true);
                 return;
             }
 
-            // Different (or first) link — exit old, enter new.
             ExitActive();
             activeTokenIndex = tokenIndex;
             ShowFor(tokenIndex, linkIdx, isRefresh: false);
         }
 
-        // Predicate handed to FindIntersectingLinkPadded so only number tokens
-        // get the inflated hitbox treatment. Resolves the link's tokenIndex
-        // via the same id-parsing the dispatcher uses for routing.
         private bool IsNumberLink(int linkIdx)
         {
             if (descriptionRenderer == null) return false;

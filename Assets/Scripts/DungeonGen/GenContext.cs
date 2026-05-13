@@ -3,9 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Mutable scratch space the generator steps share. Lives only for one
-    // generation attempt; on validation failure it's discarded and a new
-    // context starts with a different seed offset.
     internal class GenContext
     {
         public FloorGenerationConfigSO config;
@@ -16,11 +13,8 @@ namespace DarkSpire
         public List<EntityPlacement> entities = new();
         public List<MonsterSpawn> monsters = new();
 
-        // Tiles where a corridor terminates with no further opening — candidates
-        // for loot/extras placement.
         public List<Vector2Int> deadEndTerminals = new();
 
-        // Resolved by Step 4/5.
         public Vector2Int startPos;
         public Vector2Int stairwayPos;
         public Vector2Int bossGatePos;
@@ -32,7 +26,6 @@ namespace DarkSpire
             this.config = config;
             this.rng = rng;
             tiles = new TileType[config.gridSize.x, config.gridSize.y];
-            // Default-initialized TileType[] is all Wall (enum value 0) — what we want.
         }
 
         public bool InBounds(Vector2Int p) =>

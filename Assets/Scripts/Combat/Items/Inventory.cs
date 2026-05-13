@@ -23,7 +23,6 @@ namespace DarkSpire
         {
             if (unit == null) yield break;
 
-            // Pouch first — character-locked, owner is this unit.
             if (unit.partyMember != null && unit.partyMember.pouchItems != null)
             {
                 var pouch = unit.partyMember.pouchItems;

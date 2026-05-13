@@ -8,10 +8,6 @@ namespace DarkSpire
     [CreateAssetMenu(fileName = "NewSkill", menuName = "DarkSpire/Skill")]
     public class SkillData : ScriptableObject
     {
-        // section layout. Inline Header attributes misalign paired fields like
-        // Range Min / Max inside horizontal rows and render duplicate labels.
-
-        // ── Identity ────────────────────────────────────────────────────────
         public string skillName;
         [TextArea(2, 4)] public string description;
 
@@ -41,8 +37,6 @@ namespace DarkSpire
                  "so color art can be desaturated in-engine without a PS pass.")]
         public bool bannerGrayscale = false;
 
-        // Photoshop default preset weights (Custom with these starting values).
-        // Range 0..3 in the underlying field; 0%..300% in the inspector label.
         [Range(0f, 3f)] public float bwReds     = 0.40f;
         [Range(0f, 3f)] public float bwYellows  = 0.60f;
         [Range(0f, 3f)] public float bwGreens   = 0.40f;
@@ -50,7 +44,6 @@ namespace DarkSpire
         [Range(0f, 3f)] public float bwBlues    = 0.20f;
         [Range(0f, 3f)] public float bwMagentas = 0.80f;
 
-        // ── Cost ────────────────────────────────────────────────────────────
         [Min(0)] public int spCost;
 
         [Tooltip("Regent-only flat cost — Stars are deducted on play. " +
@@ -63,20 +56,17 @@ namespace DarkSpire
 
         public ActionCostType actionCostType = ActionCostType.Action;
 
-        // ── Dice rule ───────────────────────────────────────────────────────
         [Tooltip("How the skill resolves. AttackRoll = d20+ATK vs DEF. " +
                  "AutoHit = no roll. WilSave = target rolls WIL save per cast " +
                  "(success resists whole effect block). Passive = not played " +
                  "directly, fires from events (stub).")]
         public SkillDiceRule diceRule = SkillDiceRule.AttackRoll;
 
-        // ── Tags ────────────────────────────────────────────────────────────
         [Tooltip("Mechanical subsystem markers — mirrors the Notion Skills DB " +
                  "Tags column. Aspect Tree triggers, Forge accumulation, Orb " +
                  "routing, etc. key off these.")]
         public SkillTag tags;
 
-        // ── Effects ─────────────────────────────────────────────────────────
         public TargetMode primaryTargetMode;
         public SkillEffectData[] effects;
 
@@ -88,13 +78,11 @@ namespace DarkSpire
                  "targetPickIndex chooses which pick it uses).")]
         [Min(1)] public int targetPickCount = 1;
 
-        // ── Range (distance units) ──────────────────────────────────────────
         [Min(0)] public int rangeMin = 1;
         [Min(0)] public int rangeMax = 3;
         [Tooltip("Human-readable label shown on the skill card. Purely display.")]
         public string rangeDisplay = "1-3";
 
-        // ── Meta ────────────────────────────────────────────────────────────
         public Alignment alignment;
         public Rarity rarity;
         public SkillData upgradedVersion;
@@ -102,20 +90,6 @@ namespace DarkSpire
         [Min(0)] public int masteryThreshold = 8;
         [Min(0)] public int maxUpgradeTier = 1;
         [Min(0)] public int shopCost;
-
-        // ─────────────────────────────────────────────────────────────────────
-        //  Art banner accessor
-        // ─────────────────────────────────────────────────────────────────────
-        //
-        // Resolves the skill's banner art with a placeholder fallback. UI code
-        // should ALWAYS call GetArtBanner() instead of reading `artBanner`
-        // directly — that guarantees a non-null sprite as long as the
-        //
-        // How to wire the placeholder:
-        //      filename must match, no extension in the Resources.Load call).
-        //
-        // If the placeholder itself is missing the method returns null — let
-        // the UI draw its empty-frame fallback rather than crashing.
 
         private static Sprite _defaultArtBannerCache;
         private static bool _defaultArtBannerLoaded;
@@ -132,21 +106,6 @@ namespace DarkSpire
             }
             return _defaultArtBannerCache;
         }
-
-        // ─────────────────────────────────────────────────────────────────────
-        //  Description auto-generation
-        // ─────────────────────────────────────────────────────────────────────
-        //
-        // Walks the effects array and produces a GDD-keyword-consistent
-        // description string. Uses the vocabulary from the Skill Keyword Glossary
-        // (Attack, Afflict, Apply, Heal, Restore, Generate, Channel, Evoke,
-        // Forge, Summon, Advance/Withdraw/Pull/Knockback/Shuffle, Haste, Renew,
-        // Seal). Designers can preview + copy into `description` via the
-        // SkillDataEditor.
-        //
-        // Covers real effect types with full fidelity; placeholder subsystem
-        // effects (Orb/Osty/Stars/Forge/Shiv/Seal/Haste/Renew/Retaliate) produce
-        // the right prose shape so designers can hand-polish after.
 
         public string BuildDescription()
         {

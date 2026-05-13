@@ -3,18 +3,14 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // preferring high-detour terminals (off the critical path) so extras
-    // feel like discoveries rather than forced detours.
     internal static class PlaceExtras
     {
         public static void Apply(GenContext ctx)
         {
-            // Compute distance from Start over passable tiles.
             var distFromStart = GridBfs.DistanceField(
                 ctx.tiles, ctx.startPos,
                 t => t.IsWalkable());
 
-            // Collect candidate dead-end terminals with their detour scores.
             var scored = new List<(Vector2Int pos, int detour)>();
             foreach (var t in ctx.deadEndTerminals)
             {
@@ -27,7 +23,6 @@ namespace DarkSpire
                 scored.Add((t, detour));
             }
 
-            // Sort highest detour first.
             scored.Sort((a, b) => b.detour.CompareTo(a.detour));
 
             int placed = 0;
@@ -52,7 +47,6 @@ namespace DarkSpire
             return best == int.MaxValue ? 0 : best;
         }
 
-        // Single-tile placement (chest): drop on the dead-end terminal itself.
         private static int MaybePlaceSingleTile(
             GenContext ctx, List<(Vector2Int pos, int detour)> scored,
             float chance, EntityKind kind)
@@ -67,9 +61,6 @@ namespace DarkSpire
             return 0;
         }
 
-        // 3x3-style placement (shrine, rest): for now we still drop a single-tile
-        // marker at the terminal, since full 3x3 alcove carving is out of slice
-        // scope. Documented as a known simplification.
         private static int MaybePlaceWithSpace(
             GenContext ctx, List<(Vector2Int pos, int detour)> scored,
             float chance, EntityKind kind, bool markRestTile = false)
@@ -95,7 +86,6 @@ namespace DarkSpire
         {
             foreach (var e in ctx.entities)
                 if (e.position == pos) return true;
-            // Special tile types are also "occupied" for extras-placement purposes.
             var t = ctx.tiles[pos.x, pos.y];
             if (t == TileType.Start || t == TileType.Stairway || t == TileType.Rest) return true;
             return false;

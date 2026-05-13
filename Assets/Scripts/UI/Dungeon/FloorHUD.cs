@@ -18,8 +18,6 @@ namespace DarkSpire
         private int lastWholeSecond = -1;
         private bool warnedAboutMissingRefs;
 
-        // ─── Lifecycle ───────────────────────────────────────────────────────
-
         private void OnEnable()
         {
             DungeonEvents.OnGoldChanged += HandleGoldChanged;
@@ -38,7 +36,6 @@ namespace DarkSpire
         {
             WarnIfMissingRefs();
 
-            // Initial hydration so the HUD doesn't lag one event behind on
             HydrateFloor();
             HandleGoldChanged(RunContext.gold);
             HandleKeyCollected(RunContext.keysHeld, ResolveKeysRequired());
@@ -65,8 +62,6 @@ namespace DarkSpire
                 "Tools > DarkSpire > Scenes > Scaffold FloorHUD into open scene " +
                 "for a starting layout.", this);
         }
-
-        // ─── Handlers ────────────────────────────────────────────────────────
 
         private void HydrateFloor()
         {

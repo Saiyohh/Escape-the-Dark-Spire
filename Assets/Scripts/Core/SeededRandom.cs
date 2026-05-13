@@ -2,8 +2,6 @@ using System.Collections.Generic;
 
 namespace DarkSpire
 {
-    // Deterministic random source. All generation-time randomness funnels
-    // through one instance of this so a stored seed reproduces a floor.
     public class SeededRandom
     {
         private readonly System.Random rng;
@@ -17,12 +15,9 @@ namespace DarkSpire
 
         public int NextInt(int maxExclusive) => rng.Next(maxExclusive);
 
-        // [minInclusive, maxExclusive)
         public int NextRange(int minInclusive, int maxExclusive) =>
             rng.Next(minInclusive, maxExclusive);
 
-        // [minInclusive, maxInclusive] — convenience for ranges authored as
-        // inclusive in the GDD ("3-6 tiles", "6-8 rooms").
         public int NextRangeInclusive(int minInclusive, int maxInclusive) =>
             rng.Next(minInclusive, maxInclusive + 1);
 

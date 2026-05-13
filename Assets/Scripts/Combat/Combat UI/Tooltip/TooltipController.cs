@@ -46,7 +46,6 @@ namespace DarkSpire
                 ? tooltipsParent.transform as RectTransform
                 : (transform as RectTransform);
 
-        // Free instances waiting to be reused.
         private readonly Stack<TooltipView> pool = new();
 
         private void Awake()
@@ -73,8 +72,6 @@ namespace DarkSpire
                 return null;
             }
 
-            // Pop until we find a non-null entry — pool entries can become
-            // null if scene reload destroyed pooled views without notifying.
             TooltipView v = null;
             while (pool.Count > 0 && v == null)
                 v = pool.Pop();
@@ -91,10 +88,6 @@ namespace DarkSpire
                                          "TooltipController.viewPrefab.", this);
                     return null;
                 }
-                // Instantiate as a GameObject, then resolve the TooltipView
-                // on the spawned instance's root. The script must live on
-                // the root — that's the panel's RectTransform and the entity
-                // we activate / parent / pool.
                 var instance = Instantiate(viewPrefab, target);
                 v = instance.GetComponent<TooltipView>();
                 if (v == null)
@@ -112,10 +105,6 @@ namespace DarkSpire
                 v.transform.SetParent(target, worldPositionStays: false);
             }
 
-            // Force-active. Two reasons: (1) if the prefab was saved with
-            // activeSelf=false somehow, Instantiate preserves that and the
-            // panel never renders; (2) Release set it inactive before
-            // pooling, so reuse must reactivate.
             v.gameObject.SetActive(true);
 
             if (verboseLogging)
@@ -144,8 +133,6 @@ namespace DarkSpire
                 Debug.Log($"[Tooltip] Release → pool (size now {pool.Count})", view);
         }
 
-        // ─── Diagnostic ──────────────────────────────────────────────────────
-
         [ContextMenu("Test Spawn Tooltip")]
         public void TestSpawnTooltip()
         {
@@ -164,7 +151,6 @@ namespace DarkSpire
                              "chain works. Problem is upstream (trigger / " +
                              "spawn point / content)."));
 
-            // Place at screen center.
             v.SetScreenPosition(new Vector2(Screen.width * 0.5f, Screen.height * 0.5f));
 
             Debug.Log($"[Tooltip] Test-spawned tooltip at screen center. " +

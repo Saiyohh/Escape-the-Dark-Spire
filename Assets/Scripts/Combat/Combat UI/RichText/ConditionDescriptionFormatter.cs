@@ -41,9 +41,6 @@ namespace DarkSpire
             return sb.ToString();
         }
 
-        // simple sensible default. If you have a condition with multiple
-        // passive mods and want a specific one, author the description with
-        // an indexed token in the future (e.g. {X:1}); fall back to first now.
         private static int ResolvePerStack(ConditionData data)
         {
             if (data.passiveModifiers == null) return 0;
@@ -59,7 +56,6 @@ namespace DarkSpire
         private static string ResolveKey(string key, int perStack, int stacks)
         {
             if (string.IsNullOrEmpty(key)) return null;
-            // Use Trim so spacing tolerance is friendly: "{ X }" works.
             switch (key.Trim().ToLowerInvariant())
             {
                 case "x":

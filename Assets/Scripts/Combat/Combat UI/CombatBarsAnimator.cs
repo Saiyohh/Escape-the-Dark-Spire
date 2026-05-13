@@ -76,11 +76,6 @@ namespace DarkSpire
         private void HandleCombatStart() => SlideIn();
         private void HandleCombatEnd(bool _)
         {
-            // Default: do nothing on combat end — the scene transition overlay
-            // covers the whole scene a few seconds later (CombatBootstrap.
-            // returnDelay), and an early slide-out would yank the action bar /
-            // top bar off screen mid-death-animation. Editor-test scenes (no
-            // scene swap) can opt into the slide via slideOutOnCombatEnd.
             if (slideOutOnCombatEnd) SlideOut();
         }
 

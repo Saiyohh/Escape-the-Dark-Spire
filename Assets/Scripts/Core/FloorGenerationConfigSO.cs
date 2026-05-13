@@ -2,13 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Designer-tweakable per-floor parameters for the procedural generator.
-    // One asset per floor (FLOOR_1, FLOOR_2, FLOOR_3) plus a Custom variant
-    // the Floor Generator Window can edit live.
-    //
-    // Defaults in this file match Floor 1 from the Slice Spec / Procedural
-    // Dungeon Generation page so a freshly-created asset is "Floor 1" out of
-    // the box. Floor 2 and 3 assets bump grid size / counts / radii.
     [CreateAssetMenu(fileName = "FLOOR_New", menuName = "DarkSpire/Dungeon/Floor Generation Config")]
     public class FloorGenerationConfigSO : ScriptableObject
     {

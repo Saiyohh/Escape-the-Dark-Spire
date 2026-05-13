@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // The small "!" pop that appears above a monster on Patrol -> Alert.
-    // Auto-hides after `duration` seconds. Sprite comes from
-    // MapEntitySpriteLibrary.alertIndicator with a fallback yellow square.
     public class AlertIndicator : MonoBehaviour
     {
         private SpriteRenderer sr;

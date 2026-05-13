@@ -50,10 +50,6 @@ namespace DarkSpire
 
         public RectTransform PanelRoot => panelRoot;
 
-        // CanvasGroup driven by PlayFadeIn. Auto-resolved (added if missing)
-        // so a prefab without one still works — though authoring it on the
-        // prefab is preferable so the user can also use it for raycast
-        // blocking config.
         private CanvasGroup canvasGroup;
         private Coroutine fadeRoutine;
 
@@ -67,9 +63,6 @@ namespace DarkSpire
 
         private void OnDisable()
         {
-            // Pooled / hidden — reset state so the next allocation starts
-            // from a known place. The fade routine is owned by this component
-            // so stopping it on disable is safe.
             if (fadeRoutine != null) { StopCoroutine(fadeRoutine); fadeRoutine = null; }
             if (canvasGroup != null) canvasGroup.alpha = 1f;
         }
@@ -90,8 +83,6 @@ namespace DarkSpire
 
         private IEnumerator FadeInCoroutine()
         {
-            // Snap to invisible first, then ramp up. Realtime so the fade
-            // still plays if the game is paused via Time.timeScale.
             canvasGroup.alpha = 0f;
             float t = 0f;
             while (t < fadeInDuration)
@@ -106,7 +97,6 @@ namespace DarkSpire
 
         public void SetContent(TooltipContent content)
         {
-            // Header row.
             bool showHeader = content.HasHeader;
             if (headerRoot != null) headerRoot.SetActive(showHeader);
             if (showHeader)
@@ -123,7 +113,6 @@ namespace DarkSpire
                 else if (headerIcon != null) headerIcon.gameObject.SetActive(showIcon);
             }
 
-            // Body — single vs. two-block. Two-block wins if either field set.
             bool twoBlock = content.HasPassiveEvoke;
             if (bodyRoot != null) bodyRoot.SetActive(!twoBlock);
             if (passiveEvokeRoot != null) passiveEvokeRoot.SetActive(twoBlock);
@@ -164,9 +153,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Look up the parent canvas each call — pooled views may be
-            // re-parented to different canvases at runtime if a future
-            // spawn point routes them elsewhere. Cheap walk.
             Camera uiCamera = null;
             var canvas = parentRT.GetComponentInParent<Canvas>();
             if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)

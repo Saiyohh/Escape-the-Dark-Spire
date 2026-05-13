@@ -2,8 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Smooth follow on the party token. Optionally clamps the camera so it
-    // stays inside the floor bounds (no empty space outside the dungeon).
     [RequireComponent(typeof(Camera))]
     public class CameraFollow : MonoBehaviour
     {
@@ -36,7 +34,6 @@ namespace DarkSpire
                 float minY = halfH;
                 float maxY = floor.gridSize.y - halfH;
 
-                // If floor is smaller than the view, just center.
                 if (minX > maxX) { float c = floor.gridSize.x * 0.5f; minX = c; maxX = c; }
                 if (minY > maxY) { float c = floor.gridSize.y * 0.5f; minY = c; maxY = c; }
 

@@ -19,18 +19,12 @@ namespace DarkSpire
         private List<Unit> allPlayerUnits;
         private List<Unit> allEnemyUnits;
 
-        // Multi-pick state: collects clicks into picksCollected until we hit
-        // picksRequired, then fires onTargetsConfirmed with the full list.
-        // pickCount == 1 keeps the legacy one-click-confirms flow.
         private List<Unit> picksCollected = new();
         private int picksRequired = 1;
         public int PicksRequired => picksRequired;
         public int PicksSoFar => picksCollected.Count;
         public event Action<int, int> OnMultiPickProgress;
 
-        // Active range window during targeting (Pass 2.B). Set by BeginTargeting,
-        // read back by TargetingArrow / UnitDisplay to tint out-of-range hovers
-        // differently from the valid pool.
         public Unit Caster { get; private set; }
         public int CurrentRangeMin { get; private set; } = 0;
         public int CurrentRangeMax { get; private set; } = int.MaxValue;
@@ -72,7 +66,6 @@ namespace DarkSpire
             switch (mode)
             {
                 case TargetMode.Self:
-                    // Auto-resolve immediately
                     onConfirmed?.Invoke(new List<Unit> { caster });
                     return;
 
@@ -107,8 +100,6 @@ namespace DarkSpire
                     foreach (var e in enemyPool)
                         if (e.IsAlive && InRange(caster, e)) validTargets.Add(e);
 
-                    // Always enter targeting mode — even with 1 target the player
-                    // should draw the arrow and click to confirm. Feels deliberate.
                     IsTargeting = true;
                     OnTargetingStateChanged?.Invoke(true);
                     break;
@@ -137,9 +128,6 @@ namespace DarkSpire
             if (!IsTargeting) return;
             if (!validTargets.Contains(target)) return;
 
-            // Multi-pick: collect, keep targeting mode alive until we hit the
-            // required count. Disallow picking the same unit twice unless the
-            // skill specifically allows it (not modeled yet — assume distinct).
             if (picksRequired > 1)
             {
                 if (picksCollected.Contains(target)) return;
@@ -191,14 +179,12 @@ namespace DarkSpire
         {
             if (!IsTargeting) return;
 
-            // Escape key cancels targeting
             if (Keyboard.current != null && Keyboard.current[Key.Escape].wasPressedThisFrame)
             {
                 CancelTargeting();
                 return;
             }
 
-            // Right mouse button cancels targeting
             if (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
             {
                 CancelTargeting();

@@ -3,16 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // DontDestroyOnLoad carrier for in-progress run state that must survive
-    // scene loads (dungeon -> combat -> dungeon). Holds:
-    //   - the active GeneratedFloorData (so the dungeon scene resumes the
-    //     same layout instead of regenerating)
-    //   - the party's return position
-    //   - per-position "this entity has already been consumed/used" sets
-    //     so on resume the dungeon scene doesn't respawn picked-up keys,
-    //     re-lock unlocked gates, etc.
-    //
-    // Cleared via ClearForNewRun on title-screen "Descend".
     public class RunStateHolder : MonoBehaviour
     {
         public static RunStateHolder Instance { get; private set; }
@@ -72,8 +62,6 @@ namespace DarkSpire
             returnPos = partyPos;
             resumeMode = true;
         }
-
-        // Convenience predicates ------------------------------------------
 
         public bool IsRemoved(Vector2Int p)         => removedEntities.Contains(p);
         public bool IsChestOpened(Vector2Int p)     => openedChests.Contains(p);

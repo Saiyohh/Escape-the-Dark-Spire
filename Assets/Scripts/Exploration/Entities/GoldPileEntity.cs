@@ -11,7 +11,6 @@ namespace DarkSpire
             RunStateHolder.Instance?.removedEntities.Add(GridPos);
             Debug.Log($"[Gold] +{amount} (total: {RunContext.gold})");
 
-            // Pickup feedback toast.
             var notif = PickupNotificationManager.Instance;
             var lib = MapEntitySpriteLibrary.Instance;
             if (notif != null)

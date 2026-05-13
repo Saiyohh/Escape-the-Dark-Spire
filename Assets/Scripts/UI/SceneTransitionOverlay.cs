@@ -35,8 +35,6 @@ namespace DarkSpire
         private bool inFlight;
         private bool waitingForLoad;
 
-        // ─── Public API ──────────────────────────────────────────────────
-
         public static SceneTransitionOverlay GetOrCreate()
         {
             if (Instance != null) return Instance;
@@ -59,8 +57,6 @@ namespace DarkSpire
         public Coroutine FadeOut() => StartCoroutine(SlideTo(coveredAnchoredPos));
         public Coroutine FadeIn()  => StartCoroutine(SlideTo(uncoveredAnchoredPos));
 
-        // ─── Lifecycle ───────────────────────────────────────────────────
-
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -71,8 +67,6 @@ namespace DarkSpire
             Instance = this;
             if (transform.parent == null) DontDestroyOnLoad(gameObject);
 
-            // Snap to off-screen at boot. Both target positions are authored
-            // in the inspector, so this works regardless of layout timing.
             if (blackPanel != null) blackPanel.anchoredPosition = uncoveredAnchoredPos;
 
             SceneManager.sceneLoaded += OnSceneLoaded;
@@ -83,10 +77,6 @@ namespace DarkSpire
             if (Instance == this) Instance = null;
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
-
-        // (Both positions live as serialized fields above — no live computation.)
-
-        // ─── Transition flow ─────────────────────────────────────────────
 
         private IEnumerator TransitionRoutine(string sceneName)
         {
@@ -107,9 +97,6 @@ namespace DarkSpire
                 yield break;
             }
 
-            // Mark that we're expecting an OnSceneLoaded callback to drive
-            // the slide-down. The SceneFlow swap is synchronous from the
-            // caller's perspective; sceneLoaded fires next frame.
             waitingForLoad = true;
             SceneManager.LoadScene(sceneName);
         }
@@ -127,11 +114,6 @@ namespace DarkSpire
             inFlight = false;
         }
 
-        // Hard cap on per-frame timer advance during the slide. The first frame
-        // after SceneManager.LoadScene completes can have a massive deltaTime
-        // (the engine just finished a synchronous load + asset rebind on that
-        // frame). Without this cap, t jumps deep into the curve in a single
-        // 1/30s = ~33ms ≈ a slow frame — generous, but still smooth.
         private const float MaxStepPerFrame = 1f / 30f;
 
         private IEnumerator SlideTo(Vector2 to)
@@ -139,9 +121,6 @@ namespace DarkSpire
             if (blackPanel == null) yield break;
             Vector2 from = blackPanel.anchoredPosition;
 
-            // Yield one frame BEFORE sampling deltaTime — lets the post-load
-            // catch-up frame settle so the first real animation step starts
-            // with a normal frame interval.
             yield return null;
 
             float t = 0f;
@@ -154,8 +133,6 @@ namespace DarkSpire
             }
             blackPanel.anchoredPosition = to;
         }
-
-        // ─── Runtime fallback (no prefab authored) ───────────────────────
 
         private static GameObject BuildRuntimeFallback()
         {

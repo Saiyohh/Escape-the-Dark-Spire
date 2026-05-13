@@ -10,7 +10,6 @@ namespace DarkSpire
             RunStateHolder.Instance?.removedEntities.Add(GridPos);
             Debug.Log($"[Key] Picked up. Total: {RunContext.keysHeld}");
 
-            // Pickup feedback: "+1 Key gained" with the library's key icon.
             var notif = PickupNotificationManager.Instance;
             var lib = MapEntitySpriteLibrary.Instance;
             if (notif != null)

@@ -24,11 +24,9 @@ namespace DarkSpire
 
             for (int i = 0; i < hitCount; i++)
             {
-                // Attack roll
                 var (hit, crit, rawRoll, totalRoll) = DiceRoller.AttackRoll(
                     attacker.EffectiveATK, target.EffectiveDEF, critThreshold);
 
-                // Natural 1 = crit miss. Attack auto-fails; attacker self-damages 1.
                 bool critMiss = rawRoll == 1;
                 if (critMiss)
                 {
@@ -36,7 +34,6 @@ namespace DarkSpire
                     attacker.TakeDirectDamage(1);
                 }
 
-                // Store first roll info for display
                 if (i == 0)
                 {
                     result.didRoll = true;
@@ -50,7 +47,6 @@ namespace DarkSpire
 
                 if (hit)
                 {
-                    // Check dodge
                     float dodgeChance = target.conditions.GetDodgeChance();
                     if (!crit && dodgeChance > 0 && Random.value < dodgeChance)
                     {
@@ -60,12 +56,10 @@ namespace DarkSpire
                     }
 
                     int damage = DamageCalculator.CalculateDamage(baseDmg, attacker, target, crit);
-                    // Caster-side outgoing modifiers (Weak, Vigor, etc.) fire here.
                     damage = DamageCalculator.ApplyOutgoingTriggers(damage, attacker, target, crit, didHit: true);
                     target.TakeDamage(damage, attacker);
                     totalDamage += damage;
 
-                    // On-hit condition — looked up from the library
                     if (weapon != null && weapon.hasOnHit
                         && Random.value <= weapon.onHitConditionChance)
                     {
@@ -112,8 +106,6 @@ namespace DarkSpire
         {
             var results = new List<CombatActionResult>();
 
-            // Passive skills are triggered by events, not by the Play action.
-            // No SP is consumed, no effects fire.
             if (skill.diceRule == SkillDiceRule.Passive)
             {
                 Debug.LogWarning(
@@ -123,21 +115,14 @@ namespace DarkSpire
                 return results;
             }
 
-            // Spend SP (sole gate — no cooldowns in Dark Spire)
             caster.SpendSP(skill.spCost);
 
-            // Spend Stars (Regent flat prerequisite — gated by CanUseSkill).
             if (skill.starCost > 0)
                 caster.SpendStars(skill.starCost);
 
-            // Alternate cost (HP sacrifice, etc.)
             if (skill.altCostType == AltCostType.HP && skill.altCostAmount > 0)
                 caster.TakeDirectDamage(skill.altCostAmount);
 
-            // Fire OnSkillPlayed so conditions that react to skill plays
-            // (e.g. "Whenever you play a skill, channel 1 Lightning") get
-            // a chance to run before effects resolve. Suppressed by
-            // ResolveItem since items aren't skills.
             if (fireSkillPlayed)
             {
                 caster.conditions.FireSkillPlayed(new SkillPlayedContext
@@ -148,20 +133,11 @@ namespace DarkSpire
                 });
             }
 
-            // WilSave skills: cache one save outcome per unique target across
-            // all effects in this cast. A single save roll determines whether
-            // THIS TARGET resists the whole effect block.
             Dictionary<Unit, SaveRollOutcome> saveCache =
                 skill.diceRule == SkillDiceRule.WilSave
                     ? new Dictionary<Unit, SaveRollOutcome>()
                     : null;
 
-            // Conditional-gate state per target. Repopulated whenever a new
-            // Attack/Afflict effect starts — so gated effects read outcomes
-            // from the MOST RECENT gate-provider, not anything older. This
-            // also lets self-looping chains (loopLinkIndex) terminate
-            // naturally: once the chained Attack doesn't produce the gate
-            // condition, the next iteration finds nothing to fire.
             var gateState = new Dictionary<Unit, GateState>();
 
             int effectIdx = 0;
@@ -171,14 +147,12 @@ namespace DarkSpire
                 var effect = skill.effects[effectIdx];
                 if (effect == null) { effectIdx++; continue; }
 
-                // Fresh gate state for each new gate-providing effect.
                 if (effect.effectType == SkillEffectType.Attack
                  || effect.effectType == SkillEffectType.Afflict)
                 {
                     gateState.Clear();
                 }
 
-                // Resolve the target set for this effect.
                 List<Unit> effectTargets = BuildEffectTargets(
                     effect, caster, targets, allPlayerUnits, allEnemyUnits, gateState);
 
@@ -188,21 +162,14 @@ namespace DarkSpire
                 {
                     if (target == null || !target.IsAlive) continue;
 
-                    // SameAs mode already filtered by gate; skip re-check.
-                    // Other cases still do a per-target check so ReRoll + OnX
-                    // effects on a newly-rolled target fire only when the gate
-                    // was observed on some prior target.
                     if (effect.gate != ConditionalGate.Always && effect.sameTargetAsGate)
                     {
-                        // Already filtered in BuildEffectTargets.
                     }
                     else if (effect.gate != ConditionalGate.Always)
                     {
                         if (!AnyTargetPassesGate(gateState, effect.gate)) continue;
                     }
 
-                    // If this is a WilSave skill, compute (or re-use) the target's
-                    // save roll. DC uses effect.saveDC when >0, else 10 + caster WIL.
                     SaveRollOutcome? save = null;
                     bool resisted = false;
                     if (saveCache != null)
@@ -257,8 +224,6 @@ namespace DarkSpire
 
                 bool producedResult = results.Count > producedBefore;
 
-                // Do-again link: jump back to the linked effect index if the
-                // effect actually ran. Hard-capped by MaxLoopIterations.
                 if (producedResult
                     && effect.loopLinkIndex >= 0
                     && effect.loopLinkIndex < skill.effects.Length)
@@ -377,8 +342,6 @@ namespace DarkSpire
                 s.didAttack = true;
                 s.hit  = result.didHit;
                 s.crit = result.wasCrit;
-                // TakeDamage runs inside ResolveAttack before we land here, so
-                // !IsAlive here means "this Attack dropped the target to 0 HP".
                 s.killed = result.didHit && !target.IsAlive;
                 map[target] = s;
             }
@@ -427,7 +390,6 @@ namespace DarkSpire
                     break;
 
                 case SkillEffectType.Apply:
-                    // No-roll application. Sub-kind picks damage vs condition.
                     if (effect.applyKind == ApplyKind.Damage)
                         ResolveDirectDamage(caster, target, effect, result);
                     else
@@ -438,7 +400,6 @@ namespace DarkSpire
                     ResolveAfflict(caster, target, effect, result);
                     break;
 
-                // ── Legacy types — functionally equivalent to their Apply form ──
                 case SkillEffectType.DirectDamage:
                     ResolveDirectDamage(caster, target, effect, result);
                     break;
@@ -458,7 +419,6 @@ namespace DarkSpire
 
                 case SkillEffectType.LoseHP:
                     target.TakeDirectDamage(effect.magnitude);
-                    // Not damage "dealt" — record via placeholder route if needed
                     break;
 
                 case SkillEffectType.ChannelOrb:
@@ -470,26 +430,12 @@ namespace DarkSpire
                     break;
 
                 case SkillEffectType.GainStars:
-                    // Stars go to the caster's pool — no other unit can hold
-                    // them. We gate on `target == caster` so that even if a
-                    // skill is authored with a multi-target effect (e.g.
-                    // AllAllies), the per-target loop in ResolveSkill grants
-                    // exactly one batch of Stars (when target lands on the
-                    // caster). Canonical authoring still uses targetMode=Self.
                     if (target == caster)
                         caster.GainStars(Mathf.Max(0, effect.resourceAmount));
                     result.didHit = true;
                     break;
 
                 case SkillEffectType.GenerateItem:
-                    // Grant the authored item to the party. The legacy itemSO
-                    // field is typed Object for back-compat; cast to ItemData
-                    // when present and route to Inventory.Grant which honors
-                    // category (Pouch → owner's pouch; Party/Brewed → shared
-                    // bag) and stackability. Per-target loop in ResolveSkill
-                    // can fire on multiple targets — only the first one gates
-                    // (gate on target == caster) so the grant happens once,
-                    // matching the GainStars pattern.
                     if (target == caster)
                     {
                         var itemAsset = effect.itemSO as ItemData;
@@ -523,8 +469,6 @@ namespace DarkSpire
                 case SkillEffectType.Forge:
                 case SkillEffectType.Retaliate:
                 case SkillEffectType.OnAllyAttackRider:
-                    // implementation lands in the per-character kit pass (Necrobinder
-                    // Osty, Regent Forge, Silent Shivs/Seal, etc.).
                     Debug.LogWarning(
                         $"[SkillResolver] Effect '{effect.effectType}' on action " +
                         $"'{actionName}' is a placeholder — no runtime behavior yet.");
@@ -532,7 +476,6 @@ namespace DarkSpire
                     break;
 
                 case SkillEffectType.RemoveCondition:
-                    // Removal needs only the ID — ConditionManager handles the lookup.
                     target.conditions.RemoveCondition(effect.conditionID);
                     break;
 
@@ -548,11 +491,6 @@ namespace DarkSpire
             Unit caster, Unit target, bool useAttackRoll, SkillEffectData effect,
             CombatActionResult result)
         {
-            // Multi-hit attacks (intents like "3×6") loop hitCount times. Each
-            // strike is an independent roll — so a 3-hit attack can hit, miss,
-            // or crit on each strike. Damage accumulates into one result; only
-            // the FIRST hit's roll is recorded for the dice-display animation
-            // (matches legacy multi-hit behavior — one floater shows the total).
             int hits = Mathf.Max(1, effect.hitCount);
             bool anyHit = false;
 
@@ -600,15 +538,9 @@ namespace DarkSpire
                     anyHit = true;
                 }
 
-                // Don't keep swinging at a corpse.
                 if (!target.IsAlive) break;
             }
 
-            // OnHit gates fire if ANY strike landed. The dice display still
-            // uses the first roll (raw / crit / critMiss) — if hit#1 missed
-            // but later strikes landed, the dice shows the miss but damage
-            // floats up via the accumulated damageDealt and OnHit effects
-            // (e.g. "On hit, apply Vulnerable") still trigger correctly.
             result.didHit = anyHit;
         }
 
@@ -627,7 +559,6 @@ namespace DarkSpire
 
             if (success)
             {
-                // Resisted — target wins, condition does not land.
                 return;
             }
 
@@ -664,8 +595,6 @@ namespace DarkSpire
             target.conditions.ApplyCondition(condData, stacks);
             result.conditionsApplied.Add((effect.conditionID, stacks));
 
-            // UI parity: applying Shields to self/ally populates defenseGained
-            // so the log reads "shields +N".
             if (effect.conditionID == ConditionID.Shields)
                 result.defenseGained = stacks;
         }
@@ -681,9 +610,6 @@ namespace DarkSpire
                 case ConditionStackSource.Fixed:
                     return perUnit;
 
-                // "Apply Doom equal to unblocked damage" (Blight Strike).
-                // UnblockedDamage + DamageDealt both read result.damageDealt here
-                // (a Shields system distinction that isn't split downstream yet).
                 case ConditionStackSource.UnblockedDamage:
                 case ConditionStackSource.DamageDealt:
                     return (result.damageDealt / per) * perUnit;
@@ -691,8 +617,6 @@ namespace DarkSpire
                 case ConditionStackSource.CasterPOW:
                     return (caster.EffectivePOW / per) * perUnit;
 
-                // "Apply Doom equal to target's Cursed" — matches the condition being
-                // applied for now. Future: let designer pick a specific scaling condition.
                 case ConditionStackSource.TargetStacks:
                     return (target.conditions.GetStacks(effect.conditionID) / per) * perUnit;
 
@@ -714,9 +638,6 @@ namespace DarkSpire
                            || effect.movementKind == MovementKind.Knockback
                            || effect.movementKind == MovementKind.Shuffle;
 
-            // Per-effect WIL save gate. Skipped when the parent skill is WilSave
-            // (ResolveSkill already rolled + already gated this call — if we're
-            // here the target already failed the skill-level save, so auto-apply).
             if (targetMove && effect.saveDC > 0 && !skillIsWilSave)
             {
                 var (success, raw, total) = DiceRoller.SaveRoll(
@@ -730,8 +651,6 @@ namespace DarkSpire
 
                 if (success)
                 {
-                    // Resisted — no displacement. didHit stays false so the log
-                    // reads the action as a save-gated failure.
                     return;
                 }
             }
@@ -755,12 +674,8 @@ namespace DarkSpire
                     break;
             }
 
-            // Reuse didHit as a "completed successfully" flag so the log + UI
-            // can tell the movement ran (no dice, auto-hit behavior).
             result.didHit = true;
         }
-
-        // ─── Orb effects (Defect) ────────────────────────────────────────────
 
         private static void ResolveChannelOrb(
             Unit caster, Unit target, SkillEffectData effect, CombatActionResult result)
@@ -833,8 +748,6 @@ namespace DarkSpire
                 case TargetMode.SingleEnemy:
                     if (selectedTargets != null && selectedTargets.Count > 0)
                     {
-                        // Use pickIndex if in bounds, else fall back to 0 so
-                        // multi-effect skills with only one pick still work.
                         int idx = pickIndex >= 0 && pickIndex < selectedTargets.Count
                             ? pickIndex : 0;
                         result.Add(selectedTargets[idx]);
@@ -881,8 +794,6 @@ namespace DarkSpire
             return result;
         }
 
-        // ─── Enemy resolution ────────────────────────────────────────────────
-
         public static List<CombatActionResult> ResolveEnemyMove(
             Unit enemy, EnemyMove move,
             List<Unit> allPlayerUnits, List<Unit> allEnemyUnits)
@@ -895,10 +806,6 @@ namespace DarkSpire
                 var intent = move.intents[i];
                 if (intent == null) continue;
 
-                // Read the target locked in at intent-set time so resolution
-                // matches the danger-preview the player saw. Fall back to a
-                // live pick only if locking didn't happen (e.g. debug paths
-                // that bypass CombatManager.SetEnemyIntent).
                 Unit primaryTarget = null;
                 if (enemy.lockedIntentTargets != null
                     && i < enemy.lockedIntentTargets.Length)
@@ -937,7 +844,6 @@ namespace DarkSpire
                 var effect = intent.effects[effectIdx];
                 if (effect == null) { effectIdx++; continue; }
 
-                // Fresh gate state at each new gate-providing effect.
                 if (effect.effectType == SkillEffectType.Attack
                  || effect.effectType == SkillEffectType.Afflict)
                 {
@@ -955,16 +861,12 @@ namespace DarkSpire
 
                     if (effect.gate != ConditionalGate.Always && effect.sameTargetAsGate)
                     {
-                        // Already filtered in BuildEffectTargets.
                     }
                     else if (effect.gate != ConditionalGate.Always)
                     {
                         if (!AnyTargetPassesGate(gateState, effect.gate)) continue;
                     }
 
-                    // Enemy intents always roll d20-vs-DEF for Attack effects
-                    // (no diceRule field on intents). Move effects evaluate
-                    // their own per-effect saveDC via the standard path.
                     var result = ResolveSingleEffect(
                         caster, actionName, ActionType.Attack,
                         useAttackRoll: true,

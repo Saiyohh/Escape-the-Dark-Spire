@@ -78,7 +78,6 @@ namespace DarkSpire
             if (IsOpen) Close(); else Open();
         }
 
-        // ── Population ──────────────────────────────────────────────────────
         private void Repopulate()
         {
             for (int i = spawned.Count - 1; i >= 0; i--)
@@ -87,7 +86,6 @@ namespace DarkSpire
 
             int itemsRendered = 0;
 
-            // Party Inventory section
             if (partySectionContainer != null)
             {
                 var party = RunContext.partyInventory;
@@ -105,7 +103,6 @@ namespace DarkSpire
                 }
             }
 
-            // Pouches section — one block per party member.
             if (pouchesSectionContainer != null && RunContext.partyState != null)
             {
                 for (int p = 0; p < RunContext.partyState.Length; p++)
@@ -150,7 +147,6 @@ namespace DarkSpire
             }
             else
             {
-                // Fallback: if the prefab is just a TMP, fill it in plain text.
                 var label = go.GetComponentInChildren<TMP_Text>();
                 if (label != null)
                     label.text = $"{data.itemName}{(inst.charges > 1 ? $" ×{inst.charges}" : "")}";

@@ -3,10 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Position-keyed registry of dungeon entities. PartyToken queries it for
-    // IBlocker; DungeonInteractor queries for IInteractable; walkover
-    // dispatcher queries for IWalkOver. Singleton-ish via a static Instance
-    // for convenience — owned by DungeonBootstrap and cleared on scene exit.
     public class DungeonRegistry : MonoBehaviour
     {
         public static DungeonRegistry Instance { get; private set; }
@@ -50,9 +46,6 @@ namespace DarkSpire
             }
         }
 
-        // Reposition an entity that has moved tiles. Caller passes the OLD
-        // position explicitly so we can find the entry to remove (the
-        // entity's own GridPos may already have been updated to the new tile).
         public void Move(IDungeonEntity e, Vector2Int oldPos, Vector2Int newPos)
         {
             if (e == null) return;

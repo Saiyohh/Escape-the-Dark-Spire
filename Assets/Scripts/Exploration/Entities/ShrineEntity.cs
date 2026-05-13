@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Adjacency-interact. Phase 6 stub: logs a placeholder shrine encounter
-    // text. Phase 7 wires this to EncounterManager.GetShrineEncounter()
-    // which returns an EncounterResult with displayText for the slice.
     public class ShrineEntity : MapEntityBase, IInteractable
     {
         public string PromptText => used ? "" : "[E] Pray at shrine";
@@ -49,7 +46,6 @@ namespace DarkSpire
                 Debug.LogWarning("[Shrine] No EncounterManager.Instance — falling back to stub log.");
             }
 
-            // Visual hint that it's been used: dim the sprite a notch.
             if (sr != null)
             {
                 var c = sr.color;

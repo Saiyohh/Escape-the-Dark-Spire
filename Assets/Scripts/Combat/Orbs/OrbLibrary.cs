@@ -51,7 +51,6 @@ namespace DarkSpire
                 if (orbs.Count == 0) return null;
                 int n = orbs.Count;
                 int idx = Random.Range(0, n);
-                // Skip the Random sentinel if it ever ends up registered.
                 for (int i = 0; i < n; i++)
                 {
                     var pick = orbs[(idx + i) % n];
@@ -74,9 +73,6 @@ namespace DarkSpire
         public OrbDataSO GetRandomByTier(int tier)
         {
             BuildLookupIfNeeded();
-            // Walk the serialized list directly so we draw from EVERY orb of
-            // that tier, including any added later (e.g. an aspect that
-            // unlocks a third Tier 1 orb).
             int count = 0;
             for (int i = 0; i < orbs.Count; i++)
             {

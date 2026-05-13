@@ -49,8 +49,6 @@ namespace DarkSpire
             if (nameLabel != null) nameLabel.text = skill.skillName;
             if (costLabel != null) costLabel.text = skill.spCost.ToString();
 
-            // Stars cost — only shown for skills that actually cost stars
-            // (every non-Regent skill has starCost = 0 and the pill stays hidden).
             bool showStars = skill.starCost > 0;
             if (starCostLabel != null)
             {
@@ -59,10 +57,6 @@ namespace DarkSpire
             }
             if (starCostContainer != null) starCostContainer.SetActive(showStars);
 
-            // Refusal model: if the skill is unplayable, route the click to a
-            // speech bubble explaining why instead of letting it fall through.
-            // The button stays interactable so the click is delivered; the
-            // CanvasGroup paints the visual greyed-out state.
             ActionRefusalReason refusal = caster != null
                 ? caster.GetSkillRefusal(skill)
                 : ActionRefusalReason.None;
@@ -73,8 +67,6 @@ namespace DarkSpire
 
             if (button != null)
             {
-                // Always interactable so refusal clicks are received. The
-                // disabledAlpha + visual cost pill convey unaffordability.
                 button.interactable = true;
                 button.onClick.RemoveAllListeners();
                 Action capturedOnClicked = onClicked;

@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Flat shuffled pool with seen-pool reshuffle on exhaustion. No priority.
     public class EliteEncounterSubManager : IEncounterSubManager
     {
         private readonly Queue<EncounterSO> activeQueue = new();

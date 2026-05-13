@@ -32,7 +32,6 @@ namespace DarkSpire
 
     public enum SkillEffectType
     {
-        // ── Core combat ──────────────────────────────────────
         Attack,            // d20 + ATK vs DEF — hit deals magnitude damage. (Was "Damage".)
         DirectDamage,      // [LEGACY] Use Apply + ApplyKind.Damage. Kept for serialized compat.
         Heal,
@@ -41,34 +40,26 @@ namespace DarkSpire
         RemoveCondition,
         Move,              // Positional: uses movementKind + movementMagnitude
 
-        // ── Self-cost (alt-costs on the skill itself) ───────
         LoseHP,            // Self-damage as part of the effect block (Offering, Hemokinesis)
 
-        // ── Action economy ───────────────────────────────────
         Haste,             // Target gets an extra action on their NEXT turn
         Renew,             // Target takes an extra turn immediately after this one
         SealSkill,         // Put a skill on cooldown for N turns (self / chosen / random)
 
-        // ── Item generation (Pouch) ──────────────────────────
         GenerateItem,      // Shiv / Soul / SovereignBlade / etc. (uses pouchItemType)
 
-        // ── Orb system (Defect) — PLACEHOLDERS ──────────────
         ChannelOrb,        // Channel N orbs of orbType (may use orbSource, orbMulti)
         EvokeOrb,          // Trigger an orb's Evoke (first/rightmost via evokeKind)
 
-        // ── Osty / Companions (Necrobinder) — PLACEHOLDERS ──
         SummonCompanion,   // Add HP to Osty (revive if dead); magnitude = HP
         BindCompanion,     // Bind Osty to a target ally for N turns
 
-        // ── Stars & Forge (Regent) — PLACEHOLDERS ───────────
         GainStars,         // Add N Stars to the Regent's pool
         Forge,             // Forge N — bumps Sovereign Blade damage, generates into Pouch if absent
 
-        // ── Triggered / persistent (run-through-turn) — PLACEHOLDER ──
         Retaliate,         // "If an enemy attacks you, they take X damage" until TurnStart
         OnAllyAttackRider, // "Whenever ally attacks, gain X Guard" etc. until TurnStart
 
-        // ── New unified types (added post-rework) ───────────
         Apply,             // No-roll application. Sub-kind (applyKind) chooses Damage or Condition.
         Afflict,           // WIL-save gated condition application. On FAILED save, condition lands.
     }
@@ -119,18 +110,6 @@ namespace DarkSpire
         PerEnemy,      // One per enemy in combat (Chill)
     }
 
-    // Which orb(s) an Evoke effect targets. Names follow on-screen layout: in
-    // this game new channels push into slot 0, which renders on the right, so
-    // slot 0 = visually rightmost and slot N-1 = visually leftmost.
-    //              evokeCount > 1 fires the same orb repeatedly (Dualcast).
-    //   Leftmost = slot N-1 (the visually-leftmost / oldest orb). Useful for a
-    //              "drain from the back of the queue" mechanic. Single-fire
-    //              only — multi-fire Dualcast targets rightmost.
-    //   All      = drain every slotted orb.
-    //
-    // Serialization note: enum index 1 was previously named "Rightmost" — it's
-    // renamed to "Leftmost" here for clarity. Existing skill assets with
-    // evokeKind: 1 keep working; Unity serializes by integer.
     public enum EvokeKind
     {
         First,
@@ -169,13 +148,6 @@ namespace DarkSpire
 
     public enum ConditionStackSource { Fixed, UnblockedDamage, DamageDealt, CasterPOW, TargetStacks }
 
-    // Skills carry one or more mechanical-subsystem tags. These mirror the Tags
-    // multi-select in the Notion Skills Database — Aspect Tree triggers, Forge
-    // accumulation, Orb routing, WIL save resolution, etc. all key off these.
-    // Flags so tags combine cheaply: `if ((skill.tags & SkillTag.OnHit) != 0)`.
-    //
-    // Nightsaint-only tags (HumanForm/WolfForm/Bleeding/Fervor) are reserved so
-    // DLC Pack 1 skill assets parse cleanly but are not referenced at Launch.
     [System.Flags]
     public enum SkillTag
     {
@@ -191,7 +163,6 @@ namespace DarkSpire
         Positional    = 1 << 8,   // Moves the caster or target
         WilSave       = 1 << 9,   // Resolves via WIL save (see SkillDiceRule.WilSave)
 
-        // Nightsaint (DLC Pack 1) — reserved, unused at Launch
         HumanForm     = 1 << 10,
         WolfForm      = 1 << 11,
         Bleeding      = 1 << 12,
@@ -234,7 +205,6 @@ namespace DarkSpire
         Bruise,
         Cursed,
         Shields,     // Stackable damage absorb (1 per stack) — replaces temporaryDefense.
-                     // clearTiming=RoundStart on the SO; Barricade (defensePersists) overrides.
         Slippery,    // Caps the next N incoming damage instances to 1 (one stack consumed per hit).
         Shrink,      // -25% outgoing damage; auto-clears when the applying caster dies.
         Territorial, // OnTurnEnd: grants Strength per stack (Byrdonis ramp passive).
@@ -242,13 +212,6 @@ namespace DarkSpire
 
     public enum ConditionStackType { Counter, Duration, Single }
 
-    // ConditionTiming (Passive/TurnStart/...) was removed — it was a legacy
-    // single-event scheduler superseded by the compositional triggers[] +
-    // clearTiming model. No runtime code referenced it; the enum is gone and
-    // the field has been dropped from ConditionData.
-
-    // Retained from Echoes so ported files compile. Powers/Relics themselves
-    // are NOT ported — this enum is dead data until Aspect Trees replace it.
     public enum RelicTrigger
     {
         OnCombatStart,

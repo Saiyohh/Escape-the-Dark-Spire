@@ -59,24 +59,19 @@ namespace DarkSpire
 
             GetStyle(out Color color, out float dilate);
 
-            // fontMaterial is TMP's per-instance copy. Safe to mutate.
             var mat = text.fontMaterial;
             if (mat == null) return;
 
-            // Turn underlay on — some materials start with it off.
             mat.EnableKeyword(ShaderUtilities.Keyword_Underlay);
 
-            // Underlay drives the OUTSIDE outline.
             mat.SetColor(ShaderUtilities.ID_UnderlayColor, color);
             mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
             mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
             mat.SetFloat(ShaderUtilities.ID_UnderlayDilate, dilate);
             mat.SetFloat(ShaderUtilities.ID_UnderlaySoftness, softness);
 
-            // Kill the default inside-glyph outline to avoid double-outlining.
             mat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
 
-            // Force refresh if text is already rendered.
             text.UpdateMeshPadding();
         }
 

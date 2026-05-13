@@ -20,12 +20,10 @@ namespace DarkSpire
 
         private void Start()
         {
-            // Capture stats BEFORE tearing down the run UI.
             int gold     = RunContext.gold;
             float runT   = RunContext.runTime;
             int fights   = RunContext.fightsWon;
 
-            // Tear down run-scoped UI so the menu re-enters clean.
             MenuCanvasController.DestroyIfPresent();
 
             if (titleLabel  != null) titleLabel.text  = "Victory";

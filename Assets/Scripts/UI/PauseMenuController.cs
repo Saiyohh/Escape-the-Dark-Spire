@@ -35,8 +35,6 @@ namespace DarkSpire
 
         public bool IsOpen => panelRoot != null && panelRoot.activeSelf;
 
-        // ─── Public API ──────────────────────────────────────────────────────
-
         public static PauseMenuController GetOrCreate()
         {
             if (Instance != null) return Instance;
@@ -67,8 +65,6 @@ namespace DarkSpire
 
         public void QuitToMainMenu()
         {
-            // Always restore time before swapping — the destination scene
-            // shouldn't load with a frozen timescale even if we crashed mid-pause.
             Time.timeScale = 1f;
 
             if (panelRoot != null) panelRoot.SetActive(false);
@@ -79,8 +75,6 @@ namespace DarkSpire
             else
                 SceneManager.LoadScene(mainMenuSceneName);
         }
-
-        // ─── Lifecycle ───────────────────────────────────────────────────────
 
         private void Awake()
         {
@@ -94,9 +88,6 @@ namespace DarkSpire
 
             if (panelRoot == null) panelRoot = gameObject;
 
-            // (would deactivate ourselves before Awake completes). Authoring
-            // requirement: the panel root child must start INACTIVE in the
-            // prefab; the runtime fallback handles this explicitly below.
             if (panelRoot != gameObject) panelRoot.SetActive(false);
 
             if (resumeButton != null)
@@ -114,15 +105,11 @@ namespace DarkSpire
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;
-            // Defensive: a paused scene that destroys the menu shouldn't leave
-            // timescale frozen.
             if (Time.timeScale == 0f) Time.timeScale = 1f;
         }
 
         private void Update()
         {
-            // Only the Esc-key toggle lives on Update — coroutines aren't a
-            // good fit for an arbitrarily long pause window.
             var kb = Keyboard.current;
             if (kb == null) return;
             if (!kb[Key.Escape].wasPressedThisFrame) return;
@@ -135,12 +122,8 @@ namespace DarkSpire
             if (CanOpen()) Open();
         }
 
-        // ─── Open gating ─────────────────────────────────────────────────────
-
         private bool CanOpen()
         {
-            // Suppress in scenes that own their own Esc behavior (main menu's
-            // own quit button row, party-select navigation, etc.).
             string activeScene = SceneManager.GetActiveScene().name;
             if (suppressInScenes != null)
             {
@@ -150,24 +133,16 @@ namespace DarkSpire
                 }
             }
 
-            // Yield to TargetingSystem when it's actively asking the player to
-            // pick a target — Esc cancels targeting in that mode and we don't
-            // want a double-fire.
             var ts = TargetingSystem.Instance;
             if (ts != null && ts.IsTargeting) return false;
 
             return true;
         }
 
-        // ─── Runtime fallback (no Resources/PauseMenu prefab authored) ───────
-
         private static GameObject BuildRuntimeFallback()
         {
             var go = new GameObject("PauseMenu");
 
-            // Canvas: screen-space overlay, sortingOrder below the scene
-            // transition (1000) so the fade still covers the menu, but above
-            // every other gameplay UI.
             var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 800;
@@ -179,10 +154,6 @@ namespace DarkSpire
 
             go.AddComponent<GraphicRaycaster>();
 
-            // Panel root — toggled active on Open. Authored INACTIVE on this
-            // separate child GameObject so toggling doesn't deactivate the
-            // controller itself (sidesteps the SetActive-during-Awake trap
-            // we hit on SkillSubmenu / BackButton earlier).
             var panelGO = new GameObject("Panel");
             panelGO.transform.SetParent(go.transform, false);
 
@@ -192,12 +163,10 @@ namespace DarkSpire
             panelRT.offsetMin = Vector2.zero;
             panelRT.offsetMax = Vector2.zero;
 
-            // Dim backdrop so the gameplay underneath reads as paused.
             var bgImage = panelGO.AddComponent<Image>();
             bgImage.color = new Color(0f, 0f, 0f, 0.55f);
             bgImage.raycastTarget = true;
 
-            // Button column centered on the screen.
             var col = new GameObject("ButtonColumn");
             col.transform.SetParent(panelGO.transform, false);
             var colRT = col.AddComponent<RectTransform>();
@@ -218,7 +187,6 @@ namespace DarkSpire
             var resume = CreateRuntimeButton(col.transform, "Resume");
             var quit   = CreateRuntimeButton(col.transform, "Quit to Menu");
 
-            // Title above the buttons.
             var title = new GameObject("Title");
             title.transform.SetParent(panelGO.transform, false);
             var titleRT = title.AddComponent<RectTransform>();
@@ -234,14 +202,11 @@ namespace DarkSpire
             titleText.fontSize = 64f;
             titleText.color = Color.white;
 
-            // Wire the controller LAST so its Awake sees the panelRoot ref.
             var controller = go.AddComponent<PauseMenuController>();
             controller.panelRoot = panelGO;
             controller.resumeButton = resume;
             controller.quitButton   = quit;
 
-            // Authored-inactive state for the panel — kept consistent with
-            // the prefab guidance.
             panelGO.SetActive(false);
 
             return go;
@@ -267,7 +232,6 @@ namespace DarkSpire
             colors.selectedColor    = new Color(0.20f, 0.20f, 0.22f, 1f);
             btn.colors = colors;
 
-            // Label uses TMP so it picks up the project's TMP defaults if any.
             var labelGO = new GameObject("Label");
             labelGO.transform.SetParent(go.transform, false);
             var lrt = labelGO.AddComponent<RectTransform>();

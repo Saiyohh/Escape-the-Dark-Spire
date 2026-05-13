@@ -3,12 +3,6 @@ using UnityEngine.InputSystem;
 
 namespace DarkSpire
 {
-    // Reads WASD / Arrow Keys via the new Input System and feeds direction
-    // inputs to a PartyToken. Cooldown caps the move rate at ~8 moves/sec
-    // per the GDD.
-    //
-    // Vertical takes precedence over horizontal when both are held (cheap
-    // tiebreak; tweak Read() to swap).
     public class GridMovement : MonoBehaviour
     {
         [SerializeField] private PartyToken token;
@@ -43,7 +37,6 @@ namespace DarkSpire
             var kb = Keyboard.current;
             if (kb == null) return Vector2Int.zero;
 
-            // Vertical takes precedence over horizontal when both held.
             if (kb.wKey.isPressed     || kb.upArrowKey.isPressed)    return Vector2Int.up;
             if (kb.sKey.isPressed     || kb.downArrowKey.isPressed)  return Vector2Int.down;
             if (kb.aKey.isPressed     || kb.leftArrowKey.isPressed)  return Vector2Int.left;

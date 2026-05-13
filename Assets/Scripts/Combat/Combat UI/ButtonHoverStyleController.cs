@@ -45,9 +45,6 @@ namespace DarkSpire
         private bool isPressed;
         private bool wasInteractable = true;
 
-        // Color-library fallbacks — used if the library is missing the key OR
-        // the library asset itself isn't present. Approximates the previous
-        // hardcoded defaults so things still look reasonable in that case.
         private static readonly Color FallbackNormalBg     = Color.white;
         private static readonly Color FallbackHoverBg      = Color.black;
         private static readonly Color FallbackPressedBg    = new Color(0.2f, 0.2f, 0.2f);
@@ -73,8 +70,6 @@ namespace DarkSpire
                 ApplyState();
             }
         }
-
-        // ─── Pointer events ──────────────────────────────────────────────────
 
         public void OnPointerEnter(PointerEventData _)
         {
@@ -103,8 +98,6 @@ namespace DarkSpire
             ApplyState();
         }
 
-        // ─── State application ──────────────────────────────────────────────
-
         private void ApplyState()
         {
             if (button != null && !button.interactable)
@@ -113,7 +106,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Pull library colors once per state change.
             Color normalBg     = ColorLibrary.Get("UI", "ButtonNormalBG",   FallbackNormalBg);
             Color hoverBg      = ColorLibrary.Get("UI", "ButtonHoverBG",    FallbackHoverBg);
             Color pressedBg    = ColorLibrary.Get("UI", "ButtonPressedBG",  FallbackPressedBg);
@@ -121,8 +113,6 @@ namespace DarkSpire
             Color hoverText    = ColorLibrary.Get("UI", "ButtonHoverText", FallbackHoverText);
             Color outlineColor = ColorLibrary.Get("UI", "ButtonOutlineColor", FallbackOutline);
 
-            // Inverted mode swaps normal ↔ hover. (No pressed state when inverted —
-            // back buttons / cost badges press through their hover color.)
             if (invertColors)
             {
                 if (isPressed || isHovered)
@@ -132,7 +122,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Standard action-button mode.
             if (isPressed)
                 Apply(pressedBg, hoverText, outlineColor, pressedOutlineWidth);
             else if (isHovered)

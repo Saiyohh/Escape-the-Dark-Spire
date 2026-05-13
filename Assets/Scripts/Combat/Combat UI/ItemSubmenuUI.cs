@@ -162,16 +162,11 @@ namespace DarkSpire
         }
         private bool _warnedNoInfoPanel;
 
-        // ─── Internal ───────────────────────────────────────────────────────
-
         private void OnCardClicked(ItemSource source, int index)
         {
             var mgr = CombatManager.Instance;
             if (mgr == null || boundUnit == null) return;
 
-            // Don't Close() yet — leave the submenu visible while the player
-            // is selecting targets. Auto-closes on cancel / resolve like the
-            // skill submenu.
             mgr.OnPlayerChooseItem(source, index, arrowOrigin);
         }
 
@@ -186,9 +181,6 @@ namespace DarkSpire
         private void HandleActionResolved(CombatActionResult result)
         {
             if (result == null) return;
-            // Close on item resolution. Skill resolution is unrelated; if the
-            // submenu happens to be open during a skill resolve (shouldn't
-            // happen given mutual exclusion), leave it alone.
             if (result.actionType != ActionType.Item) return;
             if (panelRoot != null && panelRoot.activeSelf) Close();
         }

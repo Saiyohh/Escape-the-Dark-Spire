@@ -21,21 +21,11 @@ namespace DarkSpire
 
         private void Awake()
         {
-            // Subscribe in Awake so we don't miss the very first OnCombatStart,
-            // but DEFER the initial reset to Start. Awake order across
-            // components isn't guaranteed; running ResetAll here would race
-            // submenu Awakes (e.g. SkillSubmenuUI.Awake calls its own Close,
-            // and a Close that fires before that Awake leaves the panel in a
-            // half-initialized state that breaks the next OpenFor).
             CombatEvents.OnCombatStart += ResetAll;
         }
 
         private void Start()
         {
-            // Runs once, AFTER every component's Awake has completed. Now it's
-            // safe to assume each submenu has wired up its serialized refs
-            // (panelRoot, etc.) and we can flip them all to closed state
-            // cleanly.
             ResetAll();
         }
 
@@ -49,9 +39,6 @@ namespace DarkSpire
             if (skillSubmenu != null)
                 skillSubmenu.Close();
 
-            // Prefer the serialized slot so the dependency is visible in the
-            // scene; fall back to the singleton lookup so the bootstrap still
-            // works in scenes that wire the BackButton elsewhere.
             var bb = backButton != null ? backButton : BackButton.Instance;
             if (bb != null) bb.ForceClose();
 

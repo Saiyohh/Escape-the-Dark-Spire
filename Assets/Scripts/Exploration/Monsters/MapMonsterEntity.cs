@@ -4,14 +4,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Map-side monster: owns the four-state AI (Patrol / Alert / Chase / Lost),
-    // BFS pathing to the next target tile, LoS-gated detection, and the
-    // tier-based EncounterManager dispatch on contact.
-    //
-    // Boss tier is special-cased to never patrol or chase — it sits in the
-    // boss room and only triggers combat when the party walks onto its tile.
-    //
-    // actual scene swap to combat using the EncounterResult returned here.
     public class MapMonsterEntity : MonoBehaviour, IDungeonEntity
     {
         public Vector2Int GridPos { get; private set; }
@@ -35,14 +27,12 @@ namespace DarkSpire
                  "to move before the AI re-engages.")]
         [SerializeField] private float spawnGraceSeconds = 1.5f;
 
-        // Scene refs
         private GeneratedFloorData floor;
         private PartyToken party;
         private MapEntitySpriteLibrary library;
         private SpriteRenderer sr;
         private AlertIndicator alertIndicator;
 
-        // Runtime state
         private float moveTimer;
         private float alertTimer;
         private float lostTimer;
@@ -51,11 +41,7 @@ namespace DarkSpire
         private bool collisionFired;
         private Coroutine lerpCo;
 
-        // Original spawn record — kept so SceneFlow can mark this exact monster
-        // as defeated on Victory (uses spawn.start as the identity key).
         private MonsterSpawn originalSpawn;
-
-        // Initialization ---------------------------------------------------
 
         public void InitializeMonster(
             MonsterSpawn spawn,
@@ -77,13 +63,11 @@ namespace DarkSpire
             this.sr = sr;
             detectionRadius = floorDetectionRadius;
 
-            // Elites are slightly more attentive per spec (~+0.5 tile).
             if (Tier == MonsterTier.Elite) detectionRadius += 0.5f;
 
             transform.localPosition = TileToWorld(GridPos);
             DungeonRegistry.Instance?.Register(this);
 
-            // Attach an AlertIndicator child so the "!" pops over the monster.
             if (Tier != MonsterTier.Boss)
             {
                 var go = new GameObject("AlertIndicator");
@@ -103,14 +87,11 @@ namespace DarkSpire
             DungeonRegistry.Instance?.Unregister(this);
         }
 
-        // Update tick ------------------------------------------------------
-
         private void Update()
         {
             if (floor == null || party == null) return;
             if (graceTimer > 0f) graceTimer -= Time.deltaTime;
 
-            // Boss is static — only collision-checks.
             if (Tier == MonsterTier.Boss)
             {
                 CheckCollision();
@@ -124,10 +105,6 @@ namespace DarkSpire
 
         private void UpdateStateLogic()
         {
-            // Spawn grace blocks the patrol→alert transition. Does NOT block
-            // an in-progress chase (we'd want a chase to continue after the
-            // grace expires, and currently we always reset to Patrol on init,
-            // so this branch is the only entry into pursuit anyway).
             if (graceTimer > 0f && State == MonsterAIState.Patrol) return;
 
             switch (State)
@@ -183,8 +160,6 @@ namespace DarkSpire
             StepTo(next.Value);
         }
 
-        // State transitions ------------------------------------------------
-
         private void EnterAlert()
         {
             State = MonsterAIState.Alert;
@@ -212,8 +187,6 @@ namespace DarkSpire
             State = MonsterAIState.Patrol;
         }
 
-        // Detection --------------------------------------------------------
-
         private bool CanSeeParty()
         {
             var p = party.GridPos;
@@ -229,7 +202,6 @@ namespace DarkSpire
             if (PatrolRoute == null || PatrolRoute.Count == 0) return null;
             if (PatrolRoute.Count == 1) return null;
 
-            // Advance index when we've reached the current target waypoint.
             int target = (patrolIndex + 1) % PatrolRoute.Count;
             if (GridPos == PatrolRoute[target])
             {
@@ -246,7 +218,6 @@ namespace DarkSpire
 
         private Vector2Int? NextLostStep()
         {
-            // Find nearest waypoint (Manhattan).
             int bestDist = int.MaxValue;
             int nearestIdx = 0;
             for (int i = 0; i < PatrolRoute.Count; i++)
@@ -266,8 +237,6 @@ namespace DarkSpire
             return StepTowards(nearest);
         }
 
-        // BFS to target, return first step (or null). Treats walls as blocked
-        // and ignores the party's tile so chase paths can end on the party.
         private Vector2Int? StepTowards(Vector2Int target)
         {
             if (target == GridPos) return null;
@@ -280,11 +249,6 @@ namespace DarkSpire
 
         private void StepTo(Vector2Int newTile)
         {
-            // Don't share tiles with other monsters. If the destination is
-            // occupied, hold position this tick and let the next interval
-            // recompute. Cheaper than re-routing pathfinding around live
-            // monsters and prevents two monsters stacking on the player's
-            // tile (which would race CheckCollision into combat twice).
             if (IsTileOccupiedByOtherMonster(newTile)) return;
 
             var old = GridPos;
@@ -320,14 +284,9 @@ namespace DarkSpire
             lerpCo = null;
         }
 
-        // Collision -> EM dispatch ---------------------------------------
-
         private void CheckCollision()
         {
             if (collisionFired) return;
-            // If another monster already claimed combat this frame (or last),
-            // stand down — only one combat can be in flight at a time. The
-            // guard clears in SceneFlow.ReturnFromCombat.
             if (SceneFlow.IsCombatLoadInFlight) return;
             if (party.GridPos != GridPos) return;
             collisionFired = true;
@@ -350,8 +309,6 @@ namespace DarkSpire
 
             if (result.encounter == null)
             {
-                // No encounter authored — fall back to the Phase 9 mock so the
-                // floor stays testable. Apply override + destroy + log warning.
                 Debug.LogWarning("[Monster] No EncounterSO authored for this tier — " +
                                  "using mock destroy. Author a pool to enable combat handoff.");
                 if (result.rewardOverride.guaranteedKey) RunContext.keysHeld++;
@@ -369,12 +326,8 @@ namespace DarkSpire
                 return;
             }
 
-            // Real handoff: SceneFlow captures floor + party pos into RunStateHolder
-            // and loads the combat scene. CombatBootstrap fires the result.
             SceneFlow.LoadCombat(result, originalSpawn, party.GridPos);
         }
-
-        // Helpers ----------------------------------------------------------
 
         private static Vector3 TileToWorld(Vector2Int t)
             => new Vector3(t.x + 0.5f, t.y + 0.5f, 0f);

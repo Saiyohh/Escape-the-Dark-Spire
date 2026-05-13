@@ -2,13 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Static input/output bag passed between the dungeon scene and the combat
-    // scene. SceneFlow.LoadCombat populates Active before the swap;
-    // CombatBootstrap reads Active on entry, writes Result on combat end,
-    // and SceneFlow.ReturnFromCombat consumes Result back in the dungeon scene.
-    //
-    // Static (not a singleton MonoBehaviour) so it survives scene unloads
-    // for free without needing DontDestroyOnLoad on a carrier object.
     public static class CombatHandoffPayload
     {
         public static class Active
@@ -19,8 +12,6 @@ namespace DarkSpire
             public static string returnSceneName;
             public static Vector2Int returnGridPos;
 
-            // The map monster the player walked into. Used to mark it
-            // defeated in RunStateHolder on Victory so it doesn't respawn.
             public static MonsterSpawn pendingMonster;
             public static bool hasPendingMonster;
 

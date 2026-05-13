@@ -3,11 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Serialized snapshot of a single generated floor. Lets designers pin a
-    // specific seed for tutorials, fixed test fixtures, or screenshots.
-    //
-    // Runtime DungeonBootstrap (Phase 3) can take a snapshot SO instead of a
-    // FloorGenerationConfigSO + seed and skip the generator entirely.
     [CreateAssetMenu(fileName = "GFS_NewSnapshot", menuName = "DarkSpire/Dungeon/Generated Floor Snapshot")]
     public class GeneratedFloorSO : ScriptableObject
     {
@@ -15,7 +10,6 @@ namespace DarkSpire
         public string sourceConfigName;
         public Vector2Int gridSize;
 
-        // Row-major flat: index = y * gridSize.x + x. Unity can't serialize 2D arrays.
         public TileType[] tilesFlat;
 
         public List<EntityPlacement> entities = new();

@@ -22,9 +22,6 @@ namespace DarkSpire
                  "Usually the Combat canvas on the same root as this manager.")]
         [SerializeField] private Canvas combatCanvas;
 
-        // Colors come from ColorLibrary at lookup time. Local readonly fallbacks
-        // are used when the library is missing or the key isn't authored — keeps
-        // popups visible even before the library is set up.
         private static readonly Color FallbackDamage  = new Color(0.95f, 0.30f, 0.28f);
         private static readonly Color FallbackCrit    = new Color(1.00f, 0.84f, 0.20f);
         private static readonly Color FallbackHeal    = new Color(0.40f, 0.85f, 0.45f);
@@ -97,7 +94,6 @@ namespace DarkSpire
 
         public static FloatingNumberManager Instance { get; private set; }
 
-        // Per-unit nudge tracking
         private readonly Dictionary<Unit, float> lastOffsets = new();
         private readonly Dictionary<Unit, int>   lastOffsetDir = new();
         private readonly Dictionary<Unit, float> lastSpawnTime = new();
@@ -122,15 +118,8 @@ namespace DarkSpire
             if (Instance == this) Instance = null;
         }
 
-        // ─── Condition feedback ──────────────────────────────────────────────
-
         private void HandleConditionApplied(Unit target, ConditionID id, int stacks)
         {
-            // Action-driven applies (during a skill cast) suppress this auto
-            // floater; CombatManager replays it via SpawnConditionApplied at
-            // the right moment in its per-effect playback. Autonomous applies
-            // (DoT ticks, start-of-turn self-stacks) leave the flag false and
-            // floater-spawn through this path immediately.
             var d = UnitDisplay.GetDisplay(target);
             if (d != null && d.SuppressConditionUI) return;
             SpawnConditionAppliedInternal(target, id, stacks);
@@ -152,8 +141,6 @@ namespace DarkSpire
 
             Color c = isDebuff ? DebuffColor : BuffColor;
             FlareDirection dir = isDebuff ? FlareDirection.Down : FlareDirection.Up;
-            // Negative gained spawns AT pivot (drifts down across the unit);
-            // positive gained spawns just below pivot and rises through it.
             float pivotYOffset = isDebuff ? 0f : -positiveSpawnBelowPivot;
 
             SpawnFlareAtPivot(target, txt, c, dir, null, null, pivotYOffset, conditionFlarePrefab);
@@ -170,18 +157,14 @@ namespace DarkSpire
             Sprite icon = data != null ? data.icon : null;
 
             var prefab = wearsOffFlarePrefab != null ? wearsOffFlarePrefab : conditionFlarePrefab;
-            // White text — outline is configured on the prefab's TMP material.
             SpawnFlareAtPivot(target, displayName, Color.white, FlareDirection.Up,
                               icon, "Wears Off", 0f, prefab);
         }
-
-        // ─── Result → spawn translation ──────────────────────────────────────
 
         private void HandleActionResolved(CombatActionResult result)
         {
             if (result == null) return;
 
-            // Damage / miss / dodge / crit
             if (result.didRoll)
             {
                 if (result.didHit && result.damageDealt > 0)
@@ -223,19 +206,13 @@ namespace DarkSpire
                                   FlareDirection.Up, null, null, 0f,
                                   conditionFlarePrefab);
 
-            // Conditions applied are handled by HandleConditionApplied via the
-            // dedicated CombatEvents.OnConditionApplied bus.
         }
-
-        // ─── Public arc API ──────────────────────────────────────────────────
 
         public void SpawnDamage(Unit unit, int amount, bool isCrit)
             => SpawnArc(unit, amount.ToString(), isCrit ? CritColor : DamageColor);
 
         public void SpawnHeal(Unit unit, int amount)
             => SpawnArc(unit, $"+{amount}", HealColor);
-
-        // ─── Arc spawn ───────────────────────────────────────────────────────
 
         private void SpawnArc(Unit unit, string text, Color color)
         {
@@ -270,8 +247,6 @@ namespace DarkSpire
                     wobbleAmplitude, wobbleFrequency);
             }
         }
-
-        // ─── Flare spawn ─────────────────────────────────────────────────────
 
         private void SpawnFlareAtPivot(Unit unit, string text, Color color,
             FlareDirection direction, Sprite icon, string subtitle,

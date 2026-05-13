@@ -89,10 +89,6 @@ namespace DarkSpire
         public int expValue;
     }
 
-    // ──────────────────────────────────────────────────────────
-    //  MOVE — one whole turn-action (1+ intents shown side-by-side)
-    // ──────────────────────────────────────────────────────────
-
     [System.Serializable]
     public class EnemyMove
     {
@@ -107,10 +103,6 @@ namespace DarkSpire
                  "and one chain of effects.")]
         public EnemyIntent[] intents;
     }
-
-    // ──────────────────────────────────────────────────────────
-    //  INTENT — one icon above the head, one chain of effects
-    // ──────────────────────────────────────────────────────────
 
     [System.Serializable]
     public class EnemyIntent
@@ -148,20 +140,12 @@ namespace DarkSpire
         public SkillEffectData[] effects;
     }
 
-    // ──────────────────────────────────────────────────────────
-    //  STARTING CONDITION — auto-applied at combat start
-    // ──────────────────────────────────────────────────────────
-
     [System.Serializable]
     public class EnemyStartingCondition
     {
         public ConditionID conditionId;
         [Min(1)] public int stacks = 1;
     }
-
-    // ──────────────────────────────────────────────────────────
-    //  CONDITIONAL MOVES — interrupts that override the move pattern
-    // ──────────────────────────────────────────────────────────
 
     [System.Serializable]
     public class EnemyConditionalMove

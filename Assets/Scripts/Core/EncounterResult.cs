@@ -2,9 +2,6 @@ using System;
 
 namespace DarkSpire
 {
-    // Return type from every Sub-Manager.GetNext() and the EncounterManager
-    // dispatch. Carries either a real EncounterSO (Monster/Elite/Boss) or a
-    // displayText payload (slice stubs for Campsite/Event/Shrine).
     [Serializable]
     public struct EncounterResult
     {

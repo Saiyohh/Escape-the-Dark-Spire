@@ -5,20 +5,12 @@ namespace DarkSpire
     [CreateAssetMenu(fileName = "NewCondition", menuName = "DarkSpire/Condition")]
     public class ConditionData : ScriptableObject
     {
-        // ─── Identity ───────────────────────────────────────────────────────
         public ConditionID conditionID;
         public string displayName;
         [TextArea] public string description;
         public Sprite icon;
         public Color tintColor = Color.white;
 
-        // ─── Icon color adjust (per-hue B&W mixer) ─────────────────────────
-        //
-        // Same adjust used by SkillData.bannerGrayscale + channel weights —
-        // mirrors Photoshop's Black & White tool via DarkSpire/UI/BlackAndWhite.
-        // Useful for placeholder art that needs to fit the monochrome HUD
-        // without a Photoshop pass. Swap per-condition to a hand-drawn icon
-        // later and just flip iconGrayscale off.
         [Header("Icon Color Adjust")]
         [Tooltip("When true, renders the condition icon through the BlackAndWhite " +
                  "shader using the six channel weights below.")]
@@ -31,25 +23,21 @@ namespace DarkSpire
         [Range(0f, 3f)] public float iconBwBlues    = 0.20f;
         [Range(0f, 3f)] public float iconBwMagentas = 0.80f;
 
-        // ─── Stacking ──────────────────────────────────────────────────────
         public ConditionStackType stackType;
         public bool isDebuff;
         public bool ticksDown = true;
         public int maxStacks; // 0 = unlimited
 
-        // ─── Passive modifiers (always-on stat bonuses) ────────────────────
         [Header("Passive Stat Modifiers (always-on while active)")]
         [Tooltip("Each entry applies amountPerStack × currentStacks to the stat. " +
                  "Sum across all conditions is read by Unit.Effective* properties.")]
         public PassiveModifier[] passiveModifiers = System.Array.Empty<PassiveModifier>();
 
-        // ─── Triggers (event-driven reactions) ─────────────────────────────
         [Header("Triggers (event-driven)")]
         [Tooltip("Each trigger: WHEN (event) + IF (filters) + DO (actions) + STACK-OP. " +
                  "Dispatched by ConditionManager when the unit receives the matching event.")]
         public ConditionTrigger[] triggers = System.Array.Empty<ConditionTrigger>();
 
-        // ─── Structural flags (bypass normal flow) ─────────────────────────
         [Header("Structural Flags")]
         [Tooltip("Skips this unit's turn entirely (Stunned).")]
         public bool preventsAction;
@@ -72,10 +60,6 @@ namespace DarkSpire
         [Tooltip("Damage from this condition ignores DEF in any attack-roll context.")]
         public bool bypassesDEF;
 
-        // ─── Legacy fields (deprecated — kept for migration) ───────────────
-        // New conditions should use passiveModifiers + triggers instead.
-        // These are hidden in the new inspector but keep their serialized values
-        // so existing SOs don't silently lose data during the refactor.
         [HideInInspector] public int defModifier;
         [HideInInspector] public int damageModifier;
         [HideInInspector] public int tickDamage;

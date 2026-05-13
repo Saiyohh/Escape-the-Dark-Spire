@@ -28,7 +28,6 @@ namespace DarkSpire
 
         public void SetBreakdown(in CalcBreakdown breakdown)
         {
-            // Hide the legacy header — we no longer render a Total line.
             if (headerLabel != null && !headerHiddenOnce)
             {
                 headerLabel.gameObject.SetActive(false);
@@ -58,7 +57,6 @@ namespace DarkSpire
                     wroteAddRow = true;
                 }
 
-                // Extra lines: each multiplicative step on its own line.
                 for (int i = 0; i < breakdown.Steps.Count; i++)
                 {
                     var s = breakdown.Steps[i];
@@ -72,7 +70,6 @@ namespace DarkSpire
                 }
             }
 
-            // Crit footer (attack damage only).
             if (breakdown.ShowCritLine)
             {
                 if (sb.Length > 0) sb.Append('\n');
@@ -82,8 +79,6 @@ namespace DarkSpire
             bodyLabel.text = sb.ToString();
         }
 
-        // Appends "Label (value)" with a leading "+ " or "- " depending on sign,
-        // unless this is the first row (then no leading op).
         private void AppendLabelValue(string label, int value, bool isFirst)
         {
             if (!isFirst)

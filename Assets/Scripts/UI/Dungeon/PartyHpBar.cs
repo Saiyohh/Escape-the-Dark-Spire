@@ -31,7 +31,6 @@ namespace DarkSpire
                 label.text = $"{pm.characterData.characterName}\n{pm.currentHP}/{pm.characterData.maxHP}";
         }
 
-        // Build a runtime mini-bar widget under `parent`.
         public static PartyHpBar BuildRuntime(Transform parent)
         {
             var go = new GameObject("PartyHpBar");
@@ -48,7 +47,6 @@ namespace DarkSpire
             var bg = go.AddComponent<Image>();
             bg.color = new Color(0f, 0f, 0f, 0.55f);
 
-            // Portrait box on the left.
             var portraitGO = new GameObject("Portrait");
             portraitGO.transform.SetParent(go.transform, false);
             var prt = portraitGO.AddComponent<RectTransform>();
@@ -60,7 +58,6 @@ namespace DarkSpire
             var portrait = portraitGO.AddComponent<Image>();
             portrait.preserveAspect = true;
 
-            // HP bar background + fill.
             var hpBgGO = new GameObject("HPBg");
             hpBgGO.transform.SetParent(go.transform, false);
             var hpBgRT = hpBgGO.AddComponent<RectTransform>();
@@ -86,7 +83,6 @@ namespace DarkSpire
             hpFillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
             hpFillImg.fillAmount = 1f;
 
-            // SP bar (smaller, below HP).
             var spBgGO = new GameObject("SPBg");
             spBgGO.transform.SetParent(go.transform, false);
             var spBgRT = spBgGO.AddComponent<RectTransform>();
@@ -112,7 +108,6 @@ namespace DarkSpire
             spFillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
             spFillImg.fillAmount = 1f;
 
-            // Name + HP text on top of the HP bar area.
             var labelGO = new GameObject("Label");
             labelGO.transform.SetParent(go.transform, false);
             var labelRT = labelGO.AddComponent<RectTransform>();

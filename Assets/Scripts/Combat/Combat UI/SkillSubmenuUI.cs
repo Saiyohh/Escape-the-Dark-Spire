@@ -19,10 +19,6 @@ namespace DarkSpire
         [Tooltip("The panel root — toggled active on Open / Close. Defaults to this gameObject if null.")]
         [SerializeField] private GameObject panelRoot;
 
-        // Back button: a single shared BackButton lives on the Combat canvas
-        // (singleton). OpenFor claims it via Bind(this, Close); Close releases
-        // it via Unbind(this). No serialized reference needed.
-
         private readonly List<SkillCardUI> spawned = new();
         private Unit boundUnit;
         private Transform arrowOrigin;
@@ -30,24 +26,12 @@ namespace DarkSpire
         private void Awake()
         {
             if (panelRoot == null) panelRoot = gameObject;
-            // Info panel mirrors the submenu's open state — hidden any time
-            // the submenu isn't visible.
             if (infoPanel != null)
             {
                 infoPanel.ShowEmpty();
                 infoPanel.gameObject.SetActive(false);
             }
 
-            // Auto-hide the panel ONLY when panelRoot is a child GameObject.
-            // When panelRoot == gameObject (the script's own GO), calling
-            // SetActive(false) here creates a race: if the GameObject was
-            // authored inactive in the scene (or deactivated by another
-            // component's Awake), Awake hasn't run yet. The first OpenFor
-            // triggers SetActive(true) → Awake fires → Close → SetActive(false),
-            // overriding OpenFor's intent and the panel never appears.
-            // Initial closed state for self-rooted panels is the designer's
-            // responsibility (author the GameObject inactive) or the
-            // CombatUIBootstrap's (Start-time ResetAll, runs after all Awakes).
             if (panelRoot != gameObject)
                 panelRoot.SetActive(false);
         }
@@ -95,12 +79,10 @@ namespace DarkSpire
             boundUnit = unit;
             this.arrowOrigin = arrowOrigin;
 
-            // Clear old cards
             for (int i = spawned.Count - 1; i >= 0; i--)
                 if (spawned[i] != null) Destroy(spawned[i].gameObject);
             spawned.Clear();
 
-            // Spawn one button per equipped skill
             SkillData firstSkill = null;
             for (int i = 0; i < unit.equippedSkills.Count; i++)
             {
@@ -134,11 +116,8 @@ namespace DarkSpire
             bool wasOpen = panelRoot.activeSelf;
             panelRoot.SetActive(true);
 
-            // Claim the shared back button. Bind activates it and routes its
-            // click to our Close method. Released in Close() via Unbind.
             BackButton.Instance?.Bind(this, Close);
 
-            // Info panel becomes visible alongside the submenu and loads the
             if (infoPanel != null)
             {
                 infoPanel.gameObject.SetActive(true);
@@ -153,8 +132,6 @@ namespace DarkSpire
         {
             bool wasOpen = panelRoot != null && panelRoot.activeSelf;
             BackButton.Instance?.Unbind(this);
-            // Hide the info panel in lockstep — it should never appear while
-            // the submenu is closed.
             if (infoPanel != null)
             {
                 infoPanel.ShowEmpty();
@@ -183,18 +160,11 @@ namespace DarkSpire
         }
         private bool _warnedNoInfoPanel;
 
-        // ─── Internal ───────────────────────────────────────────────────────
-
         private void OnCardClicked(int skillIndex)
         {
             var mgr = CombatManager.Instance;
             if (mgr == null || boundUnit == null) return;
 
-            // Don't Close() yet — leave the submenu visible while the player
-            // is selecting targets. The submenu auto-closes when targeting
-            // cancels (HandleTargetingCancelled) or the skill resolves
-            // (HandleActionResolved). That keeps the info panel and card
-            // list on screen during the targeting phase as part of the cast.
             mgr.OnPlayerChooseSkill(skillIndex, arrowOrigin);
         }
 
@@ -202,7 +172,6 @@ namespace DarkSpire
         private void HandleTargetingCancelled(Unit u) => Close();
         private void HandleActionStateChanged(Unit u)
         {
-            // If this unit already used its action, the submenu is stale — close.
             if (u == boundUnit && u.hasActedThisTurn) Close();
         }
 

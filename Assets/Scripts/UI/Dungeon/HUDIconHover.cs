@@ -4,10 +4,6 @@ using UnityEngine.UI;
 
 namespace DarkSpire
 {
-    // RequireComponent(LayoutElement) auto-adds the component when HUDIconHover
-    // is added, and Reset() flips its `ignoreLayout` flag on. This way the
-    // hover pop scales/rotates freely without shoving neighboring HUD items
-    // around in a HorizontalLayoutGroup.
     [RequireComponent(typeof(RectTransform))]
     [RequireComponent(typeof(LayoutElement))]
     public class HUDIconHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
@@ -45,7 +41,6 @@ namespace DarkSpire
 
         private void OnEnable()
         {
-            // Snap to rest state in case OnDisable left us mid-animation.
             currentScaleMul = 1f;
             targetScaleMul = 1f;
             shakeT = -1f;
@@ -55,7 +50,6 @@ namespace DarkSpire
 
         private void OnDisable()
         {
-            // Restore rest pose so the icon doesn't get saved mid-pop.
             currentScaleMul = 1f;
             targetScaleMul = 1f;
             shakeT = -1f;
@@ -75,17 +69,12 @@ namespace DarkSpire
         public void OnPointerExit(PointerEventData eventData)
         {
             targetScaleMul = 1f;
-            // Let the shake finish its decay naturally — feels less abrupt
-            // than snapping rotation to 0 mid-wiggle.
         }
 
         private void Update()
         {
             float dt = Time.unscaledDeltaTime;
 
-            // Scale lerp — exponential ease toward targetScaleMul. Framerate
-            // independent: at any dt, we cover the same fraction of the gap
-            // per scaleLerpSeconds worth of time.
             if (scaleLerpSeconds > 0.0001f)
                 currentScaleMul = Mathf.Lerp(currentScaleMul, targetScaleMul,
                                              1f - Mathf.Exp(-dt / scaleLerpSeconds));
@@ -93,7 +82,6 @@ namespace DarkSpire
                 currentScaleMul = targetScaleMul;
             ApplyScale();
 
-            // Rotation shake.
             if (shakeT >= 0f)
             {
                 shakeT += dt;

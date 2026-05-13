@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Shared base for map-side entity components. Owns the SpriteRenderer
-    // ref handed in by EntitySpawner and registers/unregisters with the
-    // DungeonRegistry. Subclasses implement IInteractable / IWalkOver /
-    // IBlocker as needed and call SwapSprite or Tint to express state.
     public abstract class MapEntityBase : MonoBehaviour, IDungeonEntity
     {
         public Vector2Int GridPos { get; protected set; }
@@ -13,9 +9,6 @@ namespace DarkSpire
         protected SpriteRenderer sr;
         protected EntityPlacement placement;
 
-        // Backing field for the explicit library handed in at Initialize().
-        // Subclasses should access via the `library` property below so the
-        // singleton fallback applies if no explicit ref was passed.
         private MapEntitySpriteLibrary _library;
         protected MapEntitySpriteLibrary library =>
             MapEntitySpriteLibrary.ResolveOrSingleton(_library);

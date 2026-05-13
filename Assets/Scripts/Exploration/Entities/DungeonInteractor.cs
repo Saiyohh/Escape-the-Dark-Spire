@@ -3,10 +3,6 @@ using UnityEngine.InputSystem;
 
 namespace DarkSpire
 {
-    // E-key adjacency interaction. Checks the party's tile first (in case
-    // the party stands on an interactable like a shrine after walking onto
-    // it), then the four cardinal neighbours. First valid IInteractable
-    // wins; loop order is N -> S -> W -> E.
     public class DungeonInteractor : MonoBehaviour
     {
         [SerializeField] private PartyToken token;

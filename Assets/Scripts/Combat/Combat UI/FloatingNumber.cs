@@ -11,7 +11,6 @@ namespace DarkSpire
         private float elapsed;
         private bool initialized;
 
-        // Arc parameters (set by Setup)
         private Vector3 startScreenPos;
         private Vector3 apexScreenPos;
         private float footScreenY;
@@ -22,7 +21,6 @@ namespace DarkSpire
         private float maxScale;
         private float totalDuration;
 
-        // Wobble (height-scaled horizontal sway)
         private float wobbleAmplitude;
         private float wobbleFrequency;
         private float wobblePhase;
@@ -77,7 +75,6 @@ namespace DarkSpire
             }
             else if (elapsed <= riseTime + fallTime)
             {
-                // shrinking maxScale → minScale and fading 1 → 0.4.
                 float t = (elapsed - riseTime) / fallTime;
                 float eased = t * t;
 
@@ -90,7 +87,6 @@ namespace DarkSpire
             }
             else
             {
-                // minScale and fading to 0.
                 float t = (elapsed - riseTime - fallTime) / falloffTime;
                 Vector3 pos = new Vector3(apexScreenPos.x, footScreenY - t * 200f, 0f);
                 transform.position = pos;
@@ -100,10 +96,6 @@ namespace DarkSpire
                     canvasGroup.alpha = Mathf.Lerp(0.4f, 0f, t);
             }
 
-            // Height-scaled wobble: Z-axis rotation that rocks left-right like
-            // a knob, amplitude proportional to how far above the foot the
-            // popup currently sits. Zero at foot, max near apex, decays on
-            // the fall.
             if (wobbleAmplitude > 0f && wobbleFrequency > 0f)
             {
                 float apexHeight = Mathf.Max(1f, apexScreenPos.y - footScreenY);

@@ -47,7 +47,6 @@ namespace DarkSpire
                  "assigned material doesn't use it.")]
         public bool autoAssignMaterial = true;
 
-        // Shader property IDs (cached once)
         private static readonly int IdOutlineColor = Shader.PropertyToID("_OutlineColor");
         private static readonly int IdOutlineWidth = Shader.PropertyToID("_OutlineWidth");
         private static readonly int IdOutlineSoftness = Shader.PropertyToID("_OutlineSoftness");
@@ -70,7 +69,6 @@ namespace DarkSpire
         {
             if (self != null && block != null)
             {
-                // Zero out the outline so disabling the component visibly removes it
                 block.SetFloat(IdOutlineWidth, 0f);
                 self.SetPropertyBlock(block);
             }
@@ -154,8 +152,6 @@ namespace DarkSpire
             var mat = self.sharedMaterial;
             if (mat != null && mat.shader == shader) return;
 
-            // Auto-assign: use an asset material if one exists, otherwise create
-            // a transient material that lives in memory (not saved).
             var found = FindProjectMaterialUsingOutlineShader(shader);
             if (found != null)
             {

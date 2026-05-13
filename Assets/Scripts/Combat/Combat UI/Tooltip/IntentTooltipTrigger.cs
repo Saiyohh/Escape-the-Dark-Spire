@@ -10,7 +10,6 @@ namespace DarkSpire
     {
         private IntentIconUI iconUI;
 
-        // Reused per BuildContent call so we don't allocate every hover.
         private static readonly List<Unit> _targetScratch = new();
         private static readonly HashSet<Unit> _seen = new();
         private static readonly StringBuilder _bodyBuilder = new();
@@ -41,8 +40,6 @@ namespace DarkSpire
             return true;
         }
 
-        // ─── Header ─────────────────────────────────────────────────────────
-
         private static string ResolveMoveName(Unit source, EnemyIntent intent)
         {
             if (source != null && source.currentMove != null
@@ -67,8 +64,6 @@ namespace DarkSpire
             EnemyIntentType.Stunned => "Stunned",
             _                       => "Intent",
         };
-
-        // ─── Body ───────────────────────────────────────────────────────────
 
         private static string BuildBody(EnemyIntent intent, Unit source)
         {
@@ -108,7 +103,6 @@ namespace DarkSpire
         {
             ResolveTargets(intent, source, players: false, _targetScratch);
 
-            // Self-only → "themselves"
             if (_targetScratch.Count == 1 && _targetScratch[0] == source)
                 return "Intends to Buff themselves.";
 
@@ -117,8 +111,6 @@ namespace DarkSpire
                 return "Intends to Buff themselves.";
             return $"Intends to Buff {targetPart}.";
         }
-
-        // ─── Target resolution ──────────────────────────────────────────────
 
         private static void ResolveTargets(
             EnemyIntent intent, Unit source, bool players, List<Unit> output)
@@ -130,8 +122,6 @@ namespace DarkSpire
             var mgr = CombatManager.Instance;
             if (mgr == null) return;
 
-            // Lock-aware primary pick (same one DangerPreviewController and
-            // SkillResolver will use at resolve time).
             var primary = LockedPrimary(source, intent, mgr.PlayerUnits);
             var selected = new List<Unit>(1);
             if (primary != null) selected.Add(primary);
@@ -184,8 +174,6 @@ namespace DarkSpire
             return EnemyAI.SelectTargetForIntent(source, intent, players);
         }
 
-        // ─── Attack damage aggregation ──────────────────────────────────────
-
         private static int AggregateAttackDamage(EnemyIntent intent, Unit source)
         {
             if (intent.effects == null) return 0;
@@ -202,8 +190,6 @@ namespace DarkSpire
             }
             return total;
         }
-
-        // ─── Name formatting ────────────────────────────────────────────────
 
         private static string JoinNames(List<Unit> units, Unit source)
         {

@@ -2,11 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Scene entry point for DungeonFloor.unity. Resolves the floor source
-    // (RunContext snapshot > RunContext config > inspector fallback config),
-    // runs the generator, hands the result to FloorRenderer + EntitySpawner,
-    // spawns the party token at the Start tile, and wires camera follow +
-    // grid movement input. Phase 5+ adds fog, monster AI, interactable wiring.
     public class DungeonBootstrap : MonoBehaviour
     {
         [Header("Floor Source (used when RunContext is unset)")]
@@ -65,21 +60,12 @@ namespace DarkSpire
         public GeneratedFloorData ActiveFloor { get; private set; }
         public PartyToken PartyToken => partyToken;
 
-        // Tracked separately from RunContext so snapshot-driven runs (where
-        // RunContext.currentFloorConfig may be null) can still report the
-        // sight/detection radii used for this floor.
         private FloorGenerationConfigSO resolvedConfig;
 
         private void Start()
         {
-            // Run-tier UI host: pause menu, pickup toasts, future inventory etc.
-            // it; subsequent calls (e.g. from CombatBootstrap) return the existing
-            // instance. MainMenuController.Start tears it down on return-to-menu.
             MenuCanvasController.GetOrCreate();
 
-            // Run-scoped feedback widgets that the dungeon needs available.
-            // Each is a singleton with a runtime fallback Canvas, so this is
-            // safe whether or not the user has authored Resources prefabs.
             FlashMessageController.GetOrCreate();
             RestMenu.GetOrCreate();
 
@@ -89,11 +75,6 @@ namespace DarkSpire
             BindDungeonUI();
         }
 
-        // Scene-scoped HUD + Minimap. MUST be authored in DungeonFloor.unity.
-        // Bootstrap only finds them — it does not create them. Use the
-        // scaffolder menu items the first time:
-        //   Tools > DarkSpire > Scenes > Scaffold FloorHUD into open scene
-        //   Tools > DarkSpire > Scenes > Scaffold Minimap into open scene
         [Header("Dungeon UI (auto-found in scene)")]
         [SerializeField] private FloorHUD floorHUD;
         [SerializeField] private Minimap minimap;
@@ -120,8 +101,6 @@ namespace DarkSpire
 
         private void Update()
         {
-            // unscaledDeltaTime so the rest-menu pause (Time.timeScale = 0)
-            // doesn't stop the wall-clock run timer used by the Victory screen.
             RunContext.runTime += Time.unscaledDeltaTime;
         }
 
@@ -142,9 +121,6 @@ namespace DarkSpire
 
         private void EnsureRenderers()
         {
-            // Resolve sprite library: explicit override wins, otherwise pull
-            // the singleton. Bootstrap is the single place we resolve so
-            // every consumer downstream gets the same instance.
             var resolvedLibrary = MapEntitySpriteLibrary.ResolveOrSingleton(spriteLibrary);
 
             if (floorRenderer == null)
@@ -195,7 +171,6 @@ namespace DarkSpire
 
         private GeneratedFloorData ResolveFloor()
         {
-            //    so the layout and untouched entities stay identical.
             var holder = RunStateHolder.Instance;
             if (holder != null && holder.resumeMode && holder.savedFloor != null)
             {
@@ -239,11 +214,6 @@ namespace DarkSpire
             }
             partyToken.Bind(floor);
 
-            // Place AFTER fog binding so the initial OnPlaced reveals the
-            // start area. ConfigureFog runs in BuildFloor between SpawnParty
-            // and ConfigureCamera, but we need fog wired before Place fires.
-            // Solution: don't Place here — ConfigureFog calls Place itself.
-
             if (gridMovement == null)
             {
                 var go = new GameObject("GridMovement");
@@ -255,7 +225,6 @@ namespace DarkSpire
 
         private void ConfigureEncounterManager(GeneratedFloorData floor)
         {
-            // Encounter Manager
             if (encounterManager == null) encounterManager = EncounterManager.Instance;
             if (encounterManager == null)
             {
@@ -264,8 +233,6 @@ namespace DarkSpire
                 encounterManager = go.AddComponent<EncounterManager>();
             }
 
-            // Dungeon Manager (must exist before EM dispatches anything, since
-            // EM.Apply calls DungeonManager.ApplyAnnotations).
             if (dungeonManager == null) dungeonManager = DungeonManager.Instance;
             if (dungeonManager == null)
             {
@@ -276,10 +243,6 @@ namespace DarkSpire
 
             encounterManager.SetDungeonManager(dungeonManager);
 
-            // Only reset Sub-Manager state on a FRESH floor entry. On resume
-            // from combat we keep slot indices, seen pools and queue order so
-            // roadmap annotations (e.g. "1st and 3rd Standard fight drop key")
-            // survive the round-trip.
             bool isResume = RunStateHolder.Instance != null && RunStateHolder.Instance.resumeMode;
             if (!isResume)
             {
@@ -324,12 +287,8 @@ namespace DarkSpire
                 walkoverDispatcher = go.AddComponent<DungeonWalkoverDispatcher>();
             }
             walkoverDispatcher.Bind(partyToken, registry, floor);
-            // Hand the renderer ref so the dispatcher can destroy the campsite
-            // overlay after a rest is consumed.
             walkoverDispatcher.SetFloorRenderer(floorRenderer);
 
-            // Interactor needs walkoverDispatcher for tile-based interactions
-            // (rest tile at party's own position triggered via E).
             interactor.Bind(partyToken, registry, walkoverDispatcher);
         }
 
@@ -350,11 +309,9 @@ namespace DarkSpire
 
             if (partyToken != null)
             {
-                // Subscribe before placing so the initial reveal fires.
                 partyToken.OnPlaced += pos => fogOfWar.UpdateForPartyAt(pos);
                 partyToken.OnMoved  += (_, to) => fogOfWar.UpdateForPartyAt(to);
 
-                // Resume path: place where we left off and clear the resume flag.
                 var holder = RunStateHolder.Instance;
                 Vector2Int placeAt = floor.startPosition;
                 if (holder != null && holder.resumeMode)
@@ -385,8 +342,6 @@ namespace DarkSpire
                 cameraFollow.SetTarget(partyToken.transform);
                 cameraFollow.SetFloor(floor);
 
-                // Snap camera to the party on the first frame so we don't see
-                // a follow-lerp from the previous position.
                 var p = partyToken.transform.position;
                 var z = worldCamera.transform.position.z;
                 worldCamera.transform.position = new Vector3(p.x, p.y, z != 0f ? z : -10f);

@@ -22,20 +22,10 @@ namespace DarkSpire
 
         private void Start()
         {
-            // SYSTEM-tier UI: persistent across the entire game session,
-            // including main menu. Born here so its first scene-load triggers
-            // the cover/reveal pattern for every swap.
             SceneTransitionOverlay.GetOrCreate();
 
-            // RUN-tier UI: pause menu, pickup toasts, future inventory etc.
-            // are hosted by MenuCanvasController, which DungeonBootstrap
-            // spawns on entering a run. Tear down any leftover instance from
-            // a previous run so we re-enter the menu in a clean state.
-            // (Editor stop/start preserves DontDestroyOnLoad objects until
-            // domain reload, so this also catches replay-from-editor cases.)
             MenuCanvasController.DestroyIfPresent();
 
-            // Reset any leftover run state from a previous play session.
             RunStateHolder.Instance?.ClearForNewRun();
             RunContext.EndRun();
 

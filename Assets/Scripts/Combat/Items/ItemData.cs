@@ -6,9 +6,6 @@ namespace DarkSpire
     [CreateAssetMenu(fileName = "NewItem", menuName = "DarkSpire/Item")]
     public class ItemData : ScriptableObject
     {
-        // section layout (mirrors SkillData/SkillDataEditor).
-
-        // ── Identity ────────────────────────────────────────────────────────
         [Tooltip("Stable enum address for this item. Used by ItemInstance and " +
                  "GenerateItem effects to reference items at runtime. Must be " +
                  "unique across the project — duplicates produce a warning in " +
@@ -33,7 +30,6 @@ namespace DarkSpire
         [Range(-1f, 1f)] public float bannerFocalY = 0f;
         [Range(-1f, 1f)] public float bannerFocalX = 0f;
 
-        // ── Combat ──────────────────────────────────────────────────────────
         [Tooltip("Action / FreeAction / ZeroCost. ZeroCost bypasses both action " +
                  "and free-action gates — item is usable unlimited times per turn.")]
         public ItemActionCostType actionCostType = ItemActionCostType.Action;
@@ -53,7 +49,6 @@ namespace DarkSpire
                  "it uses.")]
         [Min(1)] public int targetPickCount = 1;
 
-        // ── Inventory ───────────────────────────────────────────────────────
         public ItemCategory category = ItemCategory.PartyInventory;
 
         [Tooltip("Persistent = stays until used (default). Transient/Passing/" +
@@ -75,7 +70,6 @@ namespace DarkSpire
                  "Leave null for PartyInventory and BrewedPotion items.")]
         public CharacterData ownerCharacter;
 
-        // ── Meta (design only) ──────────────────────────────────────────────
         [Tooltip("Free-text source description: Forge, Brew skills, dungeon " +
                  "chests, etc. Design metadata, no runtime use.")]
         public string generatedBy;
@@ -85,9 +79,6 @@ namespace DarkSpire
                  "balancing flags. Design metadata, no runtime use.")]
         public string notes;
 
-        // ─────────────────────────────────────────────────────────────────────
-        //  Art banner accessor — same pattern as SkillData.GetArtBanner
-        // ─────────────────────────────────────────────────────────────────────
         private static Sprite _defaultArtBannerCache;
         private static bool _defaultArtBannerLoaded;
 
@@ -103,15 +94,6 @@ namespace DarkSpire
             }
             return _defaultArtBannerCache;
         }
-
-        // ─────────────────────────────────────────────────────────────────────
-        //  Effect text auto-generation (mirrors SkillData.BuildDescription)
-        // ─────────────────────────────────────────────────────────────────────
-        //
-        // Walks the effects array and produces a GDD-keyword-consistent
-        // description. Same vocabulary as skills — items are mini-skills.
-        // The custom editor shows this as a preview with a "Copy to Effect
-        // Text" button.
 
         public string BuildEffectText()
         {

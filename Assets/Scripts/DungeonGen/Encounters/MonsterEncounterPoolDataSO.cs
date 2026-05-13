@@ -3,9 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Authored pool for Standard monster encounters. Priority pool plays in
-    // order (or randomized order if randomizePriorityOrder = true) for the
-    // randomized tail.
     [CreateAssetMenu(fileName = "MEP_NewFloor", menuName = "DarkSpire/Encounters/Monster Pool")]
     public class MonsterEncounterPoolDataSO : ScriptableObject, IEncounterPoolData
     {

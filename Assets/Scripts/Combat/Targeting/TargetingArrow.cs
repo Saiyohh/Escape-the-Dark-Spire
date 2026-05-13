@@ -75,7 +75,6 @@ namespace DarkSpire
         [Tooltip("Sort order for the overlay canvas (above all other canvases).")]
         [SerializeField] private int canvasSortOrder = 1000;
 
-        // Runtime
         private Canvas overlayCanvas;
         private RectTransform canvasRT;
         private Image[] segments;
@@ -87,10 +86,6 @@ namespace DarkSpire
         private Vector2 fromPosition; // world-space origin
         private Color currentColor;
         private bool isHighlighted;
-
-        // ═══════════════════════════════════════════════════
-        //  Lifecycle
-        // ═══════════════════════════════════════════════════
 
         private void Awake()
         {
@@ -112,8 +107,6 @@ namespace DarkSpire
             overlayCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
             overlayCanvas.sortingOrder = canvasSortOrder;
 
-            // CanvasScaler so segments scale with screen resolution
-            // instead of being rendered at raw pixel size (which makes them tiny on high-res displays)
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
@@ -189,16 +182,10 @@ namespace DarkSpire
             subscribed = false;
         }
 
-        // ═══════════════════════════════════════════════════
-        //  Event Handlers
-        // ═══════════════════════════════════════════════════
-
         private void HandleTargetingStateChanged(bool targeting)
         {
             if (targeting)
             {
-                // Use the override origin if the triggering action set one;
-                // otherwise fall back to the active unit's display position.
                 var ts = TargetingSystem.Instance;
                 if (ts != null && ts.ArrowOriginOverride != null)
                 {
@@ -230,19 +217,16 @@ namespace DarkSpire
 
             if (ts.IsValidTarget(unit))
             {
-                // Correct faction + in range → red/green with pulse
                 isHighlighted = true;
                 currentColor = unit.isPlayerControlled ? allyHighlightColor : enemyHighlightColor;
                 ApplyColor(currentColor);
             }
             else if (IsCorrectFactionForMode(unit, ts.CurrentMode, ts.Caster))
             {
-                // Correct faction, wrong distance → greyed, no pulse
                 isHighlighted = false;
                 currentColor = outOfRangeColor;
                 ApplyColor(currentColor);
             }
-            // else: wrong faction — leave arrow in default color
         }
 
         private static bool IsCorrectFactionForMode(Unit unit, TargetMode mode, Unit caster)
@@ -276,20 +260,14 @@ namespace DarkSpire
             ApplyColor(currentColor);
         }
 
-        // ═══════════════════════════════════════════════════
-        //  Frame Update
-        // ═══════════════════════════════════════════════════
-
         private void Update()
         {
             if (!isDrawing) return;
             if (Mouse.current == null || mainCamera == null) return;
 
-            // Track the origin in real-time if it's a UI element (screen-space)
             var ts = TargetingSystem.Instance;
             if (ts != null && ts.ArrowOriginOverride != null)
             {
-                // If the origin is a RectTransform (UI element), convert screen → world
                 var rt = ts.ArrowOriginOverride as RectTransform;
                 if (rt != null)
                 {
@@ -304,7 +282,6 @@ namespace DarkSpire
                 }
             }
 
-            // Convert mouse screen position to world position
             Vector2 mouseScreen = Mouse.current.position.ReadValue();
             Vector3 mouseWorld = mainCamera.ScreenToWorldPoint(
                 new Vector3(mouseScreen.x, mouseScreen.y, -mainCamera.transform.position.z));
@@ -312,7 +289,6 @@ namespace DarkSpire
 
             UpdateArrow(fromPosition, toPosition);
 
-            // Subtle pulse when highlighted (same pattern as EndTurnButtonUI glow)
             if (isHighlighted)
             {
                 float pulse = Mathf.Lerp(highlightPulseMin, 1f,
@@ -326,42 +302,30 @@ namespace DarkSpire
             }
         }
 
-        // ═══════════════════════════════════════════════════
-        //  Bezier Arrow Rendering
-        // ═══════════════════════════════════════════════════
-
         private void UpdateArrow(Vector2 from, Vector2 to)
         {
             Vector2 controlPoint = ComputeControlPoint(from, to);
 
-            // Live-apply size: sizeDelta × overallScale. This is cheap (20 writes)
-            // and lets the inspector fields work during Play mode without having
-            // to restart the scene.
             float basePx = segmentPixelSize * overallScale;
             Vector2 sizeDelta = new Vector2(basePx, basePx);
 
-            // Place each segment along the bezier curve (world space → screen space)
             for (int i = 0; i < segmentCount; i++)
             {
                 float t = (float)(i + 1) / (segmentCount + 1);
 
-                // Scale: grows from start to end (STS2 pattern: 0.28 → 0.42)
                 float scale = Mathf.Lerp(segmentScaleStart, segmentScaleEnd, t);
                 segmentRTs[i].sizeDelta = sizeDelta;
                 segmentRTs[i].localScale = Vector3.one * scale;
 
-                // Position along bezier (world → screen)
                 Vector2 pos = BezierCurve(from, to, controlPoint, t);
                 Vector3 screenPos = mainCamera.WorldToScreenPoint(
                     new Vector3(pos.x, pos.y, 0f));
                 segmentRTs[i].position = new Vector3(screenPos.x, screenPos.y, 0f);
 
-                // Rotation: face toward next bezier sample (tangent approximation)
                 float tNext = (float)(i + 2) / (segmentCount + 1);
                 tNext = Mathf.Min(tNext, 1f);
                 Vector2 nextPos = BezierCurve(from, to, controlPoint, tNext);
 
-                // Use screen-space direction for rotation
                 Vector3 nextScreen = mainCamera.WorldToScreenPoint(
                     new Vector3(nextPos.x, nextPos.y, 0f));
                 Vector2 dir = new Vector2(nextScreen.x - screenPos.x, nextScreen.y - screenPos.y);
@@ -372,7 +336,6 @@ namespace DarkSpire
                 }
             }
 
-            // Arrowhead: sits at the end of the curve, pointing along the tangent
             float tLast = (float)segmentCount / (segmentCount + 1);
             Vector2 lastSegPos = BezierCurve(from, to, controlPoint, tLast);
             Vector2 arrowDir = to - lastSegPos;
@@ -383,7 +346,6 @@ namespace DarkSpire
             arrowHeadRT.sizeDelta = sizeDelta;
             arrowHeadRT.localScale = Vector3.one * arrowHeadScale;
 
-            // Use screen-space direction for arrowhead rotation
             Vector3 lastSegScreen = mainCamera.WorldToScreenPoint(
                 new Vector3(lastSegPos.x, lastSegPos.y, 0f));
             Vector2 headDir = new Vector2(tipScreen.x - lastSegScreen.x, tipScreen.y - lastSegScreen.y);
@@ -398,11 +360,8 @@ namespace DarkSpire
         {
             Vector2 control;
 
-            // X: offset opposite the target direction (creates the curve bend)
-            // STS2: controlPoint.X = From.X - (ArrowHead.X - From.X) * 0.25
             control.x = from.x - (to.x - from.x) * bendAmount;
 
-            // Y: arch upward from the highest point, proportional to distance
             float maxY = Mathf.Max(from.y, to.y);
             float dist = Vector2.Distance(from, to);
             control.y = maxY + dist * archHeight;
@@ -415,10 +374,6 @@ namespace DarkSpire
             float u = 1f - t;
             return u * u * p0 + 2f * u * t * control + t * t * p1;
         }
-
-        // ═══════════════════════════════════════════════════
-        //  Show / Hide
-        // ═══════════════════════════════════════════════════
 
         private void Show()
         {

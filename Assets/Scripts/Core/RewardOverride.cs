@@ -2,8 +2,6 @@ using System;
 
 namespace DarkSpire
 {
-    // Applied by DungeonManager.ApplyAnnotations to a specific slot in a
-    // Sub-Manager's queue. Extend as new override kinds appear.
     [Serializable]
     public struct RewardOverride
     {

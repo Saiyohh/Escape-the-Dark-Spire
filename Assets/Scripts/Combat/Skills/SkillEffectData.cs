@@ -6,7 +6,6 @@ namespace DarkSpire
     [System.Serializable]
     public class SkillEffectData
     {
-        // ─── Core ────────────────────────────────────────────────────────────
         public SkillEffectType effectType;
 
         [Tooltip("For effectType=Apply: what is being applied — flat damage or a condition.")]
@@ -59,7 +58,6 @@ namespace DarkSpire
                  "a no-roll Apply to fire multiple times.")]
         [Min(1)] public int hitCount = 1;
 
-        // ─── Condition fields (Apply+Condition / Afflict / RemoveCondition) ─
         [Tooltip("Which condition to apply or remove. Resolved at runtime via " +
                  "ConditionLibrary.Instance.Get(conditionID) — the library is the " +
                  "single source of truth for condition SOs. Duration/stackType " +
@@ -80,18 +78,15 @@ namespace DarkSpire
                  "Unused when stackCountKind=Fixed. Minimum 1.")]
         [Min(1)] public int stackPer = 1;
 
-        // ─── Per-effect save override (Afflict DC, resisted movement, etc.) ─
         [Tooltip("0 = no per-effect save. >0 = force a target WIL save vs this DC " +
                  "before the effect applies. Used by Afflict effects and by Move " +
                  "effects with Pull/Knockback/Shuffle. Ignored when the parent skill's " +
                  "diceRule is already WilSave (skill-level save takes precedence).")]
         public int saveDC;
 
-        // ─── Movement (SkillEffectType.Move) ────────────────────────────────
         public MovementKind movementKind;
         [Min(1)] public int movementMagnitude = 1;
 
-        // ─── Orb (Defect) — PLACEHOLDER ─────────────────────────────────────
         public OrbType orbType = OrbType.Lightning;
         [Min(1)] public int orbCount = 1;
         [Tooltip("Self = Defect channels. TargetAlly = an ally channels (Ignition). " +
@@ -103,31 +98,25 @@ namespace DarkSpire
                  "twice, then consume once). Default 1 = standard Evoke.")]
         [Min(1)] public int evokeCount = 1;
 
-        // ─── Companion / Osty (Necrobinder) — PLACEHOLDER ───────────────────
         public CompanionTargetKind companionTarget = CompanionTargetKind.Osty;
         [Tooltip("BindCompanion: how many turns Osty stays bound to the target ally.")]
         [Min(1)] public int bindDuration = 1;
 
-        // ─── Item generation (Pouch) ────────────────────────────────────────
         public PouchItemType pouchItemType = PouchItemType.None;
         [Tooltip("Used when pouchItemType = Generic — references an ItemDataSO " +
                  "(to be added later; left null for now).")]
         public Object itemSO;
         [Min(1)] public int itemQuantity = 1;
 
-        // ─── Resources (Stars / Forge — Regent) — PLACEHOLDER ───────────────
         [Tooltip("How many Stars / Forge stacks to grant. Which one is determined " +
                  "by effectType (GainStars vs Forge).")]
         [Min(0)] public int resourceAmount = 1;
 
-        // ─── Skill manipulation (Seal) — PLACEHOLDER ────────────────────────
         public SealTargetKind sealTarget = SealTargetKind.SelfSkill;
         [Min(1)] public int sealDuration = 1;
 
-        // ─── Action economy (Haste/Renew) ───────────────────────────────────
         public ExtraActionKind extraActionKind = ExtraActionKind.Haste;
 
-        // ─── Triggered riders (Retaliate / OnAllyAttackRider) — PLACEHOLDER ──
         [Tooltip("How many turns the trigger persists. Flame Barrier is 1 " +
                  "(until start of next turn). Longer for sustained auras.")]
         [Min(1)] public int triggerDuration = 1;
@@ -135,11 +124,9 @@ namespace DarkSpire
         [Tooltip("Damage dealt by Retaliate when the trigger fires.")]
         [Min(0)] public int retaliateDamage = 0;
 
-        // ─── Scaling (kept for forward-compat) ──────────────────────────────
         [HideInInspector] public float scalingMultiplier = 1f;
         [HideInInspector] public SaveType saveType;   // reserved — Dark Spire is WIL-only
 
-        // ─── Category mapping (for inspector UI) ────────────────────────────
         public static SkillEffectCategory CategoryOf(SkillEffectType t) => t switch
         {
             SkillEffectType.Attack

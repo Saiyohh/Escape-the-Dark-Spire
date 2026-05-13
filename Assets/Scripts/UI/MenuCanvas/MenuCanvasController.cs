@@ -26,12 +26,8 @@ namespace DarkSpire
                  "panel was saved active and showed up immediately on scene load.")]
         [SerializeField] private bool forceClosedOnAwake = true;
 
-        // Public accessors — read-only so external code can Open/Close panels
-        // without being able to swap them out. Add more here as new panels land.
         public PauseMenuController PauseMenu => pauseMenu;
         public PickupNotificationManager Pickups => pickups;
-
-        // ─── Lifecycle ───────────────────────────────────────────────────
 
         private void Awake()
         {
@@ -43,17 +39,9 @@ namespace DarkSpire
             Instance = this;
             if (transform.parent == null) DontDestroyOnLoad(gameObject);
 
-            // Auto-bind any panel children that weren't manually wired in
-            // the prefab. Lets the user drop a new panel under the Canvas
-            // without having to also slot it into the inspector.
             if (pauseMenu == null) pauseMenu = GetComponentInChildren<PauseMenuController>(true);
             if (pickups   == null) pickups   = GetComponentInChildren<PickupNotificationManager>(true);
 
-            // Force the pause panel closed at boot. The panel's own Awake might
-            // miss this if its GameObject was saved active — and a saved-active
-            // pause menu means the player sees it on scene load with no way to
-            // dismiss it (any Esc handler living on the panel itself would have
-            // already fired on press-but-not-yet-released, etc.).
             if (forceClosedOnAwake && pauseMenu != null)
                 pauseMenu.gameObject.SetActive(false);
         }
@@ -66,8 +54,6 @@ namespace DarkSpire
             if (kb == null) return;
             if (kb.escapeKey.wasPressedThisFrame) TogglePause();
         }
-
-        // ─── Public toggles ──────────────────────────────────────────────
 
         public void TogglePause()
         {
@@ -95,8 +81,6 @@ namespace DarkSpire
             if (Instance == this) Instance = null;
         }
 
-        // ─── Public lifecycle API ────────────────────────────────────────
-
         public static MenuCanvasController GetOrCreate()
         {
             if (Instance != null) return Instance;
@@ -111,7 +95,6 @@ namespace DarkSpire
                 return null;
             }
             var go = Instantiate(prefab);
-            // Strip the (Clone) suffix so the hierarchy reads cleanly.
             go.name = "MenuCanvas";
             return go.GetComponent<MenuCanvasController>();
         }

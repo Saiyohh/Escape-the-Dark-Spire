@@ -3,8 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // tile come in Step 5; extras (bonus chest/shrine/rest at dead ends) come
-    // in Step 5.5.
     internal static class PlaceEntities
     {
         public static void Apply(GenContext ctx)
@@ -20,7 +18,6 @@ namespace DarkSpire
 
                     case RoomKind.Key:
                         ctx.entities.Add(new EntityPlacement(room.Center, EntityKind.Key));
-                        // Key Room guardian — Standard monster patrolling the room.
                         ctx.monsters.Add(new MonsterSpawn(
                             MonsterTier.Standard,
                             room.Center,
@@ -28,7 +25,6 @@ namespace DarkSpire
                         break;
 
                     case RoomKind.Loot:
-                        // 1-2 chests in a Loot Room.
                         int chestCount = ctx.rng.NextRangeInclusive(1, 2);
                         var chestPositions = SpreadInRoom(room, chestCount, ctx.rng);
                         foreach (var p in chestPositions)
@@ -36,8 +32,6 @@ namespace DarkSpire
                         break;
 
                     case RoomKind.Rest:
-                        // Mark the center tile as a Rest tile in the grid itself
-                        // (per Exploration spec — rest tiles render via TileType, not entity).
                         ctx.tiles[room.Center.x, room.Center.y] = TileType.Rest;
                         break;
 
@@ -48,8 +42,6 @@ namespace DarkSpire
                     case RoomKind.Empty:
                     case RoomKind.Boss:
                     default:
-                        // Empty rooms get monster patrols added below; Boss room is
-                        // handled in Step 5 (gate + stairway + boss spawn).
                         break;
                 }
             }
@@ -60,7 +52,6 @@ namespace DarkSpire
             PlaceDeadEndLoot(ctx);
         }
 
-        // Boss spawn lives in the boss room; the gate + stairway tile come in Step 5.
         private static void PlaceBoss(GenContext ctx)
         {
             var bossRoom = ctx.FirstRoomOfKind(RoomKind.Boss);
@@ -77,17 +68,9 @@ namespace DarkSpire
             var corridorTiles = CollectCorridorTiles(ctx);
             if (corridorTiles.Count == 0) return;
 
-            // Spawn safety bubble: keep enemies far enough from the player's
-            // spawn that they can't immediately see/chase. Measured as path
-            // distance through walkable tiles, not Manhattan, so a monster on
-            // the other side of a wall right next to the start room still
-            // counts as far away.
             int safeSpawnDist = Mathf.Max(
                 8, Mathf.CeilToInt(ctx.config.enemyDetectionRadius) + 5);
 
-            // Min walkable-path distance between two corridor monsters. Path
-            // distance (not Manhattan) is what matters in 1-tile corridors —
-            // two monsters at Manhattan 4 in the same passage still cork it.
             const int MinMonsterPathDist = 6;
 
             int count = ctx.config.corridorMonsterCount;
@@ -108,11 +91,6 @@ namespace DarkSpire
                 if (TooCloseToOtherMonsterByPath(distField, placedStarts, MinMonsterPathDist))
                     continue;
 
-                // Don't seal off any room: simulate the dungeon with this
-                // monster + every previously placed corridor monster acting
-                // as walls, and require every room center to remain reachable
-                // from the start. Catches "two enemies completely block you
-                // off" without any geometric special-casing.
                 if (WouldBlockProgression(ctx, tile, placedStarts)) continue;
 
                 var route = BuildCorridorPatrol(ctx, tile, 5);
@@ -133,9 +111,6 @@ namespace DarkSpire
             return false;
         }
 
-        // BFS from start treating `candidate` and every already-placed corridor
-        // monster as a wall. Returns true if any room becomes unreachable —
-        // i.e. placing the candidate would block player progression.
         private static bool WouldBlockProgression(
             GenContext ctx, Vector2Int candidate, HashSet<Vector2Int> blockerStarts)
         {
@@ -170,7 +145,6 @@ namespace DarkSpire
             var corridorTiles = CollectCorridorTiles(ctx);
             if (corridorTiles.Count < 10) return;
 
-            // Pick a far-from-start tile so the Elite roams away from the spawn.
             Vector2Int best = corridorTiles[0];
             int bestDist = 0;
             foreach (var t in corridorTiles)
@@ -197,11 +171,8 @@ namespace DarkSpire
                     int gold = ctx.rng.NextRangeInclusive(5, 15);
                     ctx.entities.Add(new EntityPlacement(terminal, EntityKind.GoldPile, gold));
                 }
-                // remaining 20% → empty terminal.
             }
         }
-
-        // Helpers ------------------------------------------------------------
 
         private static readonly Vector2Int[] Dirs4 =
         {
@@ -224,7 +195,6 @@ namespace DarkSpire
             return list;
         }
 
-        // Walk along passable tiles from `start`, picking up to `length` waypoints.
         private static List<Vector2Int> BuildCorridorPatrol(GenContext ctx, Vector2Int start, int length)
         {
             var route = new List<Vector2Int> { start };
@@ -253,8 +223,6 @@ namespace DarkSpire
 
         private static List<Vector2Int> BuildRoomPatrol(RoomPlacement room)
         {
-            // Loop along the four corners (clockwise) of a Key Room interior so
-            // the guardian moves visibly within its room.
             var b = room.bounds;
             return new List<Vector2Int>
             {

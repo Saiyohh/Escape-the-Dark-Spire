@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Adjacency-interact (E key). Once opened: rolls a small gold reward
-    // and swaps to the chestOpen sprite (or a darker tint when no authored
-    // sprite is set). Slice ships gold-only; later phases add potions/keys.
     public class ChestEntity : MapEntityBase, IInteractable
     {
         public string PromptText => opened ? "" : "[E] Open chest";
@@ -15,7 +12,6 @@ namespace DarkSpire
         public override void Initialize(EntityPlacement placement, SpriteRenderer sr, MapEntitySpriteLibrary library)
         {
             base.Initialize(placement, sr, library);
-            // Resume: restore opened state if this chest was opened pre-combat.
             if (RunStateHolder.Instance != null && RunStateHolder.Instance.IsChestOpened(GridPos))
             {
                 opened = true;

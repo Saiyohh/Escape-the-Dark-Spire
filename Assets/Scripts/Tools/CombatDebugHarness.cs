@@ -22,7 +22,6 @@ namespace DarkSpire
 
         public enum Anchor { BottomRight, BottomLeft, TopRight, TopLeft }
 
-        // ───────── On-screen GUI ─────────
         private GUIStyle buttonStyle;
         private GUIStyle headerStyle;
 
@@ -129,8 +128,6 @@ namespace DarkSpire
                 && mgr.ActiveUnit != null
                 && mgr.ActiveUnit.isPlayerControlled;
         }
-
-        // ───────── Commands (shared by IMGUI + context menu) ─────────
 
         [ContextMenu("1. Attack enemy 0")]
         public void Attack0() => TargetingPick(

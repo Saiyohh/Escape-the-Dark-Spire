@@ -4,9 +4,6 @@ using Debug = UnityEngine.Debug;
 
 namespace DarkSpire
 {
-    // Top-level entry point for procedural floor generation. Pure function:
-    // (FloorGenerationConfigSO, seed) -> GeneratedFloorData. Synchronous;
-    // expected to finish in well under a second for grids up to 45x45.
     public static class DungeonGenerator
     {
         public static GeneratedFloorData Generate(FloorGenerationConfigSO config, int seed)
@@ -38,13 +35,6 @@ namespace DarkSpire
 
                 if (ValidateFloor.Apply(ctx))
                 {
-                    // Final cosmetic pass: walls that aren't adjacent to any
-                    // walkable tile are visually "outside" the playable shape.
-                    // Demote them to TileType.Empty so they render with the
-                    // empty-tile sprite (void) instead of the bordering-wall
-                    // sprite. Behavior identical (impassable, blocks LoS) —
-                    // pure visual distinction. Runs AFTER ValidateFloor so
-                    // reachability checks above only saw Walls.
                     DemoteIsolatedWallsToEmpty(ctx);
 
                     sw.Stop();
@@ -63,9 +53,6 @@ namespace DarkSpire
             int w = ctx.config.gridSize.x;
             int h = ctx.config.gridSize.y;
 
-            // Walk the grid; collect demotions in a buffer so we don't re-read
-            // a tile we just changed (each cell's neighbors are read from the
-            // ORIGINAL grid).
             var toDemote = new System.Collections.Generic.List<Vector2Int>(64);
 
             for (int x = 0; x < w; x++)
@@ -103,7 +90,6 @@ namespace DarkSpire
         private static GeneratedFloorData BuildResult(
             GenContext ctx, int seed, int attempts, double elapsedMs)
         {
-            // Fill stats counters that depend on the final tile grid.
             int total = ctx.config.gridSize.x * ctx.config.gridSize.y;
             int floor = 0;
             for (int x = 0; x < ctx.config.gridSize.x; x++)
@@ -116,7 +102,6 @@ namespace DarkSpire
             ctx.stats.regenerationAttempts = attempts;
             ctx.stats.generationTimeMs = (float)elapsedMs;
 
-            // Critical path length: BFS from Start to Boss Gate.
             var path = GridBfs.FindPath(
                 ctx.tiles, ctx.startPos, ctx.bossGatePos,
                 t => t.IsWalkable());

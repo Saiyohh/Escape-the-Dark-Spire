@@ -5,10 +5,6 @@ namespace DarkSpire
     [AddComponentMenu("DarkSpire/Tooltip/Orb Tooltip Trigger")]
     public class OrbTooltipTrigger : WorldTooltipTrigger
     {
-        // Cached reference; auto-resolved on Awake. Not serialized — the
-        // OrbSlotView always lives on the same GameObject as this trigger
-        // (both go on the slot prefab root), so there's no use case for
-        // an inspector override.
         private OrbSlotView orbSlot;
 
         protected override void Awake()

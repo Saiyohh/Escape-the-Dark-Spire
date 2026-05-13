@@ -28,8 +28,6 @@ namespace DarkSpire
 
         private void Awake()
         {
-            // Snap hidden so the prefab can be authored visible for layout checks
-            // without leaking through at runtime.
             if (bgGroup != null)
             {
                 bgGroup.alpha = 0f;
@@ -64,8 +62,6 @@ namespace DarkSpire
             Mathf.Max(0f, textFadeDuration) +
             Mathf.Max(0f, holdDuration) +
             Mathf.Max(0f, fadeOutDuration);
-
-        // ── Internals ───────────────────────────────────────────────────────
 
         private static IEnumerator Fade(CanvasGroup cg, float to, float duration)
         {

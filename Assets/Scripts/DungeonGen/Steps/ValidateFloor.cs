@@ -3,8 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // playable; false signals the top-level driver to discard this attempt
-    // and regenerate with a different seed offset.
     internal static class ValidateFloor
     {
         private static readonly Vector2Int[] Dirs4 =
@@ -15,11 +13,9 @@ namespace DarkSpire
 
         public static bool Apply(GenContext ctx)
         {
-            // Reachability from Start over all non-wall tiles.
             var reachable = GridBfs.Reachable(
                 ctx.tiles, ctx.startPos, t => t.IsWalkable());
 
-            // Every room center (Key/Rest/Shrine/Boss/Loot) must be reachable.
             foreach (var room in ctx.rooms)
             {
                 if (!reachable.Contains(room.Center))
@@ -29,7 +25,6 @@ namespace DarkSpire
                 }
             }
 
-            // Boss Gate must exist and be reachable.
             if (ctx.bossGatePos == default)
             {
                 Debug.LogWarning("[Validate] Boss Gate was not placed");
@@ -41,7 +36,6 @@ namespace DarkSpire
                 return false;
             }
 
-            // Key count satisfied.
             int keys = 0;
             foreach (var e in ctx.entities) if (e.kind == EntityKind.Key) keys++;
             if (keys < ctx.config.keysRequired)
@@ -50,9 +44,6 @@ namespace DarkSpire
                 return false;
             }
 
-            // Boss room must have exactly one walkable corridor entrance —
-            // otherwise the gate isn't actually a chokepoint and players can
-            // walk into the boss room without keys.
             var bossRoom = ctx.FirstRoomOfKind(RoomKind.Boss);
             if (bossRoom.HasValue)
             {
@@ -62,10 +53,6 @@ namespace DarkSpire
                     return false;
                 }
 
-                // Every key must be reachable from start WITHOUT walking through
-                // the boss room interior. Otherwise the player would need to
-                // unlock the boss gate (which itself requires those keys) just
-                // to reach the keys — deadlock.
                 var preGateReach = ReachableExcludingRoom(ctx, ctx.startPos, bossRoom.Value.bounds);
                 foreach (var e in ctx.entities)
                 {
@@ -83,8 +70,6 @@ namespace DarkSpire
 
         private static int CountBossRoomEntrances(GenContext ctx, RoomPlacement bossRoom)
         {
-            // Count perimeter floor tiles that have a walkable neighbour
-            // outside the room. Each one is a corridor mouth.
             var b = bossRoom.bounds;
             int count = 0;
             for (int x = b.xMin; x < b.xMax; x++)

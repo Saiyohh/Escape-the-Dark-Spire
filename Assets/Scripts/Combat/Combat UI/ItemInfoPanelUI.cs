@@ -97,7 +97,6 @@ namespace DarkSpire
             if (chargesContainer != null) chargesContainer.SetActive(false);
         }
 
-        // ── Banner fit (mirrors SkillInfoPanelUI.ApplyBannerFit) ────────────
         private void ApplyBannerFit(Sprite sprite, float focalX, float focalY)
         {
             if (bannerImage == null || bannerMask == null || sprite == null) return;
@@ -119,7 +118,6 @@ namespace DarkSpire
             bannerRT.anchoredPosition = new Vector2(xOff, yOff);
         }
 
-        // ── Display helpers ─────────────────────────────────────────────────
         private static string ActionCostName(ItemActionCostType c) => c switch
         {
             ItemActionCostType.Action     => "Action",

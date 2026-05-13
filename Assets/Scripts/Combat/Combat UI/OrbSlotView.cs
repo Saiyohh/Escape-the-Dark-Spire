@@ -59,13 +59,8 @@ namespace DarkSpire
 
         private void Awake()
         {
-            // Cache the collider once. Field stays optional in the inspector
-            // so legacy prefabs without one still work (collider toggling
-            // becomes a no-op for them).
             if (hoverCollider == null) hoverCollider = GetComponent<Collider2D>();
         }
-
-        // ─── Public API used by OrbSlotsUI ────────────────────────────────────
 
         public void RenderFilled(
             OrbInstance orb,
@@ -75,13 +70,10 @@ namespace DarkSpire
             BoundOrb = orb;
             ApplyVisuals(sprite, color);
 
-            // Passive: always show when value > 0 (per GDD's "minimum display value of 1").
             SetLabel(passiveLabel, passiveContainer, passiveValue, show: passiveValue > 0);
 
-            // Active: show only when caller says so AND value > 0.
             SetLabel(activeLabel, activeContainer, activeValue, show: showActive && activeValue > 0);
 
-            // Re-enable cursor hit-testing for the orb tooltip.
             if (hoverCollider != null) hoverCollider.enabled = true;
         }
 
@@ -92,14 +84,8 @@ namespace DarkSpire
             SetLabel(passiveLabel, passiveContainer, 0, show: false);
             SetLabel(activeLabel,  activeContainer,  0, show: false);
 
-            // Empty slot: drop hit-testing so the cursor passes through and
-            // OrbTooltipTrigger never fires for a no-orb hover. Combined with
-            // the BoundOrb == null guard in OrbTooltipTrigger.BuildContent,
-            // this is belt + suspenders.
             if (hoverCollider != null) hoverCollider.enabled = false;
         }
-
-        // ─── Helpers ──────────────────────────────────────────────────────────
 
         private void ApplyVisuals(Sprite sprite, Color color)
         {

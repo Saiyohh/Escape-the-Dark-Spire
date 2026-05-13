@@ -4,10 +4,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // The party's single map-token. Owns the grid position and the lerp
-    // animation between tiles. Movement is gated by the active floor's wall
-    // map and an "is currently lerping" flag — GridMovement asks via
-    // TryMove(dir) and respects the bool result.
     public class PartyToken : MonoBehaviour
     {
         [SerializeField] private float lerpDuration = 0.08f;
@@ -54,11 +50,6 @@ namespace DarkSpire
             if (floor == null) return false;
             if (dir == Vector2Int.zero) return false;
 
-            // Combat is loading (cover-up sliding, scene about to swap) —
-            // refuse further input so the player can't take another step
-            // before the swap completes. Without this, holding a direction
-            // would walk past the triggering monster's tile during the
-            // ~0.4s slide-up.
             if (SceneFlow.IsCombatLoadInFlight) return false;
 
             var target = GridPos + dir;
@@ -74,10 +65,8 @@ namespace DarkSpire
 
         private bool IsPassableForParty(Vector2Int p)
         {
-            // Wall + Empty (the void outside walls) both block movement.
             if (floor.tiles[p.x, p.y].IsImpassable()) return false;
 
-            // Locked Boss Gate (and any future IBlocker) refuses passage.
             var registry = DungeonRegistry.Instance;
             if (registry != null && registry.IsBlocked(p, out var reason))
             {
@@ -114,7 +103,6 @@ namespace DarkSpire
             if (sr == null) sr = gameObject.AddComponent<SpriteRenderer>();
             sr.sortingOrder = sortingOrder;
 
-            // Resolution order:
             Sprite resolved = spriteOverride;
             if (resolved == null)
             {
@@ -129,7 +117,6 @@ namespace DarkSpire
             }
             else
             {
-                // debug glyph. Authored sprite replaces both branches.
                 sr.color = new Color(0.85f, 0.95f, 1.0f, 1f);
                 if (sr.sprite == null)
                 {

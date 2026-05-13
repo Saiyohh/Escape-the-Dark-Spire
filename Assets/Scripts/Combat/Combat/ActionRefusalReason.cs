@@ -1,9 +1,5 @@
 namespace DarkSpire
 {
-    // Why a player action can't be taken right now. Surfaced via the
-    // SpeechBubble system when the player clicks an unaffordable action.
-    //
-    // None = the action is currently legal.
     public enum ActionRefusalReason
     {
         None,
@@ -16,8 +12,6 @@ namespace DarkSpire
 
     public static class ActionRefusalMessages
     {
-        // Generic fallback line. Used when the caster has no CharacterData,
-        // or when the character's per-reason line is blank.
         public static string For(ActionRefusalReason r)
         {
             switch (r)
@@ -31,10 +25,6 @@ namespace DarkSpire
             }
         }
 
-        // Character-aware overload. Returns the caster's per-reason line if
-        // authored (non-empty), otherwise the generic fallback. Callers in
-        // the combat UI use this so each character can speak in their own
-        // voice when refusing an action.
         public static string For(ActionRefusalReason r, Unit caster)
         {
             var cd = caster != null ? caster.characterData : null;

@@ -26,7 +26,6 @@ namespace DarkSpire
                  "don't bleed into a shared asset. Leave null to disable BW entirely.")]
         [SerializeField] private Material blackAndWhiteMaterial;
 
-        // Runtime clone — mutated per skill with that skill's channel weights.
         private Material runtimeBWMaterial;
 
         private static readonly int PropWR = Shader.PropertyToID("_WR");
@@ -76,9 +75,6 @@ namespace DarkSpire
                 bannerImage.enabled = banner != null;
                 ApplyBannerFit(banner, skill.bannerFocalX, skill.bannerFocalY);
 
-                // Material swap: apply the 6-channel B&W adjust when the skill
-                // opts in. Clone the source material once so per-skill weight
-                // changes don't stomp the shared asset, then update its floats.
                 if (skill.bannerGrayscale && blackAndWhiteMaterial != null)
                 {
                     if (runtimeBWMaterial == null)
@@ -112,7 +108,6 @@ namespace DarkSpire
             if (spLabel != null)
                 spLabel.text = skill.spCost.ToString();
 
-            // Stars cost — only shown for skills that actually cost stars.
             bool showStars = skill.starCost > 0;
             if (starCostLabel != null)
             {
@@ -123,9 +118,6 @@ namespace DarkSpire
 
             if (descriptionLabel != null)
             {
-                // Bind the structured-token description through DescriptionRenderer.
-                // Auto-attach if the prefab wasn't already authored with one — keeps
-                // existing prefab assets working without a re-save.
                 var renderer = descriptionLabel.GetComponent<DescriptionRenderer>();
                 if (renderer == null)
                     renderer = descriptionLabel.gameObject.AddComponent<DescriptionRenderer>();
@@ -143,9 +135,6 @@ namespace DarkSpire
             float imageW = bannerRT.rect.width;
             float imageH = bannerRT.rect.height;
 
-            // Per-axis focal offset based on overflow. Negative sign on the
-            // focal so +1 exposes the top/right edge of the sprite (image
-            // scrolls down/left to reveal the corresponding side).
             float overflowX = imageW - maskW;
             float overflowY = imageH - maskH;
             float xOff = overflowX > 0f
@@ -168,9 +157,6 @@ namespace DarkSpire
             if (emptyState != null)   emptyState.SetActive(true);
             if (contentRoot != null)  contentRoot.SetActive(false);
 
-            // Belt + suspenders: clear every field even when emptyState /
-            // contentRoot slots aren't wired, so a fresh panel reads as
-            // 'no skill selected' instead of stale authored placeholder text.
             if (bannerImage != null)
             {
                 bannerImage.sprite = null;

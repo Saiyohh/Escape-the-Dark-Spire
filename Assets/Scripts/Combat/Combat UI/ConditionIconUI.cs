@@ -41,8 +41,6 @@ namespace DarkSpire
                 iconImage.sprite = data.icon;
                 iconImage.enabled = data.icon != null;
 
-                // Apply the BlackAndWhite material when the condition opts in.
-                // Clone once so each icon instance has its own per-hue weights.
                 if (data.iconGrayscale && blackAndWhiteMaterial != null)
                 {
                     if (runtimeBWMaterial == null)
@@ -62,20 +60,12 @@ namespace DarkSpire
                     iconImage.material = null;
                 }
             }
-            // backgroundImage color is intentionally NOT overwritten — the
-            // prefab's authored color is the source of truth. If you want
-            // buff/debuff tinting from the library, drop an ApplyLibraryColor
-            // component on the background Image (or split prefabs by isDebuff).
         }
 
         public void SetStacks(int stacks)
         {
             this.stacks = stacks;
             if (stackText == null) return;
-            // Show the bare count whenever the condition is active. Bare number
-            // (no "×" prefix) matches standard card-game convention and reads
-            // unambiguously — players just see "3" overlaid on the Guard icon.
-            // Hidden only when stacks drop to 0 (about to be removed).
             stackText.text = stacks >= 1 ? stacks.ToString() : "";
         }
 

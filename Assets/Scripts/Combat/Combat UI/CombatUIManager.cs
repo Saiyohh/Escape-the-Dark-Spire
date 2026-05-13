@@ -46,10 +46,6 @@ namespace DarkSpire
             if (turnIndicatorPrefab != null
                 && GetComponentInChildren<TurnIndicator>(includeInactive: true) == null)
             {
-                // Parent under CombatUI itself — that becomes the indicator's
-                // "stable root" between turns. The TurnIndicator script
-                // re-parents itself under the active unit's display on
-                // OnUnitTurnStart and back here on OnUnitTurnEnd.
                 Instantiate(turnIndicatorPrefab, transform);
             }
         }
@@ -62,9 +58,6 @@ namespace DarkSpire
         public void Initialize(int startingGold, int currentFloor,
             List<Unit> playerUnits, List<Unit> enemyUnits)
         {
-            // ActionButtonsUI and SkillSubmenuUI self-subscribe to CombatEvents
-            // in their OnEnable, so nothing to wire here. Room reserved for
-            // dice roll UI, phase banner, turn order, combat log — Batch 2.
         }
     }
 }

@@ -4,14 +4,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // 4-neighbour BFS on a TileType grid. Shared by:
-    //  - Generator validation (reachability from Start)
-    //  - Map monster Chase pathfinding
-    //  - Floor Generator Window critical-path overlay
-    //
-    // Caller supplies a passability predicate so different consumers can treat
-    // tiles differently (e.g. monsters can't path through Stairway, but the
-    // generator's reachability check can).
     public static class GridBfs
     {
         private static readonly Vector2Int[] Dirs =
@@ -50,8 +42,6 @@ namespace DarkSpire
             return visited;
         }
 
-        // Returns the shortest path from start to goal inclusive, or null if
-        // unreachable. Caller's predicate decides passability.
         public static List<Vector2Int> FindPath(
             TileType[,] grid, Vector2Int start, Vector2Int goal, Predicate<TileType> isPassable)
         {
@@ -81,7 +71,6 @@ namespace DarkSpire
             return null;
         }
 
-        // Distance map: -1 for unreachable, else step count from start.
         public static int[,] DistanceField(
             TileType[,] grid, Vector2Int start, Predicate<TileType> isPassable)
         {

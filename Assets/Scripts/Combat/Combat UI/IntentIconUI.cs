@@ -154,11 +154,6 @@ namespace DarkSpire
             iconImage.enabled = s != null;
         }
 
-        // ─── Hover → DangerPreviewController ────────────────────────────────
-        // Drives the red/purple "in danger" auras over players this intent
-        // would target. Per-intent precision: hover each intent icon
-        // independently to preview that intent alone.
-
         public void OnPointerEnter(PointerEventData _)
         {
             if (intent == null || source == null || !source.IsAlive) return;

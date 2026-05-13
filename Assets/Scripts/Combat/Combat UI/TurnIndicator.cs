@@ -44,26 +44,20 @@ namespace DarkSpire
                  "new turn starts. 0 = pop instantly.")]
         [SerializeField] private float fadeInDuration = 0.15f;
 
-        // ── Runtime state ─────────────────────────────────────────────────────
         private Transform stableRoot;
         private Unit boundUnit;
         private float fadeT;
-
-        // ─── Lifecycle ───────────────────────────────────────────────────────
 
         private void Awake()
         {
             stableRoot = transform.parent;
 
-            // Drop any stale WorldFollow component left on older prefabs.
             var stale = GetComponent<WorldFollow>();
             if (stale != null) Destroy(stale);
 
             EnsureRenderer();
             ApplySortingToRenderer();
 
-            // Subscribe in Awake (not OnEnable) so the disabled-during-Awake
-            // GameObject doesn't drop the subscription.
             CombatEvents.OnUnitTurnStart += HandleUnitTurnStart;
             CombatEvents.OnUnitTurnEnd   += HandleUnitTurnEnd;
 
@@ -84,7 +78,6 @@ namespace DarkSpire
 
             if (indicatorRenderer == null)
             {
-                // Runtime fallback so the aura is visible even before art lands.
                 var tex = new Texture2D(1, 1, TextureFormat.RGBA32, mipChain: false);
                 tex.filterMode = FilterMode.Point;
                 tex.SetPixel(0, 0, Color.white);
@@ -109,18 +102,12 @@ namespace DarkSpire
             indicatorRenderer.sortingOrder = sortingOrder;
         }
 
-        // ─── Turn events ─────────────────────────────────────────────────────
-
         private void HandleUnitTurnStart(Unit unit)
         {
             if (unit == null || !unit.IsAlive) return;
             var display = UnitDisplay.GetDisplay(unit);
             if (display == null) return;
 
-            // Reparent so the aura rides along with rank shifts and any
-            // unit-display motion (lunge, knockback). The unit's pivot is
-            // bottom-center, so localPosition = pulseOffset places the
-            // aura at the feet by default.
             transform.SetParent(display.transform, worldPositionStays: false);
             transform.localPosition = pulseOffset;
             transform.localRotation = Quaternion.identity;
@@ -164,16 +151,11 @@ namespace DarkSpire
             UnbindUnit();
             if (stableRoot == null) return;
 
-            // Mirror the OrbSlotsUI fix — bail if the current parent is gone
-            // (scene unload, play-mode exit). Unity refuses SetParent during
-            // a parent's deactivation.
             var currentParent = transform.parent;
             if (currentParent == null || currentParent.gameObject == null) return;
 
             transform.SetParent(stableRoot, worldPositionStays: false);
         }
-
-        // ─── Alpha pulse ─────────────────────────────────────────────────────
 
         private void LateUpdate()
         {
@@ -182,7 +164,6 @@ namespace DarkSpire
             float wave = (Mathf.Sin(Time.time * pulseFrequency * Mathf.PI * 2f) + 1f) * 0.5f;
             float pulseAlpha = Mathf.Lerp(minAlpha, maxAlpha, wave);
 
-            // Fade-in scales the pulse alpha up from 0 over fadeInDuration.
             float effective = pulseAlpha;
             if (fadeT < 1f && fadeInDuration > 0f)
             {

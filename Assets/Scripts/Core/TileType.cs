@@ -2,11 +2,9 @@ namespace DarkSpire
 {
     public enum TileType
     {
-        // ── Impassable ──
         Wall = 0,    // Bordering wall sprite — sits next to walkable tiles, builds the silhouette of rooms/corridors.
         Empty = 5,   // The void OUTSIDE the walls — visually distinct from Wall but behaviorally identical (impassable, blocks LoS). Created at the end of generation by demoting any Wall tile that has no walkable neighbor.
 
-        // ── Walkable ──
         Floor = 1,
         Start = 2,
         Stairway = 3,

@@ -8,7 +8,6 @@ namespace DarkSpire
     {
         public const string AssetPath = "Assets/ScriptableObjects/ItemLibrary.asset";
 
-        // ── Singleton access ──────────────────────────────────────────────────
         private static ItemLibrary _instance;
         public static ItemLibrary Instance
         {
@@ -44,8 +43,6 @@ namespace DarkSpire
                 var item = items[i];
                 if (item == null) continue;
                 if (item.itemID == ItemID.None) continue;
-                // First-write wins — duplicate IDs across the project produce
-                // an editor-only warning surfaced by ItemDataEditor.
                 if (_lookup.ContainsKey(item.itemID)) continue;
                 _lookup[item.itemID] = item;
             }

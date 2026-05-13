@@ -26,16 +26,9 @@ namespace DarkSpire
 
             PositionToHitboxTopRight();
 
-            // Keep registration so UnitDisplay still has a handle (used during
-            // teardown / future redesign of the enemy-intent preview).
             if (display != null) display.RegisterChanceBox(this);
 
-            // Visibility is icon-presence-driven (no SetActive) so OnEnable /
-            // OnDisable can stay tied to the GameObject's real lifecycle and
-            // keep our TargetingSystem subscription stable.
             ClearIcon();
-            // OnEnable may have run before TargetingSystem.Instance existed
-            // (race during scene boot). Retry now that Initialize is called.
             SubscribeTargeting();
         }
 
@@ -49,8 +42,6 @@ namespace DarkSpire
             UnsubscribeTargeting();
             lastHovered = null;
         }
-
-        // ─── Targeting subscription ─────────────────────────────────────────
 
         private bool subscribed;
 
@@ -103,8 +94,6 @@ namespace DarkSpire
 
         private void Hide() => ClearIcon();
 
-        // ─── Build ───────────────────────────────────────────────────────────
-
         private void Rebuild()
         {
             ClearIcon();
@@ -137,12 +126,6 @@ namespace DarkSpire
                 spawnedIcon = ui;
             }
         }
-
-        // Hit-chance math lives in AttackChance.Hit so this preview and the
-        // intent-hover DangerPreviewController stay in lock-step with each
-        // other and with DiceRoller.AttackRoll.
-
-        // ─── Positioning ────────────────────────────────────────────────────
 
         private void PositionToHitboxTopRight()
         {

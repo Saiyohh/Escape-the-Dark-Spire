@@ -100,7 +100,6 @@ namespace DarkSpire
         [Tooltip("Time after HUDs finish fading before the first phase banner.")]
         [SerializeField] private float introBannerLeadIn = 0.10f;
 
-        // Runtime state
         public CombatPhase CurrentPhase { get; private set; }
         public int TurnNumber { get; private set; }
         public List<Unit> PlayerUnits { get; private set; } = new();
@@ -112,22 +111,13 @@ namespace DarkSpire
         private bool combatActive;
         private bool isResolving; // True while dice/damage animation is playing
 
-        // Pending action (waiting for targeting)
         private ActionType pendingAction;
         private SkillData pendingSkill;
-        // Item-action pendings — parallel to pendingSkill. Item, source, and
-        // index together identify which slot (party bag or owner pouch) was
-        // chosen so Inventory.Consume can decrement the correct list after
-        // the action resolves.
         private ItemData pendingItem;
         private ItemSource pendingItemSource;
         private int pendingItemIndex;
 
         public ActionType PendingAction => pendingAction;
-
-        // Condition lookup is owned by ConditionLibrary.Instance — CombatManager
-        // no longer caches an array. GetConditionData() below is a thin wrapper
-        // kept for call-site convenience.
 
         private void Awake()
         {
@@ -142,13 +132,6 @@ namespace DarkSpire
 
         public void InitializeCombat(CharacterData[] party, EncounterSO encounter)
         {
-            // Condition data is pulled live from ConditionLibrary.Instance.
-            // No per-combat lookup to build — the library is the single source
-            // of truth and is shared across every system.
-
-            // Create player units. Spawn order = rank order — party[0] is rank 1
-            // (front-most), party[3] is rank 4 (back). playerPositions[i] should
-            // be authored in the scene so P1 sits closest to the midline.
             PlayerUnits.Clear();
             for (int i = 0; i < party.Length && i < playerPositions.Length; i++)
             {
@@ -159,11 +142,6 @@ namespace DarkSpire
                 SpawnUnitDisplay(unit, playerPositions[i], false);
             }
 
-            // Create enemy units (same rank convention on the enemy side).
-            // Fixed roster spawns first (always-present mechanical anchors —
-            // bosses, scripted miniboss escorts, signature mooks). Then we
-            // top up with random picks from possibleEnemies, capped by the
-            // available enemy positions in the scene.
             EnemyUnits.Clear();
             int fixedCount = encounter.fixedEnemies != null ? encounter.fixedEnemies.Length : 0;
             int extraRoll = (encounter.possibleEnemies != null && encounter.possibleEnemies.Length > 0)
@@ -181,40 +159,25 @@ namespace DarkSpire
                 EnemyUnits.Add(unit);
                 SpawnUnitDisplay(unit, enemyPositions[i], true);
 
-                // Subscribe to death
                 int index = i;
                 unit.OnDeath += () => OnUnitDied(unit);
             }
 
-            // Subscribe player deaths
             foreach (var pu in PlayerUnits)
             {
                 var captured = pu;
                 pu.OnDeath += () => OnUnitDied(captured);
             }
 
-            // Setup targeting system
             if (TargetingSystem.Instance != null)
                 TargetingSystem.Instance.SetUnitLists(PlayerUnits, EnemyUnits);
 
-            // Seed enemies with their authored starting conditions BEFORE
-            // SetEnemyIntent runs (so move-pickers see the condition state) and
-            // before FireCombatStart — gives signature passives like Byrdonis's
-            // Territorial a chance to land before any combat-start triggers
-            // fire. Uses the standard ApplyCondition path so floaters / icons
-            // still spawn (the combat scene is fully booted by this point).
             foreach (var enemy in EnemyUnits)
                 ApplyStartingConditions(enemy);
 
-            // Clear the conditional-move event sets so the very first intent
-            // pick doesn't latch onto self-applied starting conditions —
-            // designers expect "OnConditionApplied" triggers to fire when a
-            // PLAYER lands the condition mid-combat, not when the enemy itself
-            // seeded with it on spawn.
             foreach (var enemy in EnemyUnits)
                 enemy.ClearConditionalMoveEventState();
 
-            // Set initial intents for enemies
             foreach (var enemy in EnemyUnits)
             {
                 SetEnemyIntent(enemy);
@@ -225,14 +188,9 @@ namespace DarkSpire
 
             CombatEvents.InvokeCombatStart();
 
-            // Fire OnCombatStart triggers on every unit (Stone Armor grants Plating,
-            // Plague Flask applies Poison, Ring of the Snake restores SP, etc.)
             foreach (var u in PlayerUnits) u.conditions.FireCombatStart();
             foreach (var u in EnemyUnits)  u.conditions.FireCombatStart();
 
-            // Orb-bearer combat-start hook: Cracked Core for the Defect channels
-            // its starting orb. Driven by CharacterData.startingOrb so any future
-            // orb-bearer character can opt in by populating that field.
             foreach (var u in PlayerUnits)
             {
                 if (u.characterData != null && u.characterData.hasOrbSystem
@@ -242,9 +200,6 @@ namespace DarkSpire
                 }
             }
 
-            // Star-bearer combat-start hook: Divine Right for the Regent grants
-            // the unit's CharacterData.startingStars on combat start. Stars are
-            // a per-combat resource — initialize fresh each fight.
             foreach (var u in PlayerUnits)
             {
                 if (u.characterData == null) continue;
@@ -258,7 +213,6 @@ namespace DarkSpire
 
         private void SpawnUnitDisplay(Unit unit, Transform position, bool isEnemy)
         {
-            // Use per-unit prefab from CharacterData/EnemyData, fall back to default
             GameObject prefab = null;
             if (unit.isPlayerControlled && unit.characterData != null)
                 prefab = unit.characterData.displayPrefab;
@@ -275,9 +229,6 @@ namespace DarkSpire
             if (display != null)
             {
                 display.Initialize(unit);
-                // Stage the display + its HUD off-screen / invisible for the
-                // intro sequence. RunCombatIntro slides everything in once
-                // the bars have started moving.
                 float offset = isEnemy ? introSlideOffsetX : -introSlideOffsetX;
                 display.PrepareForIntro(offset);
                 display.WorldHUD?.PrepareForIntro();
@@ -293,18 +244,12 @@ namespace DarkSpire
             {
                 TurnNumber++;
 
-                // ── ROUND START ────────────────────────────────────────────
-                // Clear RoundStart-timed conditions on every unit BEFORE any
-                // turn begins. This is what makes Shields given to an ally
-                // mid-round actually protect them — the clear fires here, not
-                // at the start of their individual turn.
                 FireOnAllUnits(c => c.ClearByTiming(ClearTiming.RoundStart));
                 FireOnAllUnits(c => c.FireRoundStart());
                 CombatEvents.InvokeRoundStart(TurnNumber);
 
                 CombatEvents.InvokeTurnStart(TurnNumber);
 
-                // ── PLAYER PHASE ───────────────────────────────────────────
                 CurrentPhase = CombatPhase.PlayerInitiativeRoll;
                 CombatEvents.InvokePhaseChanged(CurrentPhase);
                 RollInitiative(PlayerUnits);
@@ -322,7 +267,6 @@ namespace DarkSpire
                 FireOnAllUnits(c => c.FirePlayerPhaseEnd());
                 CombatEvents.InvokePlayerPhaseEnd();
 
-                // ── ENEMY PHASE ────────────────────────────────────────────
                 CurrentPhase = CombatPhase.EnemyInitiativeRoll;
                 CombatEvents.InvokePhaseChanged(CurrentPhase);
                 RollInitiative(EnemyUnits);
@@ -340,13 +284,11 @@ namespace DarkSpire
                 FireOnAllUnits(c => c.FireEnemyPhaseEnd());
                 CombatEvents.InvokeEnemyPhaseEnd();
 
-                // ── CLEANUP ────────────────────────────────────────────────
                 CurrentPhase = CombatPhase.CleanupPhase;
                 CombatEvents.InvokePhaseChanged(CurrentPhase);
                 yield return ExecuteCleanupPhase();
                 if (!combatActive) yield break;
 
-                // ── ROUND END ──────────────────────────────────────────────
                 FireOnAllUnits(c => c.ClearByTiming(ClearTiming.RoundEnd));
                 FireOnAllUnits(c => c.FireRoundEnd());
                 CombatEvents.InvokeRoundEnd(TurnNumber);
@@ -359,8 +301,6 @@ namespace DarkSpire
         {
             yield return new WaitForSeconds(introBarsLeadIn);
 
-            // delays by introRankStagger so the formation reads as a wave that
-            // converges toward the center together.
             int maxRank = 0;
             for (int i = 0; i < PlayerUnits.Count; i++)
             {
@@ -444,8 +384,6 @@ namespace DarkSpire
                 unit.ResetTurnState();
                 unit.conditions.ClearTurnStartConditions();
 
-                // Fire TurnStart triggers — Poison damage, Plating guard grant,
-                // and any custom TurnStart reactions run via their conditions.
                 unit.conditions.FireTurnStart();
                 if (!unit.IsAlive)
                 {
@@ -456,7 +394,6 @@ namespace DarkSpire
                     continue;
                 }
 
-                // Check stunned
                 if (unit.IsStunned)
                 {
                     CombatEvents.InvokeUnitTurnStart(unit);
@@ -468,12 +405,8 @@ namespace DarkSpire
 
                 CombatEvents.InvokeUnitTurnStart(unit);
 
-                // Defect orb start-of-turn sweep: orbs flagged
-                // passiveAtTurnStart (Plasma) fire their Passive before the
-                // player picks an action. Gated internally by hasOrbSystem.
                 OrbManager.OnTurnStart(unit);
 
-                // Wait for player input
                 waitingForPlayerInput = true;
                 yield return new WaitUntil(() => !waitingForPlayerInput);
 
@@ -485,11 +418,6 @@ namespace DarkSpire
 
             ActiveUnit = null;
 
-            // Defect orb end-of-phase sweep — phase-scoped (after every player
-            // has acted) rather than per-turn. Coroutine variant yields between
-            // orbs so the player can see each passive resolve. OrbManager
-            // internally gates on hasOrbSystem, so this is a no-op for any
-            // non-Defect player unit.
             foreach (var pu in PlayerUnits)
                 yield return StartCoroutine(OrbManager.OnPhaseEndCoroutine(pu, orbPassiveInterval));
         }
@@ -505,7 +433,6 @@ namespace DarkSpire
                 unit.ResetTurnState();
                 unit.conditions.ClearTurnStartConditions();
 
-                // Fire TurnStart triggers for the enemy (same as player phase)
                 unit.conditions.FireTurnStart();
                 if (!unit.IsAlive)
                 {
@@ -516,7 +443,6 @@ namespace DarkSpire
                     continue;
                 }
 
-                // Check stunned
                 if (unit.IsStunned)
                 {
                     CombatEvents.InvokeUnitTurnStart(unit);
@@ -529,22 +455,17 @@ namespace DarkSpire
 
                 CombatEvents.InvokeUnitTurnStart(unit);
 
-                // Play intent pulse animation to telegraph the enemy's action
                 var unitDisplay = UnitDisplay.GetDisplay(unit);
                 if (unitDisplay != null && unitDisplay.EnemyWorldHUD != null)
                     unitDisplay.EnemyWorldHUD.PlayIntentPulse();
 
-                // Wait so the player can see which enemy is acting and what it intends
                 yield return new WaitForSeconds(enemyPreActionDelay);
 
-                // Decide and execute the move (multi-intent).
                 var move = EnemyAI.DecideMove(unit);
                 UnitDisplay targetDisplay = null;
 
                 if (move != null && move.intents != null && move.intents.Length > 0)
                 {
-                    // Does this move attack any player? Used to decide whether
-                    // to muzzle player-side flash/death/UI updates upfront.
                     bool hasAttackIntent = false;
                     for (int ii = 0; ii < move.intents.Length; ii++)
                     {
@@ -556,10 +477,6 @@ namespace DarkSpire
                         }
                     }
 
-                    // Suppress flash / death / HP / condition UI on every
-                    // unit the move can touch so we can replay through the
-                    // ordered playback contract below. Suppress the attacker
-                    // too — crit-miss self-damage flashes here as well.
                     var suppressedDisplays = new List<UnitDisplay>();
                     if (hasAttackIntent)
                     {
@@ -585,9 +502,6 @@ namespace DarkSpire
                         enemyAttackerDisplay.SuppressConditionUI    = true;
                         suppressedDisplays.Add(enemyAttackerDisplay);
                     }
-                    // Self-targeting buff/debuff intents may apply conditions
-                    // to allies — preempt by suppressing every enemy display
-                    // too. Cheap; nothing else listens to these flags.
                     foreach (var eu in EnemyUnits)
                     {
                         var d = UnitDisplay.GetDisplay(eu);
@@ -603,8 +517,6 @@ namespace DarkSpire
 
                     var results = EnemyAI.ExecuteMove(unit, move, PlayerUnits, EnemyUnits);
 
-                    // Highlight: prefer the first non-self target, fall back
-                    // to the acting enemy if the move only self-targets.
                     Unit highlightTarget = null;
                     for (int ii = 0; ii < results.Count; ii++)
                     {
@@ -620,8 +532,6 @@ namespace DarkSpire
                     targetDisplay = UnitDisplay.GetDisplay(highlightTarget);
                     targetDisplay?.SetHighlighted(true);
 
-                    // Track lunged targets so multi-effect / multi-intent
-                    // moves don't lunge twice at the same player.
                     var lungedTargets = new HashSet<Unit>();
                     var deadThisMove = new HashSet<Unit>();
                     bool anyKilled = false;
@@ -632,7 +542,6 @@ namespace DarkSpire
                         if (r == null) continue;
                         if (r.target != null && deadThisMove.Contains(r.target)) continue;
 
-                        // Dice roll feedback (per Attack effect that rolled).
                         if (r.didRoll)
                         {
                             CombatEvents.InvokeDiceRolled(unit, r.rawD20Roll,
@@ -640,8 +549,6 @@ namespace DarkSpire
                             yield return new WaitForSeconds(diceRollWaitDuration);
                         }
 
-                        // the opposite side (skips Self/AllAllies effects
-                        // where target is the enemy or another enemy).
                         bool isOffensiveTarget = r.target != null
                                               && r.target.isPlayerControlled != unit.isPlayerControlled;
                         if (isOffensiveTarget && !lungedTargets.Contains(r.target))
@@ -660,16 +567,11 @@ namespace DarkSpire
                         var rDisplay = UnitDisplay.GetDisplay(r.target);
                         if (rDisplay != null)
                         {
-                            // Lift HP / flash on this target. Condition UI
-                            // stays suppressed until the condition step below
-                            // so the icon paints with its floater.
                             rDisplay.SuppressDamageFlash    = false;
                             rDisplay.SuppressDeathAnimation = false;
                             rDisplay.SuppressUIUpdates      = false;
                         }
 
-                        // Crit-miss self-damage flashes on the enemy after
-                        // the lunge. Lift the attacker's flash flag once,
                         if (enemyAttackerDisplay != null && enemyAttackerDisplay != rDisplay)
                         {
                             enemyAttackerDisplay.SuppressDamageFlash    = false;
@@ -679,7 +581,6 @@ namespace DarkSpire
                         if (r.wasCritMiss && enemyAttackerDisplay != null)
                             enemyAttackerDisplay.PlayDamageFlash();
 
-                        // 2 + 3 + 4. Damage flash → damage number → HP tween.
                         if (r.didHit && r.damageDealt > 0 && rDisplay != null)
                         {
                             rDisplay.PlayDamageFlash();
@@ -706,7 +607,6 @@ namespace DarkSpire
                             continue;
                         }
 
-                        // 6 + 7. Condition floaters + icon catch-up.
                         if (r.conditionsApplied != null && r.conditionsApplied.Count > 0
                             && r.target != null)
                         {
@@ -724,13 +624,9 @@ namespace DarkSpire
                             yield return new WaitForSeconds(effectStaggerDelay);
                     }
 
-                    // Hold once for the death sequence + rank compact when
-                    // any kill landed this move.
                     if (anyKilled)
                     {
                         yield return new WaitForSeconds(deathSequenceWait);
-                        // Compact whichever side took losses. We pick the
-                        // exotic enough we can revisit if it ever comes up.
                         foreach (var dead in deadThisMove)
                         {
                             if (dead != null)
@@ -741,9 +637,6 @@ namespace DarkSpire
                         }
                     }
 
-                    // Final sweep — clear any flag still up (e.g. on a
-                    // target that never reached the condition step, or on
-                    // an attacker that didn't enter the per-result loop).
                     foreach (var d in suppressedDisplays)
                     {
                         if (d == null) continue;
@@ -756,15 +649,10 @@ namespace DarkSpire
 
                 unit.hasActedThisTurn = true;
 
-                // Clear the conditional-move event tracking now that the
-                // enemy has acted — OnConditionApplied / OnConditionRemoved
-                // triggers fire once per gap between actions, not once per
-                // event in the gap.
                 unit.ClearConditionalMoveEventState();
 
                 yield return new WaitForSeconds(enemyActionDelay);
 
-                // Unhighlight target after the action + delay resolves
                 targetDisplay?.SetHighlighted(false);
 
                 unit.conditions.FireTurnEnd();
@@ -772,12 +660,10 @@ namespace DarkSpire
 
                 if (CheckCombatEnd()) yield break;
 
-                // Pause between enemies so the player can read the outcome
                 if (turnOrder.Count > 0)
                     yield return new WaitForSeconds(enemyTurnGap);
             }
 
-            // Set new intents for next turn
             foreach (var enemy in EnemyUnits)
             {
                 if (!enemy.IsAlive) continue;
@@ -845,11 +731,8 @@ namespace DarkSpire
             {
                 if (!unit.IsAlive) continue;
 
-                // Fire OnCleanup triggers (Regen heals here; future cleanup-timed
-                // conditions plug in the same way).
                 unit.conditions.FireCleanup();
 
-                // Tick duration-based conditions
                 unit.conditions.TickDurations();
             }
 
@@ -863,16 +746,11 @@ namespace DarkSpire
             if (!unit.isPlayerControlled)
                 CombatEvents.InvokeEnemyDeath(unit);
 
-            // End combat the moment the killing blow lands rather than waiting
-            // for the next turn boundary. Idempotent: subsequent CheckCombatEnd
-            // calls (from turn-end coroutines) early-return once combat is over.
             CheckCombatEnd();
         }
 
         private bool CheckCombatEnd()
         {
-            // Already-ended latch — keeps multiple call sites safe and lets
-            // running coroutines yield-break on their next CheckCombatEnd.
             if (!combatActive) return true;
 
             bool allEnemiesDead = !EnemyUnits.Any(e => e.IsAlive);
@@ -881,8 +759,6 @@ namespace DarkSpire
             if (allEnemiesDead)
             {
                 combatActive = false;
-                // Unblock any phase coroutine that's waiting on player input
-                // so it can yield-break cleanly instead of stalling.
                 waitingForPlayerInput = false;
                 CurrentPhase = CombatPhase.Victory;
                 CombatEvents.InvokePhaseChanged(CurrentPhase);
@@ -911,14 +787,11 @@ namespace DarkSpire
             foreach (var u in EnemyUnits)  u.conditions.FireCombatEnd();
         }
 
-        // --- Player Action Handlers (called by UI) ---
-
         public void OnPlayerChooseAttack(Transform arrowOrigin = null)
         {
             if (!waitingForPlayerInput || ActiveUnit == null || isResolving) return;
             if (ActiveUnit.hasActedThisTurn) return; // Attack costs an Action
 
-            // Cancel any active targeting from a previous action selection (hides arrow)
             if (TargetingSystem.Instance != null && TargetingSystem.Instance.IsTargeting)
                 TargetingSystem.Instance.CancelTargeting();
 
@@ -940,7 +813,6 @@ namespace DarkSpire
             if (!waitingForPlayerInput || ActiveUnit == null || isResolving) return;
             if (ActiveUnit.hasActedThisTurn) return; // Guard costs an Action
 
-            // Cancel any active targeting from a previous action selection (hides arrow)
             if (TargetingSystem.Instance != null && TargetingSystem.Instance.IsTargeting)
                 TargetingSystem.Instance.CancelTargeting();
 
@@ -961,11 +833,9 @@ namespace DarkSpire
             var skill = ActiveUnit.equippedSkills[skillIndex];
             if (!ActiveUnit.CanUseSkill(skill)) return;
 
-            // Cancel any active targeting from a previous action selection (hides arrow)
             if (TargetingSystem.Instance != null && TargetingSystem.Instance.IsTargeting)
                 TargetingSystem.Instance.CancelTargeting();
 
-            // Check if the required action type is still available
             bool costAvailable = skill.actionCostType == ActionCostType.FreeAction
                 ? ActiveUnit.HasFreeActionAvailable
                 : ActiveUnit.HasActionAvailable;
@@ -1002,7 +872,6 @@ namespace DarkSpire
 
             if (!ActiveUnit.CanUseItem(item)) return;
 
-            // Cancel any active targeting from a previous selection (hides arrow)
             if (TargetingSystem.Instance != null && TargetingSystem.Instance.IsTargeting)
                 TargetingSystem.Instance.CancelTargeting();
 
@@ -1025,7 +894,6 @@ namespace DarkSpire
         {
             if (!waitingForPlayerInput || ActiveUnit == null || isResolving) return;
 
-            // Cancel any active targeting (hides arrow)
             if (TargetingSystem.Instance != null && TargetingSystem.Instance.IsTargeting)
                 TargetingSystem.Instance.CancelTargeting();
 
@@ -1037,7 +905,6 @@ namespace DarkSpire
             if (!waitingForPlayerInput || ActiveUnit == null || isResolving) return;
             if (ActiveUnit.hasActedThisTurn) return;
 
-            // Cancel any active targeting
             if (TargetingSystem.Instance != null && TargetingSystem.Instance.IsTargeting)
                 TargetingSystem.Instance.CancelTargeting();
 
@@ -1048,7 +915,6 @@ namespace DarkSpire
                 ? RankHelper.Advance(GetLineup(ActiveUnit), ActiveUnit, 1)
                 : RankHelper.Withdraw(GetLineup(ActiveUnit), ActiveUnit, 1);
 
-            // Fire an ActionResolved so the log picks it up
             var result = new CombatActionResult
             {
                 source = ActiveUnit,
@@ -1115,7 +981,6 @@ namespace DarkSpire
         {
             isResolving = true;
 
-            // Highlight all targets with corner brackets (covers auto-target with 1 enemy)
             var highlightedDisplays = new List<UnitDisplay>();
             foreach (var t in targets)
             {
@@ -1130,23 +995,13 @@ namespace DarkSpire
             switch (pendingAction)
             {
                 case ActionType.Attack:
-                    // Suppress damage flash and death on BOTH the target and
-                    // the attacker so neither plays before dice + lunge.
-                    // Crit-miss self-damage on the attacker would otherwise
-                    // flash the player red before the animation runs.
                     var targetVictimDisplay = UnitDisplay.GetDisplay(targets[0]);
                     var attackerSelfDisplay = UnitDisplay.GetDisplay(ActiveUnit);
                     if (targetVictimDisplay != null)
                     {
                         targetVictimDisplay.SuppressDamageFlash = true;
                         targetVictimDisplay.SuppressDeathAnimation = true;
-                        // SuppressUIUpdates also defers HP / DEF / condition
-                        // refreshes on the world HUD so the bar doesn't move
-                        // before the lunge plays.
                         targetVictimDisplay.SuppressUIUpdates = true;
-                        // SuppressConditionUI muzzles the auto event-
-                        // driven popup for weapon on-hit conditions; replayed
-                        // after damage feedback below.
                         targetVictimDisplay.SuppressConditionUI = true;
                     }
                     if (attackerSelfDisplay != null)
@@ -1177,8 +1032,6 @@ namespace DarkSpire
                         }
                     }
 
-                    // paint with this hit. Condition UI stays suppressed
-                    // until the condition step below.
                     if (targetVictimDisplay != null)
                     {
                         targetVictimDisplay.SuppressDamageFlash    = false;
@@ -1190,8 +1043,6 @@ namespace DarkSpire
                         attackerSelfDisplay.SuppressDamageFlash    = false;
                         attackerSelfDisplay.SuppressDeathAnimation = false;
                         attackerSelfDisplay.SuppressUIUpdates      = false;
-                        // Caster condition UI lifts immediately (no per-effect
-                        // playback for caster-side UI in a basic attack).
                         attackerSelfDisplay.SuppressConditionUI    = false;
                         if (attackResult.wasCritMiss)
                             attackerSelfDisplay.PlayDamageFlash();
@@ -1216,13 +1067,7 @@ namespace DarkSpire
                     if (killedTarget)
                     {
                         targetVictimDisplay.PlayDeathAnimationImmediate();
-                        // Wait for the HUD fade + sprite drop to read before
-                        // continuing. CheckCombatEnd in the outer loop fires
-                        // after this yield, so combat-end (and the return
-                        // delay) only kick in after the death is on screen.
                         yield return new WaitForSeconds(deathSequenceWait);
-                        // Compact ranks: front-most rank stays at MinRank,
-                        // survivors slide forward to fill the gap.
                         if (targets[0] != null) RankHelper.CompactRanks(GetLineup(targets[0]));
                     }
                     else if (attackResult.conditionsApplied != null
@@ -1240,16 +1085,9 @@ namespace DarkSpire
                         }
                     }
 
-                    // Fallback unsuppress so the flag never stays stuck if
-                    // this attack didn't enter the condition-floater branch
-                    // (no on-hit condition, kill, etc.).
                     if (targetVictimDisplay != null)
                         targetVictimDisplay.SuppressConditionUI = false;
 
-                    // Orb-channel-on-attack (Defect's WPN_OrbBeam). Auto-picks
-                    // a random Tier 1 orb (Lightning or Frost, 50/50) and
-                    // channels it. Fires regardless of whether the weapon hit
-                    // landed — the orb engine must keep running.
                     if (ActiveUnit.equippedWeapon != null
                         && ActiveUnit.equippedWeapon.channelOrbOnAttack)
                     {
@@ -1267,13 +1105,6 @@ namespace DarkSpire
                 case ActionType.Skill:
                     if (pendingSkill != null)
                     {
-                        // Suppress damage flash and death on all targets AND
-                        // on the caster — crit-miss self-damage on the caster
-                        // would otherwise flash before the animation runs.
-                        // SuppressConditionUI muzzles the auto event-
-                        // driven condition popups that fire synchronously
-                        // inside SkillResolver; the per-result loop replays
-                        // them at the right beat.
                         var suppressedDisplays = new List<UnitDisplay>();
                         foreach (var t in targets)
                         {
@@ -1301,22 +1132,10 @@ namespace DarkSpire
                             ActiveUnit, pendingSkill, targets,
                             PlayerUnits, EnemyUnits, null);
 
-                        // Track targets we've already lunged toward so multi-effect
-                        // skills (e.g. "Deal 8 damage AND apply Vulnerable") don't
-                        // cause the attacker to lunge twice at the same target.
                         var lungedTargets = new HashSet<Unit>();
 
-                        // Track whether ANY target died during the skill so we
-                        // can hold for the death sequence + compact ranks once
-                        // at the end (a multi-kill skill shouldn't stack the
-                        // wait per-kill).
                         bool anyKilled = false;
 
-                        // Once a target dies mid-skill we skip any later
-                        // results that still address it. SkillResolver
-                        // already filters dead targets at resolve time, but
-                        // pre-built results from earlier effects can still
-                        // list them — short-circuit visually here.
                         var deadThisSkill = new HashSet<Unit>();
 
                         for (int i = 0; i < results.Count; i++)
@@ -1326,7 +1145,6 @@ namespace DarkSpire
                             if (r.target != null && deadThisSkill.Contains(r.target))
                                 continue;
 
-                            // Dice roll + wait (for skills that roll to hit)
                             if (r.didRoll)
                             {
                                 CombatEvents.InvokeDiceRolled(ActiveUnit, r.rawD20Roll,
@@ -1350,18 +1168,11 @@ namespace DarkSpire
                             var rDisplay = UnitDisplay.GetDisplay(r.target);
                             if (rDisplay != null)
                             {
-                                // Lift HP / flash suppression so the bar
-                                // tween + damage flash paint with this
-                                // result. Condition UI stays suppressed
-                                // until the condition step below — the icon
-                                // should appear with its floater, not with
-                                // the HP drop.
                                 rDisplay.SuppressDamageFlash    = false;
                                 rDisplay.SuppressDeathAnimation = false;
                                 rDisplay.SuppressUIUpdates      = false;
                             }
 
-                            // 2 + 3 + 4. Damage flash → damage number → HP tween.
                             if (r.didHit && r.damageDealt > 0 && rDisplay != null)
                             {
                                 rDisplay.PlayDamageFlash();
@@ -1388,11 +1199,6 @@ namespace DarkSpire
                                 continue;
                             }
 
-                            // 6 + 7. Condition floaters + icon catch-up.
-                            // Lifting SuppressConditionUI here fires
-                            // OnConditionUISuppressionLifted, which triggers
-                            // the HUD's RebuildConditions in the same beat
-                            // as the first condition floater spawn.
                             if (r.conditionsApplied != null && r.conditionsApplied.Count > 0)
                             {
                                 yield return new WaitForSeconds(preConditionDelay);
@@ -1409,10 +1215,6 @@ namespace DarkSpire
                                 yield return new WaitForSeconds(effectStaggerDelay);
                         }
 
-                        // If the skill killed at least one target, hold for the
-                        // death sequence (HUD fade + sprite drop) and compact
-                        // ranks before continuing. One wait covers all kills
-                        // from a multi-target skill — they drop simultaneously.
                         if (anyKilled)
                         {
                             yield return new WaitForSeconds(deathSequenceWait);
@@ -1420,12 +1222,6 @@ namespace DarkSpire
                                 RankHelper.CompactRanks(GetLineup(targets[0]));
                         }
 
-                        // Final sweep — any display still in the suppressed
-                        // set (most importantly the caster, which the per-
-                        // result loop above doesn't visit unless the skill
-                        // self-targets) gets cleared here. Lifting
-                        // SuppressUIUpdates triggers the world HUD's
-                        // catch-up refresh.
                         foreach (var d in suppressedDisplays)
                         {
                             if (d == null) continue;
@@ -1435,7 +1231,6 @@ namespace DarkSpire
                             d.SuppressConditionUI = false;
                         }
 
-                        // Consume the matching action type
                         if (pendingSkill.actionCostType == ActionCostType.FreeAction)
                             ActiveUnit.hasFreeActedThisTurn = true;
                         else
@@ -1446,10 +1241,6 @@ namespace DarkSpire
                 case ActionType.Item:
                     if (pendingItem != null)
                     {
-                        // Same display-suppression setup as the Skill case —
-                        // the item playback loop reuses the skill playback
-                        // structure (lunge/flash/floaters), so it needs the
-                        // same suppressed-display contract.
                         var suppressedDisplays = new List<UnitDisplay>();
                         foreach (var t in targets)
                         {
@@ -1561,7 +1352,6 @@ namespace DarkSpire
                                 RankHelper.CompactRanks(GetLineup(targets[0]));
                         }
 
-                        // Final suppression sweep — same as Skill case.
                         foreach (var d in suppressedDisplays)
                         {
                             if (d == null) continue;
@@ -1571,9 +1361,6 @@ namespace DarkSpire
                             d.SuppressConditionUI    = false;
                         }
 
-                        // Action-cost consumption — ZeroCost bypasses both
-                        // gates, FreeAction sets hasFreeActedThisTurn,
-                        // Action sets hasActedThisTurn.
                         switch (pendingItem.actionCostType)
                         {
                             case ItemActionCostType.Action:
@@ -1583,11 +1370,9 @@ namespace DarkSpire
                                 ActiveUnit.hasFreeActedThisTurn = true;
                                 break;
                             case ItemActionCostType.ZeroCost:
-                                // No turn-economy state change.
                                 break;
                         }
 
-                        // Consume one charge from the source slot.
                         if (pendingItem.consumedOnUse)
                         {
                             Inventory.Consume(ActiveUnit, pendingItemSource, pendingItemIndex);
@@ -1596,7 +1381,6 @@ namespace DarkSpire
                     break;
             }
 
-            // Unhighlight all targets after action resolves
             foreach (var display in highlightedDisplays)
                 display.SetHighlighted(false);
 
@@ -1604,12 +1388,10 @@ namespace DarkSpire
             pendingItem  = null;
             CombatEvents.InvokeActionStateChanged(ActiveUnit);
             isResolving = false;
-            // Turn does NOT end here — player must click End Turn
         }
 
         private void OnTargetingCancelled()
         {
-            // Was the player targeting from the skill or item submenu?
             bool wasSkill = pendingAction == ActionType.Skill;
             bool wasItem  = pendingAction == ActionType.Item;
             pendingSkill = null;
@@ -1617,21 +1399,14 @@ namespace DarkSpire
 
             if (wasSkill || wasItem)
             {
-                // Stay in the submenu — just repopulate to un-grey the selected card.
-                // The submenu's HandleTargetingEnded already clears the drawn card state.
-                // Reuses the SkillTargetingCancelled event for both — submenus
-                // listen to it to close themselves; ItemSubmenuUI subscribes to
-                // the same event.
                 CombatEvents.InvokeSkillTargetingCancelled(ActiveUnit);
             }
             else
             {
-                // Non-skill targeting (e.g. attack) — restore the ActionPanel
                 CombatEvents.InvokeActionStateChanged(ActiveUnit);
             }
         }
 
-        // --- Queries ---
         public List<Unit> GetAliveEnemies() => EnemyUnits.Where(e => e.IsAlive).ToList();
         public List<Unit> GetAlivePlayerUnits() => PlayerUnits.Where(p => p.IsAlive).ToList();
         public ConditionData GetConditionData(ConditionID id)
@@ -1640,10 +1415,6 @@ namespace DarkSpire
             return lib != null ? lib.Get(id) : null;
         }
 
-        // --- Editor Gizmos ---
-        // Visualizes the rank layout in the Scene view so designers can tell at
-        // a glance which Transforms correspond to rank 1 (front, touching the
-        // midline) vs rank 4 (back). Front-rank markers are drawn larger.
         private void OnDrawGizmos()
         {
             DrawRankGizmos(playerPositions, new Color(0.30f, 0.55f, 1.00f, 0.85f));
@@ -1658,7 +1429,6 @@ namespace DarkSpire
                 var t = positions[i];
                 if (t == null) continue;
                 Gizmos.color = color;
-                // Front rank (index 0) is the biggest; back rank the smallest.
                 float size = Mathf.Lerp(0.55f, 0.25f, (float)i / Mathf.Max(1, positions.Length - 1));
                 Gizmos.DrawWireCube(t.position, new Vector3(size, size * 2f, 0f));
                 Gizmos.DrawSphere(t.position + Vector3.up * 1.1f, 0.06f);

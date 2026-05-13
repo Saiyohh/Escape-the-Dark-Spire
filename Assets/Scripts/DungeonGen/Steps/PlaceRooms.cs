@@ -3,9 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // sampling with minimum spacing. Failure to place a room within the
-    // attempt budget aborts the attempt; the top-level driver retries with
-    // a fresh seed.
     internal static class PlaceRooms
     {
         public static bool Apply(GenContext ctx)
@@ -17,12 +14,10 @@ namespace DarkSpire
                 var size = PickRoomSize(kind, ctx.rng);
                 if (!TryPlace(ctx, kind, size))
                 {
-                    // Couldn't fit — abort this generation attempt.
                     return false;
                 }
             }
 
-            // Carve room interiors into the grid.
             foreach (var room in ctx.rooms)
                 StampRoom(ctx, room);
 
@@ -37,7 +32,6 @@ namespace DarkSpire
 
             var kinds = new List<RoomKind>(roomCount);
 
-            // Guaranteed slots first.
             kinds.Add(RoomKind.Start);
             kinds.Add(RoomKind.Boss);
             for (int i = 0; i < cfg.keyRoomCount; i++) kinds.Add(RoomKind.Key);
@@ -45,11 +39,7 @@ namespace DarkSpire
             for (int i = 0; i < cfg.shrineRoomCount; i++) kinds.Add(RoomKind.Shrine);
             kinds.Add(RoomKind.Loot);     // 1 guaranteed loot room
 
-            // Fill remainder with Empty.
             while (kinds.Count < roomCount) kinds.Add(RoomKind.Empty);
-
-            // If guaranteed slots already exceed roomCount, accept the overrun
-            // rather than dropping mandatory rooms.
 
             return kinds;
         }
@@ -72,8 +62,6 @@ namespace DarkSpire
         {
             var cfg = ctx.config;
             int spacing = cfg.minRoomSpacing;
-            // Keep rooms away from grid edges by at least 1 (so we have wall
-            // rings to carve corridors through).
             int xMax = cfg.gridSize.x - size.x - 1;
             int yMax = cfg.gridSize.y - size.y - 1;
             if (xMax < 1 || yMax < 1) return false;
@@ -94,8 +82,6 @@ namespace DarkSpire
 
         private static bool Overlaps(GenContext ctx, RectInt bounds, int spacing)
         {
-            // Inflate bounds by spacing on each side and check intersection
-            // against existing rooms' actual bounds.
             var inflated = new RectInt(
                 bounds.xMin - spacing,
                 bounds.yMin - spacing,

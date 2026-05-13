@@ -4,8 +4,6 @@ namespace DarkSpire
 {
     public static class DamageCalculator
     {
-        // Reusable context object so the OnDealDamage hot path doesn't allocate
-        // per hit. Single-threaded combat → fine to share one static instance.
         private static readonly OutgoingDamageContext sharedOutgoingCtx = new();
 
         public static int CalculateDamage(
@@ -47,9 +45,6 @@ namespace DarkSpire
 
             if (attacker != null && attacker.conditions != null)
             {
-                // Matches CND_Weak.asset's trigger: ModifyOutgoingDamagePercent(-0.25).
-                // Flat -25% when Weak is present, not per-stack compound. If you
-                // want compounding Weak, change both this and the trigger setup.
                 if (attacker.conditions.HasCondition(ConditionID.Weak))
                     damage = Mathf.FloorToInt(damage * 0.75f);
             }
@@ -74,7 +69,6 @@ namespace DarkSpire
             label = null;
             if (target == null || target.conditions == null) return false;
 
-            // Vulnerable: ×1.5 (mirrors CND_Vulnerable's OnTakeDamagePre trigger).
             if (target.conditions.HasCondition(ConditionID.Vulnerable))
             {
                 multiplier = 1.5f;

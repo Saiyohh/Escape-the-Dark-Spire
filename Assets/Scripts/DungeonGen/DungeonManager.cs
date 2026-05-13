@@ -3,11 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Persistent run-scoped service. Owns the active floor's roadmap
-    // annotations and applies them to every EncounterResult flowing through
-    // EncounterManager dispatch. Lives outside the EM so the knowledge
-    // boundary is enforced: only this class (and editor debug overlays)
-    // can Peek Sub-Manager queues. Gameplay code never calls Peek.
     public class DungeonManager : MonoBehaviour
     {
         public static DungeonManager Instance { get; private set; }
@@ -35,10 +30,6 @@ namespace DarkSpire
             activeAnnotations = annotations;
         }
 
-        // Called by EncounterManager.Apply for every Get*Encounter result.
-        // Walks the annotation list for a matching (type, slotIndex) pair and
-        // populates result.rewardOverride if found. Annotation lookup is
-        // linear; floors realistically have <20 annotations so this is fine.
         public EncounterResult ApplyAnnotations(EncounterResult result)
         {
             if (activeAnnotations?.annotations == null) return result;
@@ -61,8 +52,6 @@ namespace DarkSpire
             return result;
         }
 
-        // Debug-only access for the overlay. Returns the active annotations
-        // (may be null) and per-Sub-Manager queue inspection via the EM.
         public IReadOnlyList<RoadmapAnnotation> PeekRoadmap() =>
             activeAnnotations != null ? activeAnnotations.annotations : null;
 

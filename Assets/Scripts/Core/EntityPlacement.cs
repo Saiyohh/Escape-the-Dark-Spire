@@ -9,9 +9,6 @@ namespace DarkSpire
         public Vector2Int position;
         public EntityKind kind;
 
-        // Generic payload slots so the generator can pass per-entity context
-        // (gold amount, chest contents tag, key index, etc.) without a separate
-        // per-kind struct hierarchy. Phases 6/7 read these by kind.
         public int intPayload;
         public string strPayload;
 

@@ -27,8 +27,6 @@ namespace DarkSpire
 
         protected override bool BuildContent(out TooltipContent content)
         {
-            // Suppress the tooltip entirely if there's nothing to display —
-            // no header AND no body means the panel would be empty.
             if (string.IsNullOrEmpty(headerText) && string.IsNullOrEmpty(bodyText))
             {
                 content = default;

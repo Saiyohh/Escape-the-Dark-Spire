@@ -5,12 +5,6 @@ namespace DarkSpire
 {
     public abstract class TooltipTrigger : MonoBehaviour
     {
-        // Spawn point that owns the on-screen anchor + stack policy for this
-        // trigger's tooltip. Resolved at Awake via GetComponentInParent — every
-        // trigger lives inside the hierarchy of the container that defines
-        // its spawn point (e.g. OrbSlotsUI for orb slots, the unit's HUD for
-        // condition icons). Not serialized: there's no use case for an
-        // override that breaks the hierarchy contract.
         protected TooltipSpawnPoint spawnPoint;
 
         private Coroutine pendingShow;
@@ -47,8 +41,6 @@ namespace DarkSpire
                 return;
             }
 
-            // User came back over the trigger before the hide grace expired —
-            // cancel that, the tooltip stays.
             CancelPendingHide();
 
             if (pendingShow != null)
@@ -62,9 +54,6 @@ namespace DarkSpire
                 return;
             }
 
-            // If the spawn point is already showing something for someone
-            // else, skip the delay — the user is in tooltip-reading mode and
-            // the new entry should drop straight in beside the existing stack.
             float delay = ResolveDelay();
             if (spawnPoint.HasAnyVisible) delay = 0f;
 
@@ -126,9 +115,6 @@ namespace DarkSpire
 
         protected virtual void OnDisable()
         {
-            // Pointer-exit doesn't fire on disable; explicitly hide so the
-            // tooltip drops when the trigger is hidden mid-hover (combat end,
-            // refresh, slot evicted).
             CancelPendingShow();
             CancelPendingHide();
             if (spawnPoint != null) spawnPoint.HideFor(this);

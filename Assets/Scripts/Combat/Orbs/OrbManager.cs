@@ -5,14 +5,9 @@ namespace DarkSpire
 {
     public static class OrbManager
     {
-        // Glass Evoke multiplier is hardcoded here (not on OrbDataSO) because
-        // it's a Glass-specific shape, not a tunable per-asset value.
         private const float GlassEvokeMultiplier = 2.5f;
 
-        // Plasma Passive D20 threshold for the extra-action grant.
         private const int PlasmaPassiveD20Threshold = 11;
-
-        // ─── Public API ──────────────────────────────────────────────────────
 
         public static void Channel(Unit defect, OrbDataSO data)
         {
@@ -20,9 +15,6 @@ namespace DarkSpire
             if (defect.characterData == null || !defect.characterData.hasOrbSystem) return;
             if (defect.orbs == null) defect.orbs = new List<OrbInstance>();
 
-            // Tray full: drop the oldest (slot 0) silently. Per the new rule
-            // orbs only Evoke from explicit skill effects, so overflow does
-            // NOT trigger an auto-evoke. The discarded orb's effect is lost.
             if (defect.orbs.Count >= defect.orbSlotMax && defect.orbSlotMax > 0)
                 defect.orbs.RemoveAt(0);
 
@@ -62,8 +54,6 @@ namespace DarkSpire
         public static void EvokeAll(Unit defect)
         {
             if (defect == null || defect.orbs == null || defect.orbs.Count == 0) return;
-            // Walk a snapshot so cascading effects can't re-trigger; rebuild the
-            // list with any non-consumed orbs (Glass) preserving order.
             var snapshot = new List<OrbInstance>(defect.orbs);
             var keep = new List<OrbInstance>();
             foreach (var orb in snapshot)
@@ -110,8 +100,6 @@ namespace DarkSpire
             if (defect == null || defect.orbs == null) yield break;
             if (defect.characterData == null || !defect.characterData.hasOrbSystem) yield break;
 
-            // Snapshot so cascading effects (e.g. an orb passive that channels
-            // another orb mid-sweep) don't extend this loop unbounded.
             var snapshot = new List<OrbInstance>(defect.orbs);
             for (int i = 0; i < snapshot.Count; i++)
             {
@@ -123,7 +111,6 @@ namespace DarkSpire
                 CombatEvents.InvokeOrbPassiveTriggered(defect, orb);
                 defect.RaiseOrbsChanged();
 
-                // Pause between orbs so the player reads the resolution.
                 if (perOrbInterval > 0f && i < snapshot.Count - 1)
                     yield return new WaitForSeconds(perOrbInterval);
             }
@@ -136,8 +123,6 @@ namespace DarkSpire
             defect.orbs.Clear();
             defect.RaiseOrbsChanged();
         }
-
-        // ─── Effect triggers (per orb type) ──────────────────────────────────
 
         private static void TriggerPassive(Unit defect, OrbInstance orb)
         {
@@ -160,19 +145,16 @@ namespace DarkSpire
                 }
                 case OrbType.Dark:
                 {
-                    // Gain (passiveBase + Focus) stacks per tick.
                     orb.stacks += FocusBoost(defect, orb.data.passiveBaseMagnitude);
                     break;
                 }
                 case OrbType.Light:
                 {
-                    // Gain (passiveBase + Focus) stacks per tick.
                     orb.stacks += FocusBoost(defect, orb.data.passiveBaseMagnitude);
                     break;
                 }
                 case OrbType.Plasma:
                 {
-                    // Roll D20 ≥ 11 → extra action this turn. Focus does NOT apply.
                     int roll = Random.Range(1, 21);
                     if (roll >= PlasmaPassiveD20Threshold)
                         GrantExtraAction(defect, "Plasma Passive");
@@ -180,8 +162,6 @@ namespace DarkSpire
                 }
                 case OrbType.Glass:
                 {
-                    // Damage all enemies for max(stacks, 0) + Focus, then -1
-                    // stack (clamped at 0).
                     int baseAmt = Mathf.Max(0, orb.stacks);
                     int dmg = FocusBoost(defect, baseAmt);
                     if (dmg > 0)
@@ -214,7 +194,6 @@ namespace DarkSpire
                 }
                 case OrbType.Dark:
                 {
-                    // Deal stacks + Focus damage to a random enemy.
                     int amt = FocusBoost(defect, orb.stacks);
                     if (amt > 0)
                     {
@@ -225,25 +204,17 @@ namespace DarkSpire
                 }
                 case OrbType.Light:
                 {
-                    // Heal lowest-HP ally (excluding Defect) for stacks + Focus.
-                    // Heal Defect for half rounded down. If no other living
-                    // ally below max HP, Defect gets (stacks + Focus) × 1.5
-                    // rounded down.
                     int amt = FocusBoost(defect, orb.stacks);
                     if (amt > 0) ResolveLightHeal(defect, amt);
                     return true;
                 }
                 case OrbType.Plasma:
                 {
-                    // Guaranteed extra action. Focus does NOT apply.
                     GrantExtraAction(defect, "Plasma Evoke");
                     return true;
                 }
                 case OrbType.Glass:
                 {
-                    // Damage all for (max(stacks, 0) + Focus) × 2.5, then 0
-                    // stacks. Orb STAYS in slot — return false so the caller
-                    // doesn't remove it.
                     int baseAmt = Mathf.Max(0, orb.stacks);
                     int boosted = FocusBoost(defect, baseAmt);
                     int dmg = Mathf.FloorToInt(boosted * GlassEvokeMultiplier);
@@ -257,8 +228,6 @@ namespace DarkSpire
             return true;
         }
 
-        // ─── HUD display values ──────────────────────────────────────────────
-
         public static int GetPassiveDisplayValue(OrbInstance orb, Unit bearer)
         {
             if (orb == null || orb.data == null) return 0;
@@ -268,10 +237,8 @@ namespace DarkSpire
                 case OrbType.Frost:
                 case OrbType.Dark:
                 case OrbType.Light:
-                    // Static formula: passiveBase + Focus.
                     return FocusBoost(bearer, orb.data.passiveBaseMagnitude);
                 case OrbType.Glass:
-                    // Damage per tick = max(stacks, 0) + Focus.
                     return FocusBoost(bearer, Mathf.Max(0, orb.stacks));
                 case OrbType.Plasma:
                 default:
@@ -289,10 +256,8 @@ namespace DarkSpire
                     return FocusBoost(bearer, orb.data.evokeBaseMagnitude);
                 case OrbType.Dark:
                 case OrbType.Light:
-                    // Stacks-driven payoff: stacks + Focus.
                     return FocusBoost(bearer, orb.stacks);
                 case OrbType.Glass:
-                    // (max(stacks, 0) + Focus) × 2.5, floored.
                     return Mathf.FloorToInt(
                         FocusBoost(bearer, Mathf.Max(0, orb.stacks)) * GlassEvokeMultiplier);
                 case OrbType.Plasma:
@@ -307,8 +272,6 @@ namespace DarkSpire
             return orb.data.orbType == OrbType.Dark;
         }
 
-        // ─── Focus scaling ───────────────────────────────────────────────────
-
         public static int FocusBoost(Unit defect, int baseValue)
         {
             if (defect == null) return baseValue;
@@ -317,8 +280,6 @@ namespace DarkSpire
                 : 0;
             return baseValue + focus;
         }
-
-        // ─── Helpers ─────────────────────────────────────────────────────────
 
         private static List<Unit> GetLivingEnemies(Unit defect)
         {
@@ -352,7 +313,6 @@ namespace DarkSpire
 
         private static void ResolveLightHeal(Unit defect, int amt)
         {
-            // Find lowest-HP ally (excluding Defect) below max HP.
             Unit best = null;
             int bestHp = int.MaxValue;
             foreach (var u in GetLivingAlliesExcludingSelf(defect))
@@ -368,13 +328,11 @@ namespace DarkSpire
             if (best != null)
             {
                 best.Heal(amt);
-                // Defect also heals for half, rounded down.
                 int selfShare = amt / 2;
                 if (selfShare > 0) defect.Heal(selfShare);
             }
             else
             {
-                // No valid ally → Defect gets 1.5x rounded down.
                 int selfFull = Mathf.FloorToInt(amt * 1.5f);
                 if (selfFull > 0) defect.Heal(selfFull);
             }

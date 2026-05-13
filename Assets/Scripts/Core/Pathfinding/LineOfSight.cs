@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Bresenham line check on the tile grid. Any Wall in the line blocks LoS.
-    // Consumers (monster detection in particular) call this once per game
-    // tick, not per frame.
     public static class LineOfSight
     {
         public static bool HasLoS(TileType[,] grid, Vector2Int from, Vector2Int to)
@@ -23,11 +20,8 @@ namespace DarkSpire
             while (true)
             {
                 if (x < 0 || y < 0 || x >= w || y >= h) return false;
-                // Endpoints are always "visible" — only intermediate walls block.
                 if ((x != x0 || y != y0) && (x != x1 || y != y1))
                 {
-                    // Wall and Empty both block sight (Empty = void outside walls,
-                    // identical behavior to Wall).
                     if (grid[x, y].IsImpassable()) return false;
                 }
                 if (x == x1 && y == y1) return true;

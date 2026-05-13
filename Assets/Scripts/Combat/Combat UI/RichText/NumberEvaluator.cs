@@ -38,16 +38,12 @@ namespace DarkSpire
             };
         }
 
-        // ─── BaseExpected: formula with caster base stats, no target ───────
-
         private static int ComputeBaseExpected(NumberSpec spec, EvaluationContext ctx)
         {
             int baseValue = spec.BaseMagnitude;
             int statBonus = BaseStatBonus(ctx.Caster, spec.Stat);
             int total = Mathf.Max(0, baseValue + statBonus);
 
-            // Crits are not part of BaseExpected — descriptions describe normal hits.
-            // Vulnerable / Weak are not part of BaseExpected — those are runtime modifiers.
             return total;
         }
 
@@ -57,16 +53,11 @@ namespace DarkSpire
             return stat switch
             {
                 DamageStat.POW => caster.basePOW,
-                // DEX has no base stat on Unit (CharacterData.dex feeds baseATK/baseSPD,
-                // not a "DEX damage stat"). Match DamageCalculator.StatBonus's use of
-                // EffectiveDEX, which is condition-only — so the base contribution is 0.
                 DamageStat.DEX => 0,
                 DamageStat.WIL => caster.baseWIL,
                 _              => 0,
             };
         }
-
-        // ─── Display: full formula with current effective state ────────────
 
         private static int ComputeDisplay(
             NumberSpec spec,
@@ -81,8 +72,6 @@ namespace DarkSpire
 
             int running = baseValue;
 
-            // Stat contribution — split into base + per-condition rows so the
-            // breakdown attributes each source.
             if (spec.Stat != DamageStat.None && ctx.Caster != null)
             {
                 StatKind statKind = StatKindFor(spec.Stat);
@@ -124,10 +113,8 @@ namespace DarkSpire
                 running += conditionContribution;
             }
 
-            // Floor at 0 BEFORE multiplicative steps — matches CalculateDamage.
             running = Mathf.Max(0, running);
 
-            // Caster-side multipliers (attack only).
             if (spec.Kind == NumberKind.AttackDamage && ctx.Caster != null && ctx.Caster.conditions != null)
             {
                 int weak = ctx.Caster.conditions.GetStacks(ConditionID.Weak);
@@ -140,7 +127,6 @@ namespace DarkSpire
                 }
             }
 
-            // Target-side multipliers (attack only).
             if (spec.Kind == NumberKind.AttackDamage && ctx.HasTarget)
             {
                 if (DamageCalculator.TryGetIncomingMultiplier(ctx.Target, out float tMult, out string tLabel))

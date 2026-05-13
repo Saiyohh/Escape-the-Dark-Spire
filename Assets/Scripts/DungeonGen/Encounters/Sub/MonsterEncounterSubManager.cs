@@ -3,8 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Priority + general queue with a seen-pool reshuffle on exhaustion.
-    // The most complex of the sub-managers; reference shape for the others.
     public class MonsterEncounterSubManager : IEncounterSubManager
     {
         private readonly Queue<EncounterSO> activeQueue = new();
@@ -23,7 +21,6 @@ namespace DarkSpire
             var data = poolData as MonsterEncounterPoolDataSO;
             if (data == null) return;
 
-            // Priority pool first (preserve or shuffle order based on flag).
             if (data.priorityPool != null)
             {
                 var priority = new List<EncounterSO>();
@@ -32,7 +29,6 @@ namespace DarkSpire
                 foreach (var e in priority) activeQueue.Enqueue(e);
             }
 
-            // General pool always shuffled.
             if (data.generalPool != null)
             {
                 var general = new List<EncounterSO>();
@@ -50,8 +46,6 @@ namespace DarkSpire
 
             if (activeQueue.Count == 0)
             {
-                // Pool genuinely empty — return a no-encounter result rather
-                // than throwing. Caller should handle null encounter gracefully.
                 return new EncounterResult
                 {
                     encounter = null,
@@ -77,7 +71,6 @@ namespace DarkSpire
             {
                 return new EncounterResult { type = EncounterType.Monster, slotIndex = slotIndex };
             }
-            // Queue doesn't support indexed access — copy to array.
             var arr = activeQueue.ToArray();
             return new EncounterResult
             {
@@ -99,8 +92,6 @@ namespace DarkSpire
             foreach (var e in combined) activeQueue.Enqueue(e);
         }
 
-        // Fisher-Yates via UnityEngine.Random. Phase 11 may swap to a seeded
-        // instance for deterministic encounter orderings per run.
         private static void Shuffle<T>(IList<T> list)
         {
             for (int i = list.Count - 1; i > 0; i--)

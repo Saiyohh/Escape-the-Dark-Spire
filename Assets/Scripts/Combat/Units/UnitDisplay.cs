@@ -8,7 +8,6 @@ namespace DarkSpire
     [RequireComponent(typeof(BoxCollider2D))]
     public class UnitDisplay : MonoBehaviour
     {
-        // Static registry for looking up displays by Unit
         private static Dictionary<Unit, UnitDisplay> registry = new();
         public static UnitDisplay GetDisplay(Unit unit) =>
             registry.TryGetValue(unit, out var display) ? display : null;
@@ -79,8 +78,6 @@ namespace DarkSpire
                  "the active actor. Big enough to clear every other unit on " +
                  "the layer (default 100 = jumps over ~10 ranks of headroom).")]
         [SerializeField] private int activeUnitOrderBoost = 100;
-        // Cached so HandleActiveTurnStart / End apply the boost to the same
-        // baseline that Initialize / HandleRankChanged compute.
         private int currentBaseOrder;
         private bool isActiveOrderBoosted;
 
@@ -116,9 +113,6 @@ namespace DarkSpire
         [SerializeField] private bool dimWhenInactive = true;
         [SerializeField] private Color dimmedColor = new Color(0.45f, 0.45f, 0.45f, 1f);
 
-        // True when SOME OTHER unit is currently the active turn-taker. Driven
-        // by CombatEvents.OnUnitTurnStart subscription below. Resting sprite
-        // color (BaseColor) reads this to pick normalColor vs dimmedColor.
         private bool isDimmed;
         private Color BaseColor => (isDimmed && dimWhenInactive) ? dimmedColor : normalColor;
 
@@ -135,9 +129,6 @@ namespace DarkSpire
                  "unit through lunge / knockback / move animations.")]
         [SerializeField] private GameObject speechBubblePrefab;
 
-        // The currently in-flight speech bubble for this unit. Replaced (the
-        // existing bubble is destroyed) when a new one spawns, so rapid
-        // refusal clicks always show the latest reason.
         private SpeechBubbleController activeSpeechBubble;
 
         [Header("World HUD (Player Only)")]
@@ -164,7 +155,6 @@ namespace DarkSpire
                 if (turnIndicatorAnchor != null)
                     return (Vector2)turnIndicatorAnchor.localPosition;
 
-                // Fallback: top-center of hitbox.
                 if (boxCollider != null)
                     return new Vector2(boxCollider.offset.x,
                                        boxCollider.offset.y + boxCollider.size.y * 0.5f);
@@ -181,17 +171,11 @@ namespace DarkSpire
         {
             get
             {
-                // Top of the BoxCollider2D — floater arc rises from feet (the
-                // unit's pivot) to here. Independent of TurnIndicatorOffset
-                // because that anchor was repurposed for the feet aura and
-                // would land the apex back near the pivot, giving the popup
-                // almost no vertical travel.
                 if (boxCollider != null)
                 {
                     float topY = boxCollider.offset.y + boxCollider.size.y * 0.5f;
                     return transform.position + new Vector3(0f, topY, 0f);
                 }
-                // Fallback when no collider exists.
                 return LinkedUnit != null && !LinkedUnit.isPlayerControlled
                     ? transform.position + enemyIntentAnchorOffset
                     : transform.position + (Vector3)TurnIndicatorOffset;
@@ -266,7 +250,6 @@ namespace DarkSpire
         }
         public event System.Action OnUISuppressionLifted;
 
-        // Corner bracket sprites (top-left, top-right, bottom-left, bottom-right)
         private SpriteRenderer[] cornerBrackets;
         private Vector3[] cornerRestPositions; // cached default positions
         private bool isHighlighted;
@@ -276,22 +259,10 @@ namespace DarkSpire
 
         public EnemyWorldHUD EnemyWorldHUD => enemyWorldHUD;
 
-        // Transform the lunge / knockback / shake / death-drop animations
-        // target. Must be a CHILD of this GameObject so moving it doesn't
-        // drag the world HUD (which follows transform.position via
-        // WorldFollow), the orb tray (parented under transform), the feet
-        // aura, or the turn indicator.
-        //
-        // Convention: the prefab authors the SpriteRenderer on a child
-        // GameObject (any name — "SpriteRoot", "Body", etc.). animRoot is
-        // simply spriteRenderer.transform.
         private Transform animRoot;
 
         private void Awake()
         {
-            // The SpriteRenderer is expected to live on a CHILD GameObject
-            // so animations can offset the sprite without dragging HUDs,
-            // orb trays, auras, or turn indicators along with it.
             if (spriteRenderer == null)
                 spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
 
@@ -318,14 +289,9 @@ namespace DarkSpire
 
             animRoot = spriteRenderer != null ? spriteRenderer.transform : transform;
 
-            // Cache the sibling BoxCollider2D if the designer didn't wire it
-            // in the inspector. The collider is the source of truth for the
-            // hitbox — this script never mutates its size/offset.
             if (boxCollider == null)
                 boxCollider = GetComponent<BoxCollider2D>();
 
-            // Force trigger mode so the Physics2D.OverlapPoint hover path works.
-            // (Size and offset stay exactly as the designer authored them.)
             if (boxCollider != null)
                 boxCollider.isTrigger = true;
 
@@ -374,8 +340,6 @@ namespace DarkSpire
         {
             if (cornerBrackets == null) return;
 
-            // Read live from the collider so designers tweaking it in the
-            // scene see bracket positions update on the next Awake.
             var size   = HitboxSize;
             var offset = HitboxOffset;
             float halfW = size.x * 0.5f - cornerInset;
@@ -383,7 +347,6 @@ namespace DarkSpire
             float cx = offset.x;
             float cy = offset.y;
 
-            // TL, TR, BL, BR
             cornerRestPositions = new Vector3[]
             {
                 new Vector3(cx - halfW, cy + halfH, 0f),  // top-left
@@ -408,38 +371,23 @@ namespace DarkSpire
             if (unit.combatSprite != null)
                 spriteRenderer.sprite = unit.combatSprite;
 
-            // Per-hue Black & White adjust on enemy sprites — same shader the
-            // skill banner uses. Clone the source material once so per-enemy
-            // weight tweaks don't stomp the shared asset.
             ApplyBlackAndWhiteFilter(unit);
 
-            // Place the sprite on the shared Units sorting layer with a
-            // rank-derived order so front ranks render above back ranks.
             ApplyRankSorting(unit.currentRank);
 
-            // Subscribe to unit events
             unit.OnDamageTaken += _ => { if (!SuppressDamageFlash) PlayDamageFlash(); };
             unit.OnHealReceived += _ => PlayHealFlash();
             unit.OnDeath += PlayDeathAnimation;
             unit.OnRankChanged += HandleRankChanged;
 
-            // Inactive-dim hookup + active-actor sprite-sort boost. CombatEvents
-            // are static so we subscribe here (per-display lifetime) and clean
-            // up in OnDestroy.
             CombatEvents.OnUnitTurnStart += HandleAnyUnitTurnStart;
             CombatEvents.OnUnitTurnEnd   += HandleAnyUnitTurnEnd;
             CombatEvents.OnCombatEnd     += HandleCombatEndUndim;
 
-            // HUDs spawn under the shared CombatUIManager.WorldCanvas (one
-            // canvas for the entire scene) and use a WorldFollow component to
-            // track this unit's transform. Falls back to parenting under the
-            // UnitDisplay if no shared canvas is available — keeps old prefabs
-            // with their own Canvas component working.
             Transform hudParent = (CombatUIManager.WorldCanvas != null)
                 ? CombatUIManager.WorldCanvas.transform
                 : transform;
 
-            // Spawn world-space HUD for player units
             if (unit.isPlayerControlled && unitWorldHUDPrefab != null)
             {
                 var hudGO = Instantiate(unitWorldHUDPrefab, hudParent);
@@ -448,7 +396,6 @@ namespace DarkSpire
                 worldHUD?.Initialize(unit);
             }
 
-            // Spawn world-space HUD for enemy units
             if (!unit.isPlayerControlled && enemyWorldHUDPrefab != null)
             {
                 var hudGO = Instantiate(enemyWorldHUDPrefab, hudParent);
@@ -456,10 +403,6 @@ namespace DarkSpire
 
                 enemyWorldHUD = hudGO.GetComponent<EnemyWorldHUD>();
 
-                // intentRelativeY = how far above the HUD origin the intent
-                // strip should sit, in world units. With foot-pivot sprites
-                // and worldHUDOffset = (0,0,0), this is just the sprite height
-                // (enemyIntentAnchorOffset.y).
                 float intentRelativeY = enemyIntentAnchorOffset.y - enemyWorldHUDOffset.y;
                 enemyWorldHUD?.Initialize(unit, intentRelativeY);
             }
@@ -483,15 +426,8 @@ namespace DarkSpire
             CombatEvents.OnCombatEnd     -= HandleCombatEndUndim;
         }
 
-        // ─── Inactive dim ────────────────────────────────────────────────────
-
         private void HandleAnyUnitTurnStart(Unit activeUnit)
         {
-            // Dim only INACTIVE units on the SAME SIDE as the acting unit.
-            //   • Player phase: only OTHER players dim; enemies stay normal.
-            //   • Enemy phase: only OTHER enemies dim; players stay normal.
-            // The active unit itself is never dimmed. Dead units are skipped —
-            // their fade-out animation owns their color while it runs.
             if (LinkedUnit == null || !LinkedUnit.IsAlive) return;
             if (activeUnit == null) { SetDimmed(false); return; }
 
@@ -499,9 +435,6 @@ namespace DarkSpire
             bool isActive  = LinkedUnit == activeUnit;
             SetDimmed(sameSide && !isActive);
 
-            // Bump the active unit above everyone else on the Units layer so
-            // its lunge / hover / glow effects render in front of nearby
-            // ranks. Restored on OnUnitTurnEnd.
             if (isActive) SetActiveSortingBoost(true);
         }
 
@@ -522,26 +455,13 @@ namespace DarkSpire
         {
             if (isDimmed == dim) return;
             isDimmed = dim;
-            // Only repaint if no transient flash is in flight — flashes call
-            // BaseColor at their own reset point, so their resets pick up the
-            // new dim state on completion automatically.
             if (spriteRenderer != null) spriteRenderer.color = BaseColor;
         }
-
-        // ═══════════════════════════════════════════
-        //  Input System-compatible hover + click
-        // ═══════════════════════════════════════════
-        // OnMouseEnter/OnMouseExit/OnMouseDown are legacy Input Manager callbacks.
-        // With the new Input System active, they silently stop firing.
-        // Instead we do a single Physics2D raycast per frame to detect
-        // which UnitDisplay the cursor is over.
 
         private static UnitDisplay currentlyHovered;
 
         private void Update()
         {
-            // Only the first registered display runs the shared raycast
-            // (avoids N raycasts per frame for N units)
             if (!ShouldRunHoverCheck()) return;
 
             var mouse = Mouse.current;
@@ -552,28 +472,23 @@ namespace DarkSpire
             Vector3 mouseWorld = cam.ScreenToWorldPoint(
                 new Vector3(mouseScreen.x, mouseScreen.y, -cam.transform.position.z));
 
-            // 2D overlap at mouse world position
             var hit = Physics2D.OverlapPoint(mouseWorld);
 
             UnitDisplay hitDisplay = null;
             if (hit != null)
                 hitDisplay = hit.GetComponent<UnitDisplay>();
 
-            // ── Hover transitions ──
             if (hitDisplay != currentlyHovered)
             {
-                // Exit old
                 if (currentlyHovered != null)
                     currentlyHovered.HandleMouseExit();
 
                 currentlyHovered = hitDisplay;
 
-                // Enter new
                 if (currentlyHovered != null)
                     currentlyHovered.HandleMouseEnter();
             }
 
-            // ── Click ──
             if (mouse.leftButton.wasPressedThisFrame && currentlyHovered != null)
                 currentlyHovered.HandleMouseClick();
         }
@@ -601,18 +516,11 @@ namespace DarkSpire
         {
             if (isDead) return;
 
-            // Always notify hover so the info panel can switch context
             TargetingSystem.Instance?.NotifyTargetHovered(LinkedUnit);
 
-            // Only highlight during active targeting of valid targets
             if (TargetingSystem.Instance != null && TargetingSystem.Instance.IsValidTarget(LinkedUnit))
                 SetHighlighted(true);
 
-            // ChanceBox visibility is now driven by TargetingSystem events
-            // inside ChanceBox itself — no hover wiring needed here.
-
-            // HUD hover overlay: fade HP/SP/etc bars out, fade name label in.
-            // Fires for both player and enemy units; the HUD gates internally.
             if (worldHUD != null) worldHUD.OnUnitHoverEnter();
             if (enemyWorldHUD != null) enemyWorldHUD.OnUnitHoverEnter();
         }
@@ -626,12 +534,6 @@ namespace DarkSpire
             if (worldHUD != null) worldHUD.OnUnitHoverExit();
             if (enemyWorldHUD != null) enemyWorldHUD.OnUnitHoverExit();
         }
-
-        // ─── ChanceBox registration ─────────────────────────────────────────
-        // The ChanceBox reparents itself out of UnitDisplay (to the shared
-        // WorldCanvas) on Initialize, so GetComponentInChildren can no longer
-        // find it. ChanceBox.Initialize calls RegisterChanceBox(this) so the
-        // hover handlers above can drive it directly.
 
         [System.NonSerialized] private ChanceBox registeredChanceBox;
 
@@ -670,7 +572,6 @@ namespace DarkSpire
 
         private IEnumerator BracketShowCoroutine()
         {
-            // Enable all brackets at expanded position
             for (int i = 0; i < 4; i++)
             {
                 if (cornerBrackets[i] == null) continue;
@@ -683,25 +584,19 @@ namespace DarkSpire
             while (elapsed < bracketShowDuration)
             {
                 float t = elapsed / bracketShowDuration;
-                // Overshoot curve: ease in, overshoot, settle
-                // Using a simple cubic that goes past 1.0 then returns
                 float curved = 1f - Mathf.Pow(1f - t, 3f);
-                // Add overshoot: at t=0.7 we're at rest, at t=1.0 we overshoot then snap
                 float overshootT;
                 if (t < 0.6f)
                 {
-                    // Moving from expanded toward rest
                     overshootT = Mathf.Lerp(bracketExpandDistance, 0f, curved / 0.85f);
                 }
                 else if (t < 0.85f)
                 {
-                    // Overshoot past rest (inward)
                     float subT = (t - 0.6f) / 0.25f;
                     overshootT = Mathf.Lerp(0f, -bracketOvershoot, subT);
                 }
                 else
                 {
-                    // Snap back to rest
                     float subT = (t - 0.85f) / 0.15f;
                     overshootT = Mathf.Lerp(-bracketOvershoot, 0f, subT);
                 }
@@ -717,7 +612,6 @@ namespace DarkSpire
                 yield return null;
             }
 
-            // Snap to rest
             for (int i = 0; i < 4; i++)
             {
                 if (cornerBrackets[i] != null)
@@ -746,7 +640,6 @@ namespace DarkSpire
                 yield return null;
             }
 
-            // Disable
             for (int i = 0; i < 4; i++)
             {
                 if (cornerBrackets[i] != null)
@@ -766,12 +659,9 @@ namespace DarkSpire
 
         private IEnumerator DamageFlashCoroutine()
         {
-            // Animations move animRoot.localPosition only — leaves the
-            // parent transform (HUDs, orb tray, aura) at the rest pose.
             float knockDir = LinkedUnit != null && LinkedUnit.isPlayerControlled ? -1f : 1f;
             Vector3 knockOffset = new Vector3(knockDir * hurtKnockbackDistance, 0f, 0f);
 
-            // Knockback out (ease-out: snappy start)
             float elapsed = 0f;
             while (elapsed < hurtKnockbackDuration)
             {
@@ -783,10 +673,8 @@ namespace DarkSpire
             }
             animRoot.localPosition = knockOffset;
 
-            // Red flash at knockback apex
             spriteRenderer.color = Color.red;
 
-            // Return to rest (ease-in: slow start, snap back)
             elapsed = 0f;
             while (elapsed < hurtKnockbackReturnDuration)
             {
@@ -798,7 +686,6 @@ namespace DarkSpire
             }
             animRoot.localPosition = Vector3.zero;
 
-            // Hold red flash briefly after returning
             yield return new WaitForSeconds(0.1f);
             spriteRenderer.color = BaseColor;
         }
@@ -824,11 +711,8 @@ namespace DarkSpire
 
         private IEnumerator AttackLungeCoroutine(Vector3 direction)
         {
-            // Animate animRoot.localPosition only — keeps HUDs / orb tray /
-            // turn aura at the parent's rest pose while only the sprite lunges.
             Vector3 lungeOffset = direction.normalized * attackLungeDistance;
 
-            // Lunge forward (ease-out for snappy start, decelerating arrival)
             float elapsed = 0f;
             while (elapsed < attackLungeDuration)
             {
@@ -840,10 +724,6 @@ namespace DarkSpire
             }
             animRoot.localPosition = lungeOffset;
 
-            // No apex hold — the unit pulls back immediately.
-            // CombatManager adds a delay AFTER the full lunge completes.
-
-            // Return (ease-in for slow start, accelerating snap-back)
             float returnDuration = attackLungeDuration * 0.8f;
             elapsed = 0f;
             while (elapsed < returnDuration)
@@ -865,8 +745,6 @@ namespace DarkSpire
 
         private IEnumerator DebuffShakeCoroutine()
         {
-            // Shake the sprite child only — parent transform stays put so the
-            // HUDs / orb tray / aura don't jitter with the unit.
             float elapsed = 0f;
             while (elapsed < debuffShakeDuration)
             {
@@ -890,7 +768,6 @@ namespace DarkSpire
             PlayDeathAnimationImmediate();
         }
 
-        // ── Rank change handling ────────────────────────────────────────────────
         [Header("Rank Slide Animation")]
         [Tooltip("How long the unit takes to slide to its new rank position.")]
         [SerializeField] private float rankSlideDuration = 0.35f;
@@ -904,8 +781,6 @@ namespace DarkSpire
                 LinkedUnit.isPlayerControlled, newRank);
             if (target == null) return;
 
-            // Refresh sprite sorting so the unit slots in front of/behind
-            // its new neighbors immediately, without waiting for the slide.
             ApplyRankSorting(newRank);
 
             if (rankSlide != null) StopCoroutine(rankSlide);
@@ -918,10 +793,6 @@ namespace DarkSpire
             if (!string.IsNullOrEmpty(unitsSortingLayer))
                 spriteRenderer.sortingLayerName = unitsSortingLayer;
 
-            // Rank 1 (front) → 0; rank 2 → -step; rank 3 → -2*step ; …
-            // Lower order = drawn first = behind. Negative space keeps the
-            // numbers small, leaves room above zero for VFX layered above
-            // every unit (e.g. crit flashes) if those need a positive offset.
             currentBaseOrder = -(Mathf.Max(RankHelper.MinRank, rank) - RankHelper.MinRank) * rankOrderStep;
             spriteRenderer.sortingOrder = currentBaseOrder
                 + (isActiveOrderBoosted ? activeUnitOrderBoost : 0);
@@ -935,8 +806,6 @@ namespace DarkSpire
             spriteRenderer.sortingOrder = currentBaseOrder
                 + (isActiveOrderBoosted ? activeUnitOrderBoost : 0);
         }
-
-        // ─── Combat-start intro slide ────────────────────────────────────────
 
         private Vector3 introTargetPosition;
         private bool hasIntroPrep;
@@ -977,7 +846,6 @@ namespace DarkSpire
             {
                 t += Time.deltaTime;
                 float k = Mathf.Clamp01(t / dur);
-                // Ease-out cubic — quick takeoff, soft landing.
                 float eased = 1f - Mathf.Pow(1f - k, 3f);
                 transform.position = Vector3.LerpUnclamped(from, to, eased);
                 yield return null;
@@ -994,7 +862,6 @@ namespace DarkSpire
             while (elapsed < rankSlideDuration)
             {
                 float t = elapsed / rankSlideDuration;
-                // Ease-in-out so the motion doesn't feel robotic
                 float eased = t < 0.5f
                     ? 2f * t * t
                     : 1f - Mathf.Pow(-2f * t + 2f, 2f) * 0.5f;
@@ -1012,11 +879,6 @@ namespace DarkSpire
             HasPendingDeath = false;
             isDead = true;
             SetHighlighted(false);
-            // Unity-aware null checks: WorldFollow.HandleBoundUnitDeath subscribes
-            // to Unit.OnDeath and Destroys these HUDs on the same death event.
-            // Subscription order can fire that handler first, leaving these refs
-            // pointing at destroyed UnityEngine.Objects. The C# `?.` operator
-            // doesn't see Unity's "destroyed" state, so use the overloaded `==`.
             if (worldHUD != null)      worldHUD.Hide();
             if (enemyWorldHUD != null) enemyWorldHUD.Hide();
             StartCoroutine(DeathCoroutine());
@@ -1024,9 +886,6 @@ namespace DarkSpire
 
         private IEnumerator DeathCoroutine()
         {
-            // Drop only the sprite child — leaves the parent's transform.position
-            // intact so any followers (orb tray etc.) stay where the unit was
-            // standing while the corpse drifts and fades.
             float elapsed = 0;
             Color startColor = spriteRenderer.color;
             Vector3 startLocal = animRoot.localPosition;
@@ -1057,10 +916,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Designer authored bwGrayscale=true but didn't wire a material —
-            // emit a one-shot warning so it's obvious why nothing changes
-            // visually. Throttled to once per session to avoid log spam when
-            // every enemy in an encounter shares the same misconfiguration.
             if (blackAndWhiteMaterial == null)
             {
                 if (!warnedMissingBWMaterial)

@@ -62,13 +62,8 @@ namespace DarkSpire
         private readonly List<GameObject> spawnedSlots = new();
         private readonly List<OrbSlotView> spawnedSlotViews = new(); // 1:1 with spawnedSlots; entries may be null for legacy prefabs
 
-        // Set of slot indices that should play the channel-in scale animation
-        // on the next Refresh. Filled in HandleOrbsChanged when the filled
-        // count grows; consumed in Refresh when applying transforms.
         private readonly HashSet<int> pendingChannelAnimations = new();
         private int lastFilledCount = 0;
-
-        // ─── Lifecycle ───────────────────────────────────────────────────────
 
         private void OnEnable()
         {
@@ -84,12 +79,6 @@ namespace DarkSpire
             CombatEvents.OnCombatEnd           -= HandleCombatEnd;
             CombatEvents.OnOrbPassiveTriggered -= HandleOrbPassiveTriggered;
 
-            // Unhook the bound unit's events but DO NOT reparent the transform —
-            // OnDisable can fire as part of scene unload / play-mode exit while
-            // the bearer's UnitDisplay is also tearing down, and SetParent
-            // during a parent's deactivation throws. Reparent restoration is
-            // owned by HandleCombatEnd / re-bind, both of which run mid-runtime
-            // when the hierarchy is stable.
             if (boundUnit != null)
             {
                 boundUnit.OnOrbsChanged -= HandleOrbsChanged;
@@ -132,7 +121,6 @@ namespace DarkSpire
                 boundUnit.OnOrbsChanged += HandleOrbsChanged;
                 boundUnit.OnDeath       += HandleDeath;
 
-                // Refresh number labels when Focus stacks change mid-turn.
                 if (boundUnit.conditions != null)
                 {
                     boundUnit.conditions.OnConditionApplied += HandleBearerConditionApplied;
@@ -162,8 +150,6 @@ namespace DarkSpire
             DetachFromBearerDisplay();
         }
 
-        // Refresh only on Focus changes — every other condition change is
-        // irrelevant to orb numbers and we don't want to repaint each tick.
         private void HandleBearerConditionApplied(ConditionID id, int _)
         {
             if (id == ConditionID.Focus) Refresh();
@@ -196,9 +182,6 @@ namespace DarkSpire
         {
             if (!wasReparented) return;
 
-            // If the current parent's GameObject is gone (destroyed in a
-            // teardown we didn't see), Unity will refuse the SetParent. Just
-            // clear our flags and let the engine clean up the hierarchy.
             var currentParent = transform.parent;
             if (currentParent == null || currentParent.gameObject == null)
             {
@@ -207,9 +190,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Restore the original parent so re-binding for a new combat
-            // starts from a clean slate. worldPositionStays = false so we
-            // pop back to the authored layout position.
             transform.SetParent(originalParent, worldPositionStays: false);
             transform.localPosition = originalLocalPosition;
             originalParent = null;
@@ -218,10 +198,6 @@ namespace DarkSpire
 
         private void HandleOrbsChanged(Unit _)
         {
-            // Detect newly-channeled orbs by comparing the filled count to
-            // the last refresh. Any slot indices in [lastFilledCount, current)
-            // are freshly added — flag them so Refresh plays the channel-in
-            // grow animation on those specific slots.
             int currentFilled = (boundUnit != null && boundUnit.orbs != null)
                 ? boundUnit.orbs.Count : 0;
             if (currentFilled > lastFilledCount)
@@ -235,17 +211,11 @@ namespace DarkSpire
 
         private void HandleDeath()
         {
-            // Drop the queue when the bearer dies — orbs don't tick on a dead
-            // unit and they shouldn't linger in the HUD. ClearAll fires
-            // OnOrbsChanged which lands us back in Refresh.
             if (boundUnit != null) OrbManager.ClearAll(boundUnit);
         }
 
-        // ─── Layout + state refresh ──────────────────────────────────────────
-
         private void Refresh()
         {
-            // No bearer (out of combat or non-Defect party): hide everything.
             if (boundUnit == null)
             {
                 foreach (var go in spawnedSlots)
@@ -268,7 +238,6 @@ namespace DarkSpire
                 go.SetActive(inUse);
                 if (!inUse) continue;
 
-                // Layout: visual position 0 = far right (slot 0), N-1 = far left.
                 go.transform.localPosition = CurvePoint(i, max);
 
                 OrbInstance orb = (i < filled) ? boundUnit.orbs[i] : null;
@@ -288,20 +257,9 @@ namespace DarkSpire
                     }
                     else
                     {
-                        // Legacy prefab without OrbSlotView — fall back to bare sprite/color.
                         ApplySpriteAndColor(go, sprite, color);
                     }
 
-                    // Channel-in animation: when this slot was newly added in
-                    // the most recent OnOrbsChanged, kick off a quick scale
-                    // pop from channelStartScale → 1 so the orb visibly
-                    // "comes in" rather than just appearing.
-                    //
-                    // Scale the slot's VISUAL child (sprite renderer) — not
-                    // the slot root — so the BoxCollider2D used by
-                    // OrbTooltipTrigger keeps its authored size during the
-                    // animation. Falls back to the slot root if the prefab
-                    // doesn't carve out a visual child.
                     if (pendingChannelAnimations.Remove(i))
                     {
                         Transform animTarget = (view != null) ? view.VisualTransform : go.transform;
@@ -317,8 +275,6 @@ namespace DarkSpire
                 }
             }
 
-            // "Next to evoke" indicator pinned to slot 0 (right endpoint), only
-            // when slot 0 actually holds an orb.
             if (nextEvokeIndicator != null)
             {
                 bool show = filled > 0 && boundUnit.IsAlive;
@@ -357,14 +313,10 @@ namespace DarkSpire
             return onLine + up * arcOffset;
         }
 
-        // ─── Channel-in spawn animation ──────────────────────────────────────
-
         private System.Collections.IEnumerator ChannelGrow(Transform slotTransform)
         {
             if (slotTransform == null || channelGrowDuration <= 0f) yield break;
             Vector3 fullScale = slotTransform.localScale;
-            // Author scale could be non-1; multiply by a fraction rather than
-            // hard-setting to (channelStartScale,...) so non-uniform scales survive.
             slotTransform.localScale = fullScale * channelStartScale;
 
             float t = 0f;
@@ -372,15 +324,12 @@ namespace DarkSpire
             {
                 t += Time.deltaTime;
                 float u = Mathf.Clamp01(t / channelGrowDuration);
-                // Slight overshoot for a "pop" feel — eases out past 1, settles.
                 float eased = 1f - (1f - u) * (1f - u); // ease-out quad
                 slotTransform.localScale = Vector3.Lerp(fullScale * channelStartScale, fullScale, eased);
                 yield return null;
             }
             slotTransform.localScale = fullScale;
         }
-
-        // ─── Per-orb passive VFX ─────────────────────────────────────────────
 
         [Header("Passive trigger VFX")]
         [Tooltip("Multiplier applied to a slot's local scale at the peak of its " +
@@ -392,7 +341,6 @@ namespace DarkSpire
 
         private void HandleOrbPassiveTriggered(Unit bearer, OrbInstance orb)
         {
-            // Only react to the orb-bearer we're bound to.
             if (bearer != boundUnit || orb == null) return;
             if (boundUnit.orbs == null) return;
 
@@ -401,9 +349,6 @@ namespace DarkSpire
             var go = spawnedSlots[idx];
             if (go == null || !go.activeInHierarchy) return;
 
-            // Pulse the visual child rather than the slot root so the
-            // collider used by OrbTooltipTrigger keeps its authored size
-            // and the hit area doesn't pulse along with the sprite.
             var view = idx < spawnedSlotViews.Count ? spawnedSlotViews[idx] : null;
             Transform pulseTarget = (view != null) ? view.VisualTransform : go.transform;
             StartCoroutine(PulseSlot(pulseTarget));
@@ -438,9 +383,6 @@ namespace DarkSpire
         private Vector3 ToLocal(Transform anchor)
         {
             if (anchor == null) return Vector3.zero;
-            // Anchors are siblings/children of this transform — read their
-            // localPosition directly. If an authoring setup ever uses a
-            // distant anchor, fall back to InverseTransformPoint.
             if (anchor.parent == transform) return anchor.localPosition;
             return transform.InverseTransformPoint(anchor.position);
         }

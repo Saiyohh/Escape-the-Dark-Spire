@@ -35,12 +35,8 @@ namespace DarkSpire
         [Tooltip("Sorting order for the label (in front of the glow).")]
         [SerializeField] private int labelSortingOrder = 5;
 
-        // Stable parent the aura returns to when not in use. Captured on Awake
-        // so SetParent has somewhere safe to go on Release.
         private Transform stableRoot;
 
-        // Current tint chosen at Bind (cached so the pulse can recolor without
-        // re-resolving attack vs afflict tinting every frame).
         private Color currentTint;
 
         private void Reset()
@@ -77,8 +73,6 @@ namespace DarkSpire
             }
         }
 
-        // ─── Bind / Release ─────────────────────────────────────────────────
-
         public void Bind(in IntentTargetEntry entry, UnitDisplay display)
         {
             currentTint = entry.hasAttack
@@ -107,16 +101,11 @@ namespace DarkSpire
         {
             gameObject.SetActive(false);
 
-            // Mirror TurnIndicator's defensive detach — Unity refuses
-            // SetParent during a parent's deactivation, and the player
-            // we were riding may be mid-destroy on a scene exit.
             if (stableRoot == null) return;
             var p = transform.parent;
             if (p == null || p.gameObject == null) return;
             transform.SetParent(stableRoot, worldPositionStays: false);
         }
-
-        // ─── Pulse ──────────────────────────────────────────────────────────
 
         private void LateUpdate()
         {
@@ -129,8 +118,6 @@ namespace DarkSpire
                 c.a = a;
                 glow.color = c;
             }
-            // Label alpha tracks the same pulse but stays a touch brighter
-            // so the text doesn't ghost as the aura breathes out.
             if (label != null)
             {
                 var c = label.color;
@@ -138,8 +125,6 @@ namespace DarkSpire
                 label.color = c;
             }
         }
-
-        // ─── Label ──────────────────────────────────────────────────────────
 
         private static string FormatLabel(in IntentTargetEntry entry)
         {

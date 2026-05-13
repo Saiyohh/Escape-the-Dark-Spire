@@ -10,15 +10,12 @@ namespace DarkSpire
         [Tooltip("World-space DangerAura prefab. Spawned per threatened player and pooled.")]
         [SerializeField] private DangerAura auraPrefab;
 
-        // Live preview state — what we're currently showing (or null if nothing).
         private Unit _previewSource;
         private EnemyIntent _previewIntent;
 
-        // Pool + active set.
         private readonly List<DangerAura> _active = new();
         private readonly Stack<DangerAura> _pool  = new();
 
-        // Reused per ShowFor call so resolution doesn't allocate.
         private readonly List<IntentTargetEntry> _resolved = new();
 
         private void Awake()
@@ -41,8 +38,6 @@ namespace DarkSpire
             CombatEvents.OnUnitTurnEnd   -= HandleUnitTurnLifecycle;
             if (Instance == this) Instance = null;
         }
-
-        // ─── Public API ──────────────────────────────────────────────────────
 
         public void ShowFor(Unit source, EnemyIntent intent)
         {
@@ -87,8 +82,6 @@ namespace DarkSpire
             _previewIntent = null;
         }
 
-        // ─── Lifecycle hooks ────────────────────────────────────────────────
-
         private void HandleEnemyMoveSet(Unit enemy, EnemyMove _)
         {
             if (enemy == _previewSource) Hide();
@@ -99,20 +92,13 @@ namespace DarkSpire
             if (unit == _previewSource) Hide();
         }
 
-        // ─── Pool plumbing ──────────────────────────────────────────────────
-
         private DangerAura AcquireAura()
         {
             while (_pool.Count > 0)
             {
                 var pooled = _pool.Pop();
                 if (pooled != null) return pooled; // valid entry — reuse
-                // else: previously destroyed by a scene unload / parent cleanup,
-                // drop it and keep popping.
             }
-            // Spawn a fresh one as our own child so DangerAura's Awake captures
-            // this transform as its stableRoot. Subsequent Bind() reparents
-            // under the target's UnitDisplay; Release() returns it here.
             var aura = Instantiate(auraPrefab, transform);
             aura.gameObject.SetActive(false);
             return aura;

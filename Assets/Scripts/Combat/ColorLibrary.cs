@@ -26,7 +26,6 @@ namespace DarkSpire
 
         public IReadOnlyList<Category> Categories => categories;
 
-        // ── Singleton ───────────────────────────────────────────────────────
         private static ColorLibrary _instance;
         public static ColorLibrary Instance
         {
@@ -37,7 +36,6 @@ namespace DarkSpire
             }
         }
 
-        // Lookup cache — flattened "Category/Name" → Color.
         [System.NonSerialized] private Dictionary<string, Color> _lookup;
 
         private void OnEnable()
@@ -45,8 +43,6 @@ namespace DarkSpire
             if (_instance == null) _instance = this;
             _lookup = null;
         }
-
-        // ── Static API ──────────────────────────────────────────────────────
 
         public static Color Get(string category, string name, Color fallback)
             => Get($"{category}/{name}", fallback);
@@ -79,8 +75,6 @@ namespace DarkSpire
 
         public static bool Contains(string category, string name)
             => TryGet(category, name, out _);
-
-        // ── Internal ────────────────────────────────────────────────────────
 
         private void BuildLookupIfNeeded()
         {

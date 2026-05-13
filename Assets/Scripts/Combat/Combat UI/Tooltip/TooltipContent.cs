@@ -14,8 +14,6 @@ namespace DarkSpire
 
         public bool HasHeader => !string.IsNullOrEmpty(HeaderText);
 
-        // Two-block mode kicks in whenever either passive or evoke text is set.
-        // Conditions / chance / stars leave both empty and use BodyText.
         public bool HasPassiveEvoke =>
             !string.IsNullOrEmpty(PassiveText) || !string.IsNullOrEmpty(EvokeText);
 

@@ -20,25 +20,20 @@ namespace DarkSpire
         [SerializeField] private Color disabledBg = new Color(0.30f, 0.30f, 0.30f);
         [SerializeField] private Color disabledFg = new Color(0.55f, 0.55f, 0.55f);
 
-        // ── Singleton access (lazy — works even if GO starts inactive) ─────
         private static BackButton _instance;
         public static BackButton Instance
         {
             get
             {
                 if (_instance != null) return _instance;
-                // FindAnyObjectByType replaces the now-deprecated
-                // FindFirstObjectByType — order doesn't matter for a singleton.
                 _instance = FindAnyObjectByType<BackButton>(FindObjectsInactive.Include);
                 return _instance;
             }
         }
 
-        // ── Binding state ───────────────────────────────────────────────────
         private object currentOwner;
         private Action currentHandler;
 
-        // Library fallbacks — match ButtonHoverStyleController.
         private static readonly Color FallbackNormalBg   = Color.white;
         private static readonly Color FallbackHoverBg    = Color.black;
         private static readonly Color FallbackNormalText = Color.black;
@@ -59,19 +54,11 @@ namespace DarkSpire
                 button.onClick.AddListener(HandleClick);
             }
 
-            // Subscribe so subsequent OnCombatStarts always force-close.
             if (Application.isPlaying)
                 CombatEvents.OnCombatStart += ForceClose;
 
             Apply();
 
-            // Initial closed state is owned by the scene/prefab authoring OR
-            // CombatUIBootstrap.Start (which runs after every Awake). We can't
-            // SetActive(false) here without breaking the first Bind: if the
-            // GameObject was inactive at scene init, Awake fires for the first
-            // time inside Bind's SetActive(true). A SetActive(false) inside
-            // that first Awake overrides Bind's activation and the button
-            // never appears.
         }
 
         private void OnEnable() => Apply();
@@ -89,8 +76,6 @@ namespace DarkSpire
             currentHandler = null;
             if (gameObject.activeSelf) gameObject.SetActive(false);
         }
-
-        // ─── Bind / Unbind ───────────────────────────────────────────────────
 
         public void Bind(object owner, Action onBackPressed)
         {
@@ -111,8 +96,6 @@ namespace DarkSpire
         }
 
         public bool IsBoundTo(object owner) => ReferenceEquals(currentOwner, owner);
-
-        // ─── Pointer events ──────────────────────────────────────────────────
 
         public void OnPointerEnter(PointerEventData _)
         {
@@ -138,11 +121,7 @@ namespace DarkSpire
             }
         }
 
-        // ─── Click → bound handler ──────────────────────────────────────────
-
         private void HandleClick() => currentHandler?.Invoke();
-
-        // ─── Style ───────────────────────────────────────────────────────────
 
         private void Apply()
         {
@@ -152,9 +131,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Same direction as action buttons:
-            //   Resting → ButtonNormalBG (black) + ButtonNormalText (white icon)
-            //   Hover   → ButtonHoverBG  (white) + ButtonHoverText  (black icon)
             Color bg, fg;
             if (isHovered)
             {

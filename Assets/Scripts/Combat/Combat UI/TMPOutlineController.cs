@@ -34,16 +34,12 @@ namespace DarkSpire
 
         private void OnEnable()
         {
-            // Always apply at runtime; conditionally in edit mode.
             if (Application.isPlaying || livePreviewInEditMode)
                 Apply();
         }
 
         private void OnValidate()
         {
-            // Only respond to inspector edits when the user opted in. Play mode
-            // doesn't route through OnValidate for runtime slider drives — call
-            // SetOutline / SetFaceDilate instead.
             if (livePreviewInEditMode)
                 Apply();
         }

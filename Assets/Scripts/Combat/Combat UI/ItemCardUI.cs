@@ -65,7 +65,6 @@ namespace DarkSpire
 
             if (costLabel != null) costLabel.text = ActionCostGlyph(item.actionCostType);
 
-            // Charges pill — only shown for stackable items with multiple charges.
             int charges = instance != null ? instance.charges : 1;
             bool showCharges = item.stackable && charges > 1;
             if (chargesLabel != null)
@@ -75,12 +74,9 @@ namespace DarkSpire
             }
             if (chargesContainer != null) chargesContainer.SetActive(showCharges);
 
-            // Source chip — Pouch (locked) vs Party (shared).
             if (pouchSourceIndicator != null) pouchSourceIndicator.SetActive(source == ItemSource.Pouch);
             if (partySourceIndicator != null) partySourceIndicator.SetActive(source == ItemSource.Party);
 
-            // Refusal model (mirrors SkillCardUI) — clicks fire even while
-            // disabled so the refusal speech bubble can surface.
             ActionRefusalReason refusal = user != null
                 ? user.GetItemRefusal(item)
                 : ActionRefusalReason.None;

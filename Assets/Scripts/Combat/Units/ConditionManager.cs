@@ -17,16 +17,10 @@ namespace DarkSpire
 
         public void Initialize(Unit owner) => Owner = owner;
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  Applying / removing / queries
-        // ═════════════════════════════════════════════════════════════════════
-
         public void ApplyCondition(ConditionData data, int amount, Unit source = null)
         {
             if (data == null || amount <= 0) return;
 
-            // Fire apply-event first so triggers (Artifact) can negate before
-            // the stack touches storage.
             var ctx = new ConditionApplicationContext
             {
                 target = Owner,
@@ -49,8 +43,6 @@ namespace DarkSpire
                 existing.Apply(ctx.stacks);
                 if (existing.sourceUnit == null) existing.sourceUnit = source;
                 OnConditionChanged?.Invoke(data.conditionID, existing.GetDisplayValue());
-                // Mirror to the global bus so floater spawners / VFX systems
-                // get one event regardless of which unit was affected.
                 CombatEvents.InvokeConditionApplied(Owner, data.conditionID, ctx.stacks);
             }
             else
@@ -109,10 +101,6 @@ namespace DarkSpire
                 OnConditionRemoved?.Invoke(id);
         }
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  Passive stat modifiers — summed from active conditions.
-        // ═════════════════════════════════════════════════════════════════════
-
         public float GetPassiveModifier(StatKind stat)
         {
             float total = 0f;
@@ -130,11 +118,6 @@ namespace DarkSpire
             return total;
         }
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  Trigger dispatch
-        // ═════════════════════════════════════════════════════════════════════
-
-        // Fire wrappers — one per event for call-site clarity.
         public void FireTurnStart()        => Fire(TriggerEvent.OnTurnStart, null, null);
         public void FireTurnEnd()          => Fire(TriggerEvent.OnTurnEnd, null, null);
         public void FireRoundStart()       => Fire(TriggerEvent.OnRoundStart, null, null);
@@ -157,7 +140,6 @@ namespace DarkSpire
 
         private void Fire(TriggerEvent ev, object context, Unit source)
         {
-            // Copy to avoid modification-during-iteration (triggers can apply/remove conditions)
             var snapshot = new List<ConditionInstance>(conditions.Values);
             foreach (var inst in snapshot)
             {
@@ -224,8 +206,6 @@ namespace DarkSpire
                            && (sp.skill.tags & c.tagFilter) != 0;
 
                 case ConditionalKind.IsFirstEventThisTurn:
-                    // so Vigor-style "next attack" conditions still fire (will consume
-                    // via ConsumeAll so the scale is correct after first hit).
                     return true;
             }
             return true;
@@ -317,14 +297,11 @@ namespace DarkSpire
                 case TriggerActionKind.ModifyOutgoingDamagePercent:
                     if (ctx is OutgoingDamageContext oc3)
                     {
-                        // Weak: percentValue = -0.25 → outgoing × 0.75 (floor, clamp ≥0).
-                        // Vigor-style amp would use percentValue = +0.25 → × 1.25.
                         oc3.amount = Mathf.Max(0, Mathf.FloorToInt(oc3.amount * (1f + a.percentValue)));
                         return true;
                     }
                     return false;
 
-                // ── Extended damage-modifier actions ─────────────────────────
                 case TriggerActionKind.ModifyIncomingDamagePerStack:
                     if (ctx is DamageContext dcps)
                     {
@@ -335,9 +312,6 @@ namespace DarkSpire
                 case TriggerActionKind.ModifyIncomingDamagePercentPerStack:
                     if (ctx is DamageContext dcpp)
                     {
-                        // Compound: (1 + p)^stacks. Each stack multiplies independently.
-                        // -0.25 × 3 stacks = ×0.75^3 = ×0.4219 → 42% damage taken.
-                        // +0.5  × 2 stacks = ×1.5^2  = ×2.25.
                         float mult = Mathf.Pow(1f + a.percentValue, inst.stacks);
                         dcpp.amount = Mathf.Max(0, Mathf.FloorToInt(dcpp.amount * mult));
                         return true;
@@ -346,7 +320,6 @@ namespace DarkSpire
                 case TriggerActionKind.ModifyOutgoingDamagePercentPerStack:
                     if (ctx is OutgoingDamageContext ocpp)
                     {
-                        // Compound: (1 + p)^stacks. Same shape as the incoming variant.
                         float mult = Mathf.Pow(1f + a.percentValue, inst.stacks);
                         ocpp.amount = Mathf.Max(0, Mathf.FloorToInt(ocpp.amount * mult));
                         return true;
@@ -356,12 +329,6 @@ namespace DarkSpire
                 case TriggerActionKind.CapIncomingDamageAt:
                     if (ctx is DamageContext dcCap)
                     {
-                        // Hits below the cap aren't softened — only run the
-                        // clamp when the incoming damage actually exceeds it
-                        // so afterFiring=ConsumeIfActionLanded works correctly
-                        // for "first N significant hits" patterns. We also
-                        // return false on no-op so a Slippery stack isn't
-                        // burned by a hit that already deals ≤ cap.
                         if (dcCap.amount > a.amount)
                         {
                             dcCap.amount = Mathf.Max(0, a.amount);
@@ -448,8 +415,6 @@ namespace DarkSpire
             {
                 case ActionTarget.Self:   return Owner;
                 case ActionTarget.Source: return source;
-                // Enemies/allies/random require CombatManager lineups; falling
-                // back to owner for now. Full support lands when triggers need it.
                 default: return Owner;
             }
         }
@@ -479,18 +444,8 @@ namespace DarkSpire
             }
         }
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  Legacy methods — thin shims kept for external callers during migration.
-        //  Every one of these should eventually be reachable via the trigger
-        //  system; the shims let us migrate incrementally.
-        // ═════════════════════════════════════════════════════════════════════
-
         public int ProcessPoisonTick()
         {
-            // Caller (CombatManager) previously expected damage amount returned,
-            // but the new trigger applies damage directly to Owner. Return 0 so
-            // the caller's `if (poisonDmg > 0) TakeDirectDamage(poisonDmg);`
-            // becomes a no-op — the poison trigger already hit the unit.
             FireTurnStart();
             return 0;
         }
@@ -536,8 +491,6 @@ namespace DarkSpire
             return false;
         }
 
-        // Shields helpers — now just reads on the condition instance. AbsorbDamagePerStack
-        // trigger drives the actual consumption during OnTakeDamagePre.
         public int GetShields() => GetStacks(ConditionID.Shields);
 
         public int ConsumeShields(int amount)
@@ -561,9 +514,6 @@ namespace DarkSpire
 
         public void ConsumeDodge()
         {
-            // Dodge consumption is now handled by the Dodge condition's
-            // ConsumeN StackOp on its trigger; this shim is a no-op kept so
-            // older callers don't NPE.
         }
     }
 }

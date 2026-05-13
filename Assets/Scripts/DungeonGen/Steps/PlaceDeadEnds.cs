@@ -3,8 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // extend additional dead-end branches off corridor tiles. The terminals
-    // collected here feed Step 5.5's extras pass.
     internal static class PlaceDeadEnds
     {
         private static readonly Vector2Int[] Dirs =
@@ -41,7 +39,6 @@ namespace DarkSpire
                 {
                     var p = new Vector2Int(x, y);
                     if (ctx.tiles[x, y] != TileType.Floor) continue;
-                    // Skip room interiors — only corridor floor tiles can be dead ends.
                     if (ctx.RoomAt(p).HasValue) continue;
                     if (CountFloorNeighbours(ctx, p) == 1)
                         result.Add(p);
@@ -67,7 +64,6 @@ namespace DarkSpire
             int len = ctx.rng.NextRangeInclusive(
                 ctx.config.deadEndLengthRange.x, ctx.config.deadEndLengthRange.y);
 
-            // Pick a random corridor tile (not in a room) as a branch root.
             var corridorTiles = new List<Vector2Int>();
             int w = ctx.config.gridSize.x, h = ctx.config.gridSize.y;
             for (int x = 1; x < w - 1; x++)
@@ -84,7 +80,6 @@ namespace DarkSpire
             for (int attempt = 0; attempt < 20; attempt++)
             {
                 var root = ctx.Pick(corridorTiles);
-                // Try each direction in random order.
                 var order = new List<int> { 0, 1, 2, 3 };
                 ctx.rng.Shuffle(order);
 
@@ -102,19 +97,14 @@ namespace DarkSpire
             GenContext ctx, Vector2Int root, Vector2Int dir, int len, out Vector2Int terminal)
         {
             terminal = default;
-            // Validate the entire run is in-bounds and currently wall (so we don't
-            // chew through rooms or merge into existing corridors immediately).
             for (int step = 1; step <= len; step++)
             {
                 var p = root + dir * step;
                 if (!ctx.InBounds(p)) return false;
                 if (ctx.tiles[p.x, p.y] != TileType.Wall) return false;
-                // Also reject if we'd land adjacent to an existing room — avoid
-                // accidental room-piercing.
                 if (ctx.RoomAt(p).HasValue) return false;
             }
 
-            // Carve.
             for (int step = 1; step <= len; step++)
             {
                 var p = root + dir * step;

@@ -2,13 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Locked door at the boss room entrance. Implements both IInteractable
-    // (E key tries to unlock) and IBlocker (refuses party passage while
-    // locked). Once unlocked, IsBlocking flips false and the visual swaps
-    // to bossGateOpen.
-    //
-    // keysRequired is read from EntityPlacement.intPayload, which the
-    // generator's PlaceBossGate step writes from FloorGenerationConfigSO.
     public class BossGateEntity : MapEntityBase, IInteractable, IBlocker
     {
         public bool IsBlocking => !unlocked;

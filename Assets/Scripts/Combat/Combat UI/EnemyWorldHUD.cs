@@ -96,14 +96,6 @@ namespace DarkSpire
             if (aboveRegion != null)
             {
                 var pos = aboveRegion.anchoredPosition;
-                // intentRelativeY is in WORLD units (e.g. 2.0 = 2 units above
-                // feet). Anchored position is in UGUI pixels relative to the
-                // hosting Canvas. Convert by dividing by the canvas scale —
-                // typically 0.01, giving 100 UGUI px per world unit.
-                //
-                // Pull the canvas scale from the SHARED CombatUIManager.WorldCanvas
-                // local scale for legacy HUD prefabs that still carry their own
-                // Canvas component.
                 float canvasScale = 1f;
                 if (CombatUIManager.WorldCanvas != null)
                     canvasScale = CombatUIManager.WorldCanvas.transform.localScale.x;
@@ -114,16 +106,12 @@ namespace DarkSpire
                 aboveRegion.anchoredPosition = pos;
             }
 
-            // Initial paint
             RefreshHP();
             RefreshDefense();
             RebuildConditions();
             InitializeHoverOverlay(unit);
             InitializeTierBadge(unit);
 
-            // Event wiring — every refresh path routes through IsSuppressed
-            // so HP / DEF / condition updates wait for the attacker's
-            // animation to finish before they paint to the screen.
             onDamageTakenHandler       = _ => { if (!IsSuppressed) RefreshHP(); };
             onHealReceivedHandler      = _ => { if (!IsSuppressed) RefreshHP(); };
             onDefenseChangedHandler    = v => { if (!IsSuppressed) RefreshDefense(v); };
@@ -143,11 +131,6 @@ namespace DarkSpire
             unit.conditions.OnConditionRemoved += onConditionRemovedHandler;
             unit.conditions.OnConditionChanged += onConditionChangedHandler;
 
-            // Catch-up refresh when the attached UnitDisplay lifts its
-            // suppression. HP/defense/intent ride OnUISuppressionLifted (after
-            // the lunge); condition icons ride OnConditionUISuppressionLifted
-            // (later, after damage feedback) so the icon paints with the
-            // condition floater rather than with the HP drop.
             var display = UnitDisplay.GetDisplay(unit);
             if (display != null)
             {
@@ -155,10 +138,8 @@ namespace DarkSpire
                 display.OnConditionUISuppressionLifted += HandleConditionUISuppressionLifted;
             }
 
-            // Intent bus
             CombatEvents.OnEnemyMoveSet += HandleMoveSet;
 
-            // Chance Box bootstrap
             if (chanceBox != null)
                 chanceBox.Initialize(unit);
         }
@@ -181,7 +162,6 @@ namespace DarkSpire
             var cg = GetComponent<CanvasGroup>();
             if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
 
-            // Block raycasts immediately so a fading-out HUD can't be hovered.
             cg.blocksRaycasts = false;
             cg.interactable = false;
 
@@ -228,8 +208,6 @@ namespace DarkSpire
             rt.localScale = original;
         }
 
-        // ─── Refreshers ─────────────────────────────────────────────────────
-
         private void RefreshHP()
         {
             if (linkedUnit == null) return;
@@ -268,17 +246,11 @@ namespace DarkSpire
 
         private void RefreshDefense(int _ = 0)
         {
-            // Show the unit's static defense rating (the to-hit target). This
-            // is always > 0 for a normal unit, so the badge stays visible.
-            // Shields (transient damage absorption) are now rendered in the
-            // conditions strip as a condition icon — separate concern.
             if (linkedUnit == null) return;
             int def = linkedUnit.EffectiveDEF;
             if (defBadge != null) defBadge.SetActive(def > 0);
             if (defText != null) defText.text = def > 0 ? def.ToString() : "";
         }
-
-        // ─── Intent handling ────────────────────────────────────────────────
 
         private void HandleMoveSet(Unit enemy, EnemyMove move)
         {
@@ -292,7 +264,6 @@ namespace DarkSpire
         {
             if (intentContainer == null) return;
 
-            // Clear existing icons
             for (int i = intentContainer.childCount - 1; i >= 0; i--)
                 Destroy(intentContainer.GetChild(i).gameObject);
             intentIcons.Clear();
@@ -305,8 +276,6 @@ namespace DarkSpire
                 var ui = go.GetComponent<IntentIconUI>();
                 if (ui != null)
                 {
-                    // Pass the linked unit so the icon can preview post-modifier
-                    // damage (Weak, Strength) when rendering the label.
                     ui.Bind(intents[i], linkedUnit);
                     intentIcons.Add(ui);
                 }
@@ -319,8 +288,6 @@ namespace DarkSpire
                 if (intentIcons[i] != null) intentIcons[i].Refresh();
         }
 
-        // ─── Condition strip ────────────────────────────────────────────────
-
         private void HandleConditionApplied(ConditionID id, int stacks)
         {
             if (IsConditionUISuppressed) return; // catch-up via HandleConditionUISuppressionLifted
@@ -330,8 +297,6 @@ namespace DarkSpire
                 if (icon != null) conditionIcons[id] = icon;
             }
             if (icon != null) icon.SetStacks(stacks);
-            // Conditions like Weak / Strength change outgoing damage — refresh
-            // the intent labels so the displayed damage reflects the new value.
             RefreshIntentLabels();
         }
 
@@ -354,7 +319,6 @@ namespace DarkSpire
             RefreshIntentLabels();
         }
 
-        // ── Suppression gating ────────────────────────────────────────────
         private bool IsSuppressed
         {
             get
@@ -378,9 +342,6 @@ namespace DarkSpire
         private void HandleSuppressionLifted()
         {
             if (linkedUnit == null) return;
-            // HP / defense / intent catch-up. Condition icons are handled
-            // separately via HandleConditionUISuppressionLifted so the icon
-            // paints with the condition floater, not the HP drop.
             RefreshHP();
             RefreshDefense();
             RefreshIntentLabels();
@@ -390,8 +351,6 @@ namespace DarkSpire
         {
             if (linkedUnit == null) return;
             RebuildConditions();
-            // Damage-modifying conditions (Weak/Strength) just resolved —
-            // intent labels need a re-read.
             RefreshIntentLabels();
         }
 
@@ -448,8 +407,6 @@ namespace DarkSpire
             }
         }
 
-        // ─── Combat-start intro fade ────────────────────────────────────────
-
         private CanvasGroup rootCanvasGroup;
         private Coroutine introFadeCo;
 
@@ -499,9 +456,6 @@ namespace DarkSpire
             introFadeCo = null;
         }
 
-        // ─── Tier badge (Elite / Boss) ──────────────────────────────────────
-
-        // Tier-badge palette. Mirrors the editor summary chips.
         private static readonly Color EliteTint = new(0.72f, 0.74f, 0.78f); // silver
         private static readonly Color BossTint  = new(0.78f, 0.25f, 0.30f); // crimson
 
@@ -521,8 +475,6 @@ namespace DarkSpire
             if (tierBadgeBg != null)
                 tierBadgeBg.color = data.enemyType == EnemyType.Boss ? BossTint : EliteTint;
         }
-
-        // ─── Hover name overlay ─────────────────────────────────────────────
 
         private void InitializeHoverOverlay(Unit unit)
         {

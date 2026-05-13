@@ -74,14 +74,11 @@ namespace DarkSpire
 
             elapsed += Time.deltaTime;
 
-            // Position: ease-out drift across the full lifetime (post fade-in
-            // through fade-out), so motion continues smoothly while fading.
             float driftElapsed = Mathf.Clamp(elapsed - fadeInTime, 0f, driftTime + fadeOutTime);
             float driftT = Mathf.Clamp01(driftElapsed / (driftTime + fadeOutTime));
             float driftEased = 1f - (1f - driftT) * (1f - driftT);
             transform.position = Vector3.Lerp(startScreenPos, endScreenPos, driftEased);
 
-            // Alpha: fade-in → hold → fade-out.
             if (canvasGroup != null)
             {
                 if (elapsed <= fadeInTime)

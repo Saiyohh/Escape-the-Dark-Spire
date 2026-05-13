@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Bundle of every encounter pool a floor needs, plus its roadmap
-    // annotations. EncounterManager.SetupForFloor(this) hands each pool
-    // ref to the matching Sub-Manager.
     [CreateAssetMenu(fileName = "FED_NewFloor", menuName = "DarkSpire/Encounters/Floor Encounter Data")]
     public class FloorEncounterDataSO : ScriptableObject
     {
@@ -18,7 +15,6 @@ namespace DarkSpire
         public TextEncounterPoolDataSO events;
         public TextEncounterPoolDataSO shrines;
 
-        // overrides, EM passes Sub-Manager results through unchanged.
         [Header("Roadmap (Phase 8)")]
         public FloorRoadmapAnnotationsSO annotations;
     }

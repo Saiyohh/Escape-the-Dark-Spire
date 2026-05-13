@@ -29,12 +29,8 @@ namespace DarkSpire
 
         private void Start()
         {
-            // Run-tier UI host. Normally already alive (DungeonBootstrap spawned
-            // it on entering the run); this call covers editor-only entry where
-            // the combat scene is opened directly. Idempotent.
             MenuCanvasController.GetOrCreate();
 
-            // Auto-find managers if not assigned
             if (combatManager == null)   combatManager = FindAnyObjectByType<CombatManager>();
             if (combatUIManager == null) combatUIManager = FindAnyObjectByType<CombatUIManager>();
             if (targetingSystem == null) targetingSystem = FindAnyObjectByType<TargetingSystem>();
@@ -45,10 +41,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Resolve source: encounter from payload triggers the handoff path
-            // (subscribe to OnCombatEnd, return to dungeon scene). Party may
-            // fall back to inspector since slice doesn't have party-select yet
-            // and RunContext.party is null in that case.
             CharacterData[] resolvedParty;
             EncounterSO resolvedEncounter;
             if (CombatHandoffPayload.Active.encounter != null)
@@ -79,14 +71,6 @@ namespace DarkSpire
 
             combatManager.InitializeCombat(resolvedParty, resolvedEncounter);
 
-            // Hydrate persistent HP/SP from RunContext.partyState onto the
-            // freshly-built Units. Skipped on the editor-test path (partyState
-            // is null when the combat scene was opened directly), so Units
-            // keep their default full-HP/SP from the constructor.
-            //
-            // Runs AFTER InitializeCombat so the combat-start Stars grant
-            // (Divine Right) and any other init hooks fire on full state
-            // Stars are intentionally NOT persisted (per-combat resource).
             if (CombatHandoffPayload.Active.encounter != null && RunContext.partyState != null)
             {
                 var playerUnits = combatManager.PlayerUnits;
@@ -96,8 +80,6 @@ namespace DarkSpire
                     var pm = RunContext.partyState[i];
                     if (pm == null) continue;
                     pm.ApplyTo(playerUnits[i]);
-                    // Back-reference so the Inventory helper can find this
-                    // unit's pouch without scanning partyState.
                     playerUnits[i].partyMember = pm;
                 }
             }
@@ -136,12 +118,8 @@ namespace DarkSpire
         {
             Debug.Log($"[CombatBootstrap] OnCombatEnd received (victory={victory}). " +
                       $"Returning to dungeon in {returnDelay}s.");
-            // Avoid double-fire if the event ever re-invokes for any reason.
             CombatEvents.OnCombatEnd -= HandleCombatEnd;
 
-            // Capture final HP/SP back into the persistent state so the next
-            // combat (and future dungeon healing/UI) sees the carried values.
-            // HP=0 is captured as-is — downed members carry into the dungeon.
             if (RunContext.partyState != null && combatManager != null)
             {
                 var playerUnits = combatManager.PlayerUnits;

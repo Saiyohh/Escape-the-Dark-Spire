@@ -15,9 +15,6 @@ namespace DarkSpire
                 var entry = list[i];
                 if (entry == null || entry.move == null) continue;
 
-                // Once-per-combat triggers latch after their first fire so a
-                // sustained condition (e.g. HP < 50% the rest of the fight)
-                // doesn't replace every subsequent move.
                 if (entry.oncePerCombat && enemy.firedConditionalIndices.Contains(i))
                     continue;
 

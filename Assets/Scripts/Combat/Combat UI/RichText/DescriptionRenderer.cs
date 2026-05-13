@@ -17,16 +17,10 @@ namespace DarkSpire
         private Unit caster;
         public Unit HoverTarget { get; private set; }
 
-        // Per-token cached evaluation. Indexed by token index. Only populated for
-        // ComputedNumber tokens; all other indices have default values. The
-        // dispatcher reads this when showing a NumberCalcBox so we don't re-eval
-        // on hover.
         private readonly Dictionary<int, NumberEvaluator.Result> numberResults = new();
 
-        // Per-token cached glossary entry. Same indexing as numberResults.
         private readonly Dictionary<int, KeywordGlossary.Entry> keywordEntries = new();
 
-        // Reused so we don't churn per-render allocations.
         private readonly StringBuilder sb = new(256);
 
         public TMP_Text TmpText => text;
@@ -73,8 +67,6 @@ namespace DarkSpire
             HoverTarget = null;
             Render();
         }
-
-        // ─── Public API ─────────────────────────────────────────────────────
 
         public void SetSkill(SkillData skill, Unit caster)
         {
@@ -131,8 +123,6 @@ namespace DarkSpire
             return true;
         }
 
-        // ─── Render ─────────────────────────────────────────────────────────
-
         private void Render()
         {
             if (text == null) return;
@@ -168,8 +158,6 @@ namespace DarkSpire
             }
 
             text.text = sb.ToString();
-            // ForceMeshUpdate keeps textInfo.linkInfo up to date so the
-            // dispatcher's link rect math is valid this same frame.
             text.ForceMeshUpdate();
 
             if (dispatcher != null)
@@ -232,18 +220,12 @@ namespace DarkSpire
             sb.Append("</link>");
         }
 
-        // Stable per-token-index link ID so the dispatcher can find the matching
-        // token when a link is hovered. Format: "t{index}" — short to keep
-        // textInfo allocations low; index never collides because each token is
-        // emitted at most once.
         public static string LinkIdFor(int tokenIndex) => "t" + tokenIndex.ToString(CultureInfo.InvariantCulture);
 
         public static bool TryParseLinkId(string id, out int tokenIndex)
         {
             tokenIndex = -1;
             if (string.IsNullOrEmpty(id) || id.Length < 2 || id[0] != 't') return false;
-            // Substring (not AsSpan) for compatibility with older .NET API
-            // compatibility levels — Unity 2020.x lacks Span TryParse overloads.
             return int.TryParse(id.Substring(1), NumberStyles.Integer, CultureInfo.InvariantCulture, out tokenIndex);
         }
 

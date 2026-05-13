@@ -2,9 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Runtime record of a room placed during generation. Bounds are inclusive
-    // of walls? No: bounds describes the floor-tile rectangle of the room
-    // interior. Surrounding walls are carved in the grid outside this rect.
     public struct RoomPlacement
     {
         public RoomKind kind;

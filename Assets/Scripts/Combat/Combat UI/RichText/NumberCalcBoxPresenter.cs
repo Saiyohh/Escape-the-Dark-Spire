@@ -78,7 +78,6 @@ namespace DarkSpire
             EnsureView();
             if (view == null || anchorText == null) return;
 
-            // Same target — refresh content + reposition without restarting delay.
             if (activeOwner == owner && activeKey == key)
             {
                 if (isVisible)
@@ -88,11 +87,6 @@ namespace DarkSpire
                 }
                 else
                 {
-                    // Pending show is already mid-flight for this exact target.
-                    // Just refresh the cached payload (target may have hovered
-                    // changing damage values) — don't restart the delay timer,
-                    // or every LateUpdate would reset it and the popup would
-                    // never materialize.
                     pendingResult = result;
                     pendingText = anchorText;
                     pendingLinkIdx = linkIdx;
@@ -103,7 +97,6 @@ namespace DarkSpire
 
             CancelPendingHide();
 
-            // Already visible from any source — swap instantly.
             if (isVisible)
             {
                 CancelPendingShow();
@@ -114,7 +107,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Schedule a delayed show.
             CancelPendingShow();
             pendingText = anchorText;
             pendingLinkIdx = linkIdx;

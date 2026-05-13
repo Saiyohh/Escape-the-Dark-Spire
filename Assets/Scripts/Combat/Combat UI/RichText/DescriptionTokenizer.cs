@@ -6,25 +6,11 @@ namespace DarkSpire
 {
     public static class DescriptionTokenizer
     {
-        // ═════════════════════════════════════════════════════════════════════
-        //  Skill → tokens
-        // ═════════════════════════════════════════════════════════════════════
-
         public static List<DescriptionToken> BuildSkillTokens(SkillData skill)
         {
             var tokens = new List<DescriptionToken>(16);
             if (skill == null) return tokens;
 
-            // Effects[] is the structural source of truth — it produces live
-            // computed numbers, glossary-aware keywords, and target-hover updates.
-            // Always prefer it when authored. The `description` field is treated
-            // as a fallback for skills with no effects (pure flavor / placeholder
-            // SOs), and the inline [[Keyword]] markup is honored there.
-            //
-            // If a designer wants flavor prose alongside the live mechanical
-            // text, that's a future enhancement (e.g. a separate flavor field
-            // or a flag to append). The existing description content stays in
-            // the asset; it's just no longer used when effects[] are present.
             if (skill.effects != null && skill.effects.Length > 0)
             {
                 for (int i = 0; i < skill.effects.Length; i++)
@@ -47,14 +33,9 @@ namespace DarkSpire
         {
             string tgt = TargetPhrase(e.targetMode);
             bool gated = e.gate != ConditionalGate.Always;
-            // When the effect is gated on a previous Attack/Afflict outcome AND
-            // sameTargetAsGate is true, the target was already established by the
-            // gating effect — re-stating it ("Apply X to an enemy") is noise.
             bool gateImpliesTarget = gated && e.sameTargetAsGate;
             bool selfTarget = e.targetMode == TargetMode.Self;
 
-            // Gate prefix applies to any effect type. Capitalized as a
-            // sentence-like preamble: "On hit: Apply 1 Vulnerable."
             if (gated)
             {
                 string gatePhrase = GatePhrase(e.gate);
@@ -174,8 +155,6 @@ namespace DarkSpire
                 {
                     tokens.Add(DescriptionToken.Keyword("Evoke"));
 
-                    // Names follow on-screen layout: slot 0 renders on the right
-                    // (First = rightmost), slot N-1 renders on the left (Leftmost).
                     string orbPhrase = e.evokeKind switch
                     {
                         EvokeKind.All      => " all your Orbs",
@@ -184,8 +163,6 @@ namespace DarkSpire
                     };
                     tokens.Add(DescriptionToken.Plain(orbPhrase));
 
-                    // Tail: count suffix + period. evokeCount drives Dualcast and
-                    // any future multi-fire orb skills.
                     if (e.evokeCount == 2)
                         tokens.Add(DescriptionToken.Plain(" twice."));
                     else if (e.evokeCount > 2)
@@ -247,7 +224,6 @@ namespace DarkSpire
             int n = e.conditionStacks > 0 ? e.conditionStacks : Mathf.Max(1, e.magnitude);
             int per = Mathf.Max(1, e.stackPer);
 
-            // Verb + (optional) target-bridge prose.
             if (afflict)
             {
                 tokens.Add(DescriptionToken.Keyword("Afflict"));
@@ -255,7 +231,6 @@ namespace DarkSpire
             }
             else if (selfTarget)
             {
-                // "Gain 2 Strength." reads better than "Apply 2 Strength to yourself."
                 tokens.Add(DescriptionToken.Keyword("Gain"));
                 tokens.Add(DescriptionToken.Plain(" "));
             }
@@ -265,8 +240,6 @@ namespace DarkSpire
                 tokens.Add(DescriptionToken.Plain(" "));
             }
 
-            // Stack count — Fixed kinds get a single ComputedNumber; derived kinds
-            // keep the existing prose ("X per Y damage dealt") and the X is a Number.
             switch (e.stackCountKind)
             {
                 case ConditionStackSource.Fixed:
@@ -296,7 +269,6 @@ namespace DarkSpire
             if (e.stackCountKind == ConditionStackSource.TargetStacks)
                 tokens.Add(DescriptionToken.Plain(" on target"));
 
-            // Trailer.
             if (afflict || selfTarget || gateImpliesTarget)
                 tokens.Add(DescriptionToken.Plain("."));
             else
@@ -371,7 +343,6 @@ namespace DarkSpire
             switch (e.orbSource)
             {
                 case OrbSource.TargetAlly:
-                    // "An ally channels..." — sentence-mid lowercase verb, not the keyword.
                     tokens.Add(DescriptionToken.Plain($"An ally channels {orbName}."));
                     return;
                 case OrbSource.PerEnemy:
@@ -400,16 +371,11 @@ namespace DarkSpire
             _ => "a target",
         };
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  Weapon → tokens (auto-gen header + hand-flavor)
-        // ═════════════════════════════════════════════════════════════════════
-
         public static List<DescriptionToken> BuildWeaponTokens(WeaponData weapon)
         {
             var tokens = new List<DescriptionToken>(8);
             if (weapon == null) return tokens;
 
-            // Mechanical header — generated from data fields.
             tokens.Add(DescriptionToken.Keyword("Attack"));
             tokens.Add(DescriptionToken.Plain(" for "));
             tokens.Add(DescriptionToken.MakeNumber(NumberSpec.ForAttack(weapon.baseDamage, DamageStat.POW)));
@@ -436,7 +402,6 @@ namespace DarkSpire
                 tokens.Add(DescriptionToken.Plain("."));
             }
 
-            // Hand-written flavor — parsed for [[Keyword]] markup, no numbers.
             if (!string.IsNullOrEmpty(weapon.description))
             {
                 tokens.Add(DescriptionToken.Break);
@@ -446,10 +411,6 @@ namespace DarkSpire
             return tokens;
         }
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  Condition body → tokens
-        // ═════════════════════════════════════════════════════════════════════
-
         public static List<DescriptionToken> BuildConditionTokens(ConditionData condition)
         {
             var tokens = new List<DescriptionToken>(2);
@@ -457,14 +418,6 @@ namespace DarkSpire
             ParseInlineMarkup(condition.description, tokens);
             return tokens;
         }
-
-        // ═════════════════════════════════════════════════════════════════════
-        //  Inline markup parser: [[Keyword]] and \n
-        // ═════════════════════════════════════════════════════════════════════
-        //
-        // Lightweight — recognizes only [[…]] keyword spans and converts \n
-        // into LineBreak tokens. Anything else is plain text. Numbers in prose
-        // stay plain (we never invent computed numbers from markup).
 
         public static void ParseInlineMarkup(string text, List<DescriptionToken> tokens)
         {
@@ -474,7 +427,6 @@ namespace DarkSpire
             int i = 0;
             while (i < text.Length)
             {
-                // [[Keyword]] open
                 if (i + 1 < text.Length && text[i] == '[' && text[i + 1] == '[')
                 {
                     int end = text.IndexOf("]]", i + 2);
@@ -488,7 +440,6 @@ namespace DarkSpire
                     }
                 }
 
-                // Newline
                 if (text[i] == '\n')
                 {
                     FlushPlain(sb, tokens);
@@ -510,10 +461,6 @@ namespace DarkSpire
             sb.Clear();
         }
 
-        // ═════════════════════════════════════════════════════════════════════
-        //  Token list → plain string (editor preview / fallback)
-        // ═════════════════════════════════════════════════════════════════════
-
         public static string TokensToPlainString(IReadOnlyList<DescriptionToken> tokens)
         {
             if (tokens == null) return string.Empty;
@@ -533,7 +480,6 @@ namespace DarkSpire
                         sb.Append(ResolveKeywordDisplay(t));
                         break;
                     case DescriptionTokenKind.ComputedNumber:
-                        // Editor preview emits the static formula expression.
                         sb.Append(FormulaText(t.Number));
                         break;
                 }

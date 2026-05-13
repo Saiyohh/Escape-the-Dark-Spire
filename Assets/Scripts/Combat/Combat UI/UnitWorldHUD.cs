@@ -46,7 +46,6 @@ namespace DarkSpire
         private Unit linkedUnit;
         private readonly Dictionary<ConditionID, ConditionIconUI> conditionIcons = new();
 
-        // Stored delegate refs so OnDestroy can unsubscribe cleanly.
         private Action<int> onDamageTakenHandler;
         private Action<int> onHealReceivedHandler;
         private Action onStatsChangedHandler;
@@ -60,16 +59,11 @@ namespace DarkSpire
             linkedUnit = unit;
             if (unit == null) return;
 
-            // Initial paint
             RefreshHP();
             RefreshSP();
             RebuildConditions();
             InitializeHoverOverlay(unit);
 
-            // Subscriptions (store delegates so we can unsub later). All
-            // refresh paths route through the IsSuppressed gate so HP / SP /
-            // condition-icon updates wait for the attacker's animation to
-            // finish before they paint.
             onDamageTakenHandler       = _ => { if (!IsSuppressed) RefreshHP(); };
             onHealReceivedHandler      = _ => { if (!IsSuppressed) RefreshHP(); };
             onStatsChangedHandler      = () => { if (!IsSuppressed) RefreshAll(); };
@@ -87,12 +81,6 @@ namespace DarkSpire
             unit.conditions.OnConditionRemoved += onConditionRemovedHandler;
             unit.conditions.OnConditionChanged += onConditionChangedHandler;
 
-            // Hook the linked UnitDisplay so we can do a single catch-up
-            // refresh the moment suppression lifts. HP/SP/Defense ride
-            // OnUISuppressionLifted (after the lunge); condition icons ride
-            // OnConditionUISuppressionLifted (later, after damage feedback)
-            // so the icon paints with the condition floater rather than with
-            // the HP drop.
             var display = UnitDisplay.GetDisplay(unit);
             if (display != null)
             {
@@ -101,9 +89,6 @@ namespace DarkSpire
             }
         }
 
-        // True when the attached UnitDisplay is suppressing HP/SP/Defense
-        // refreshes during an animation window. Read fresh on each event so
-        // a late-spawned HUD still picks up the current state.
         private bool IsSuppressed
         {
             get
@@ -114,9 +99,6 @@ namespace DarkSpire
             }
         }
 
-        // True when condition-icon updates are deferred during ordered
-        // playback (separate flag from IsSuppressed so the HP tween and the
-        // condition icon can paint at different beats).
         private bool IsConditionUISuppressed
         {
             get
@@ -130,16 +112,12 @@ namespace DarkSpire
         private void HandleSuppressionLifted()
         {
             if (linkedUnit == null) return;
-            // HP/SP/Defense catch-up. Condition icons are handled separately
-            // via HandleConditionUISuppressionLifted.
             RefreshAll();
         }
 
         private void HandleConditionUISuppressionLifted()
         {
             if (linkedUnit == null) return;
-            // One-pass condition rebuild covering every apply/change/remove
-            // that fired while the flag was up.
             RebuildConditions();
         }
 
@@ -171,8 +149,6 @@ namespace DarkSpire
             cg.alpha = 0f;
             gameObject.SetActive(false);
         }
-
-        // ─── Refresh helpers ────────────────────────────────────────────────
 
         private void RefreshAll()
         {
@@ -227,8 +203,6 @@ namespace DarkSpire
             if (spText != null)
                 spText.text = $"{linkedUnit.currentSP}";
         }
-
-        // ─── Condition icon strip ───────────────────────────────────────────
 
         private void HandleConditionApplied(ConditionID id, int stacks)
         {
@@ -308,8 +282,6 @@ namespace DarkSpire
             }
         }
 
-        // ─── Combat-start intro fade ────────────────────────────────────────
-
         private CanvasGroup rootCanvasGroup;
         private Coroutine introFadeCo;
 
@@ -358,8 +330,6 @@ namespace DarkSpire
             cg.interactable = true;
             introFadeCo = null;
         }
-
-        // ─── Hover name overlay ─────────────────────────────────────────────
 
         private void InitializeHoverOverlay(Unit unit)
         {

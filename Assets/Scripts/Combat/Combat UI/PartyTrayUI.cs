@@ -14,7 +14,6 @@ namespace DarkSpire
         private readonly List<PartyMemberCombatPill> pills = new();
         private bool boundOnce;
 
-        // Per-pill rank handlers, captured so we can unsubscribe cleanly.
         private readonly Dictionary<Unit, System.Action<int, int>> rankHandlers = new();
 
         private void OnEnable()
@@ -22,8 +21,6 @@ namespace DarkSpire
             CombatEvents.OnUnitTurnStart += HandleUnitTurnStart;
             CombatEvents.OnPhaseChanged  += HandlePhaseChanged;
 
-            // CombatManager.Instance.PlayerUnits may not be populated yet during
-            // scene boot — try once now, defer to first phase change otherwise.
             TryBuildPills();
         }
 
@@ -35,8 +32,6 @@ namespace DarkSpire
             UnbindAndClearPills();
             boundOnce = false;
         }
-
-        // ── Bind / build ───────────────────────────────────────────────────
 
         private void HandlePhaseChanged(CombatPhase _)
         {
@@ -60,7 +55,6 @@ namespace DarkSpire
                 pill.Bind(unit, unit.characterData);
                 pills.Add(pill);
 
-                // Per-pill rank handler — re-sort whole tray on any rank change.
                 System.Action<int, int> handler = (_, __) => ResortByRank();
                 unit.OnRankChanged += handler;
                 rankHandlers[unit] = handler;
@@ -68,7 +62,6 @@ namespace DarkSpire
 
             ResortByRank();
 
-            // Initial expansion: whoever is the active unit right now.
             var active = cm.ActiveUnit;
             if (active != null) HandleUnitTurnStart(active);
 
@@ -93,8 +86,6 @@ namespace DarkSpire
             pills.Clear();
         }
 
-        // ── Event handlers ─────────────────────────────────────────────────
-
         private void HandleUnitTurnStart(Unit u)
         {
             for (int i = 0; i < pills.Count; i++)
@@ -107,9 +98,6 @@ namespace DarkSpire
 
         private void ResortByRank()
         {
-            // Front (currentRank == 1) should be rightmost. With a default
-            // left-to-right HorizontalLayoutGroup, that means the highest
-            // sibling index. Sibling index = (count - rank).
             int count = pills.Count;
             for (int i = 0; i < pills.Count; i++)
             {

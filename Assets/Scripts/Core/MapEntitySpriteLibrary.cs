@@ -5,13 +5,8 @@ namespace DarkSpire
     [CreateAssetMenu(fileName = "MapEntitySpriteLibrary", menuName = "DarkSpire/Dungeon/Map Entity Sprite Library")]
     public class MapEntitySpriteLibrary : ScriptableObject
     {
-        // Canonical project-relative path. The DarkSpire/Map Sprites/Create
-        // Library menu both creates the asset here and registers it into
-        // PlayerSettings.preloadedAssets so Unity loads it at runtime
-        // without a Resources folder.
         public const string AssetPath = "Assets/ScriptableObjects/MapEntitySpriteLibrary.asset";
 
-        // ── Singleton access ─────────────────────────────────────────────────
         private static MapEntitySpriteLibrary _instance;
         public static MapEntitySpriteLibrary Instance
         {
@@ -89,9 +84,6 @@ namespace DarkSpire
                  "shapes; behaviorally identical (impassable).")]
         public Sprite emptyTile;
         public Sprite startTile;
-        // No 'restTile' slot: TileType.Rest renders using `campsite` since
-        // they're conceptually the same thing — the campsite IS the rest tile,
-        // and walkover triggers the "Press E to rest" interaction.
 
         [Header("Indicators")]
         public Sprite alertIndicator;

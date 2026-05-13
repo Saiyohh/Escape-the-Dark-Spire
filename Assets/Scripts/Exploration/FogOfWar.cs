@@ -2,15 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Per-tile fog overlay. Each tile gets a black SpriteRenderer whose alpha
-    // is driven by:
-    //   - inside sight radius (with soft falloff)  -> 0 (fully clear)
-    //   - previously revealed but not currently lit -> revealedAlpha (~0.3)
-    //   - never seen                                -> 1 (fully obscured)
-    //
-    // Drawn above floors and entities (sortingOrder 10) so it visually masks
-    // entities in unseen tiles for free. Reveal does not require line-of-sight
-    // through walls — circular radius only, per the GDD Exploration spec.
     public class FogOfWar : MonoBehaviour
     {
         [SerializeField] private int sortingOrder = 10;
@@ -42,8 +33,6 @@ namespace DarkSpire
             BuildOverlay();
         }
 
-        // Read-only accessors for downstream consumers (e.g. Minimap) that want
-        // to know what's been seen without holding a ref to the raw bool[,].
         public Vector2Int GridSize =>
             floor != null ? floor.gridSize : Vector2Int.zero;
 
@@ -64,18 +53,11 @@ namespace DarkSpire
 
             float inner = Mathf.Max(0f, sightRadius - falloffWidth);
 
-            // Bound the iteration to a square around the party — saves work on
-            // big grids (45x45) without changing the visible result.
             int margin = Mathf.CeilToInt(sightRadius) + 1;
             int xMin = Mathf.Max(0, partyTile.x - margin);
             int xMax = Mathf.Min(w - 1, partyTile.x + margin);
             int yMin = Mathf.Max(0, partyTile.y - margin);
             int yMax = Mathf.Min(h - 1, partyTile.y + margin);
-
-            // resting alpha (revealed or unseen) — only needed once on first
-            // call when the box is small. Cheap to always do; bail out if not.
-            // Optimization deferred: most floors will iterate the full grid
-            // once on first reveal, then only the local box thereafter.
 
             for (int x = 0; x < w; x++)
             {
@@ -89,9 +71,6 @@ namespace DarkSpire
                         float dy = y - partyTile.y;
                         float d = Mathf.Sqrt(dx * dx + dy * dy);
 
-                        // In pure-vision mode, tiles inside the radius lerp from
-                        // 0 -> 1 across the falloff band. In persistRevealed mode,
-                        // they lerp 0 -> revealedAlpha and stay dimmed afterward.
                         float outsideAlpha = persistRevealed && revealed[x, y] ? revealedAlpha : 1f;
 
                         if (d <= inner)
@@ -137,8 +116,6 @@ namespace DarkSpire
             fogTiles = null;
             revealed = null;
         }
-
-        // ------------------------------------------------------------------
 
         private void BuildOverlay()
         {

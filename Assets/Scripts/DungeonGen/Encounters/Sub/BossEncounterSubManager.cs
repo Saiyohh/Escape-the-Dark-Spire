@@ -2,8 +2,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // One boss per floor. Picked at floor setup, locked for the run on this
-    // floor, fired exactly once via GetNext. No reshuffle path.
     public class BossEncounterSubManager : IEncounterSubManager
     {
         private EncounterSO selectedBoss;

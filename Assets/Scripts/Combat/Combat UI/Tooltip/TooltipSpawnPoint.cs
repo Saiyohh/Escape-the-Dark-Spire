@@ -38,9 +38,6 @@ namespace DarkSpire
                  "Ignored when the anchor is a RectTransform.")]
         [SerializeField] private Camera worldAnchorCamera;
 
-        // Insertion-ordered stack of (owner, view) pairs. Owners are arbitrary
-        // objects — typically TooltipTrigger instances. Layout walks this in
-        // order to position each tooltip.
         private readonly List<Entry> stack = new();
 
         private struct Entry
@@ -62,7 +59,6 @@ namespace DarkSpire
 
         public void ShowFor(object owner, TooltipContent content)
         {
-            // Update existing.
             for (int i = 0; i < stack.Count; i++)
             {
                 if (ReferenceEquals(stack[i].owner, owner))
@@ -75,7 +71,6 @@ namespace DarkSpire
                 }
             }
 
-            // Allocate a fresh view.
             var ctrl = TooltipController.Instance;
             if (ctrl == null)
             {
@@ -95,11 +90,6 @@ namespace DarkSpire
             if (TooltipController.Verbose)
                 Debug.Log($"[Tooltip] SpawnPoint '{name}' added view (stack size now {stack.Count})", this);
             Layout();
-            // Fade-in happens AFTER Layout so the panel's first visible
-            // frame is already at the correct screen position. Only fires
-            // on a fresh add — content updates on existing entries (the
-            // top-of-method early return) don't replay the fade, and
-            // LateUpdate's per-frame Layout calls don't either.
             view.PlayFadeIn();
         }
 
@@ -130,23 +120,16 @@ namespace DarkSpire
 
         private void OnDisable()
         {
-            // Free pooled views — don't leak across scene unloads or
-            // container deactivation.
             HideAll();
         }
 
         private void LateUpdate()
         {
-            // Cheap re-layout each frame while visible — handles anchors that
-            // move at runtime (orb tray rides along when rank shifts pull the
-            // bearer's UnitDisplay between rank positions). When nothing is
-            // visible, this is a no-op.
             if (stack.Count > 0) Layout();
         }
 
         private void Layout()
         {
-            // Drop any null views first (released externally / destroyed).
             for (int i = stack.Count - 1; i >= 0; i--)
                 if (stack[i].view == null) stack.RemoveAt(i);
 
@@ -161,13 +144,9 @@ namespace DarkSpire
                 var view = stack[i].view;
                 if (view == null || view.PanelRoot == null) continue;
 
-                // Force layout so we read the current preferred size.
                 LayoutRebuilder.ForceRebuildLayoutImmediate(view.PanelRoot);
                 Vector2 size = view.PanelRoot.rect.size;
 
-                // Add gap before this tooltip; first iteration uses one gap
-                // between anchor and tooltip 0. Then offset by half-height
-                // because the panel pivot is centered.
                 yOffset += gap;
                 float screenY = anchorScreen.y + yDir * (yOffset + size.y * 0.5f);
 
@@ -189,7 +168,6 @@ namespace DarkSpire
 
         private Vector2 ProjectAnchorToScreen()
         {
-            // RectTransform path — find its canvas + camera.
             if (Anchor is RectTransform rt)
             {
                 var canvas = rt.GetComponentInParent<Canvas>();
@@ -199,7 +177,6 @@ namespace DarkSpire
                 return RectTransformUtility.WorldToScreenPoint(cam, rt.position);
             }
 
-            // World-space path — main camera (or override).
             var worldCam = worldAnchorCamera != null ? worldAnchorCamera : Camera.main;
             if (worldCam == null) return Vector2.zero;
             return worldCam.WorldToScreenPoint(Anchor.position);

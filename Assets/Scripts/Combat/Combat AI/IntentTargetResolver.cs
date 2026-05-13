@@ -26,9 +26,6 @@ namespace DarkSpire
 
     public static class IntentTargetResolver
     {
-        // Reused across calls to avoid per-hover allocation. Cleared at the
-        // top of Resolve(). Not thread-safe — single-threaded UI is the only
-        // caller.
         private static readonly List<Unit> _selectedScratch = new();
         private static readonly List<Unit> _expandedScratch = new();
         private static readonly Dictionary<Unit, EntryBuilder> _dedupe = new();
@@ -53,9 +50,6 @@ namespace DarkSpire
             if (source == null || intent == null || intent.effects == null) return;
             if (playerUnits == null || playerUnits.Count == 0) return;
 
-            // Read the primary target locked in at intent-set time so the
-            // preview shows the same player the resolver will actually hit.
-            // Fall back to a live pick only if locking didn't happen.
             var primary = ResolveLockedPrimary(source, intent, playerUnits);
             _selectedScratch.Clear();
             if (primary != null) _selectedScratch.Add(primary);
@@ -67,8 +61,6 @@ namespace DarkSpire
                 var effect = intent.effects[i];
                 if (effect == null) continue;
 
-                // Skip effects that don't threaten players. Self / AllAllies /
-                // SingleAlly on an enemy = the enemy's own side (other enemies).
                 var mode = effect.targetMode;
                 if (mode == TargetMode.Self
                     || mode == TargetMode.AllAllies
@@ -80,9 +72,6 @@ namespace DarkSpire
                 bool isAfflict = effect.AppliesCondition && effect.conditionStacks > 0;
                 if (!isAttack && !isAfflict) continue;
 
-                // Restrict afflicts to debuffs — enemies "afflicting" a player
-                // with a positive condition isn't danger. Mirrors the old
-                // ChanceBox.ResolveAfflictTint debuff filter.
                 if (isAfflict && lib != null)
                 {
                     var condData = lib.Get(effect.conditionID);
@@ -90,10 +79,6 @@ namespace DarkSpire
                 }
                 if (!isAttack && !isAfflict) continue;
 
-                // Expand TargetMode → unit list. ResolveTargets handles
-                // AllEnemies (=> all alive players when caster is the enemy),
-                // SingleEnemy (=> the primary we pre-picked), RandomEnemy
-                // (=> picks one at random; preview is optimistic).
                 _expandedScratch.Clear();
                 var resolved = SkillResolver.ResolveTargets(
                     mode, source, _selectedScratch, playerUnits, enemyUnits,

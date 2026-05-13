@@ -30,9 +30,6 @@ namespace DarkSpire
         [Tooltip("Duration of the HP-bar value lerp on damage/heal. Mirrors UnitWorldHUD.")]
         [SerializeField] private float hpTweenDuration = 0.3f;
 
-        // EXP placeholder — PartyMemberRuntime has no xp field yet, so the bar
-        // is wired and visible but always renders at zero. Kept editable so the
-        // designer can preview a non-zero state if they want to.
         [Header("EXP Stub")]
         [SerializeField] private int expCurrentStub = 0;
         [SerializeField] private int expMaxStub     = 100;
@@ -44,12 +41,9 @@ namespace DarkSpire
         private Coroutine hpTweenCo;
         private Coroutine maskTweenCo;
 
-        // Cached event handlers so we can unsubscribe cleanly.
         private System.Action<int> onDamageHandler;
         private System.Action<int> onHealHandler;
         private System.Action      onStatsHandler;
-
-        // ── Public API ─────────────────────────────────────────────────────
 
         public void Bind(Unit unit, CharacterData data)
         {
@@ -73,8 +67,6 @@ namespace DarkSpire
                 unit.OnStatsChanged += onStatsHandler;
             }
 
-            // Snap to collapsed by default; PartyTrayUI calls SetExpanded for
-            // the active unit immediately after binding.
             SetExpanded(false, animate: false);
         }
 
@@ -119,8 +111,6 @@ namespace DarkSpire
 
         private void OnDestroy() => Unbind();
 
-        // ── Portrait wiring ────────────────────────────────────────────────
-
         private void ApplyPortrait()
         {
             if (portrait == null || boundData == null) return;
@@ -134,8 +124,6 @@ namespace DarkSpire
             rt.localScale = new Vector3(s, s, 1f);
             rt.anchoredPosition = boundData.partyTrayPortraitOffset;
         }
-
-        // ── Refresh helpers (mirror UnitWorldHUD pattern) ──────────────────
 
         private void RefreshHP(bool animate)
         {
@@ -187,8 +175,6 @@ namespace DarkSpire
             if (expLabel != null)
                 expLabel.text = $"{cur}/{max}";
         }
-
-        // ── Coroutines ─────────────────────────────────────────────────────
 
         private IEnumerator TweenHpBar(float from, float to, float duration)
         {

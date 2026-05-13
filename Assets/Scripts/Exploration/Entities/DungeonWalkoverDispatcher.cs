@@ -3,14 +3,6 @@ using UnityEngine;
 
 namespace DarkSpire
 {
-    // Subscribes to PartyToken.OnPlaced + OnMoved and triggers:
-    //   - IWalkOver entities at the party's new tile (key pickup, gold pile)
-    //   - TileType.Stairway -> Floor advance (gated by bossDefeated flag)
-    //
-    // Rest tiles are intentionally NOT auto-triggered here — they're consumed
-    // via DungeonInteractor's E-press at the party's own tile so the player
-    // can walk past one without spending it. Phase 11 adds an above-tile
-    // button prompt (icon + text) when standing on a rest tile.
     public class DungeonWalkoverDispatcher : MonoBehaviour
     {
         [SerializeField] private PartyToken token;
@@ -25,8 +17,6 @@ namespace DarkSpire
         private readonly HashSet<Vector2Int> usedRestTiles = new();
         private bool bossDefeated;
 
-        // Reusable buffer for snapshot iteration (walkover handlers may
-        // unregister themselves mid-iteration).
         private readonly List<IDungeonEntity> buffer = new();
 
         public void Bind(PartyToken token, DungeonRegistry registry, GeneratedFloorData floor)
@@ -38,8 +28,6 @@ namespace DarkSpire
             usedRestTiles.Clear();
             bossDefeated = false;
 
-            // Resume: hydrate from RunStateHolder so previously-used rest tiles
-            // and a defeated boss carry over from before combat.
             var holder = RunStateHolder.Instance;
             if (holder != null)
             {
@@ -93,9 +81,6 @@ namespace DarkSpire
                     {
                         Debug.Log("[Stairway] Floor cleared.");
                         DungeonEvents.InvokeFloorAdvance();
-                        // boss is the Victory trigger. Multi-floor handling
-                        // (next floor vs. final floor) lands when floors 2+
-                        // ship.
                         SceneFlow.LoadVictory();
                     }
                     else
@@ -106,8 +91,6 @@ namespace DarkSpire
             }
         }
 
-        // Called by DungeonInteractor when E is pressed and no entity claims it.
-        // Returns true if a tile-based interaction fired.
         public bool TryTileInteract(Vector2Int pos)
         {
             if (floor == null || !floor.InBounds(pos)) return false;
@@ -117,14 +100,9 @@ namespace DarkSpire
                 RunStateHolder.Instance?.usedRestTiles.Add(pos);
                 Debug.Log($"[Rest] Used rest tile at {pos}.");
 
-                // Open the modal Rest Menu — buttons handle the actual heal,
-                // revive, and per-member toast feedback. Tile is consumed
-                // regardless of which button the player picks (consume on open).
                 var menu = RestMenu.Instance ?? RestMenu.GetOrCreate();
                 menu?.Open(pos);
 
-                // Remove the campsite overlay so the tile reads as a regular
-                // Floor going forward.
                 if (floorRenderer != null) floorRenderer.MarkRestUsed(pos);
                 return true;
             }

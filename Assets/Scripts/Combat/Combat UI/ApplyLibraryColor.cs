@@ -32,8 +32,6 @@ namespace DarkSpire
             if (target == null) target = GetComponent<Graphic>();
             if (textTarget == null) textTarget = GetComponent<TMP_Text>();
 
-            // Fallback to the existing color so a missing library / key doesn't
-            // silently flash white over authored prefab colors.
             Color fallback = target != null ? target.color
                              : textTarget != null ? textTarget.color
                              : Color.white;

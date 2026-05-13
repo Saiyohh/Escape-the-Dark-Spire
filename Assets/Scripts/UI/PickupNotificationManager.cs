@@ -23,8 +23,6 @@ namespace DarkSpire
         [SerializeField] private float lifeSeconds = 2.6f;
         [SerializeField] private float fadeOutSeconds = 0.5f;
 
-        // ─── Public API ──────────────────────────────────────────────────────
-
         public static PickupNotificationManager GetOrCreate()
         {
             if (Instance != null) return Instance;
@@ -47,8 +45,6 @@ namespace DarkSpire
                 ShowPickup(text, icon);
         }
 
-        // ─── Lifecycle ───────────────────────────────────────────────────────
-
         private void Awake()
         {
             if (Instance != null && Instance != this)
@@ -65,15 +61,12 @@ namespace DarkSpire
             if (Instance == this) Instance = null;
         }
 
-        // ─── Row build + fade ────────────────────────────────────────────────
-
         private GameObject BuildRow(string text, Sprite icon)
         {
             GameObject row;
             if (toastPrefab != null)
             {
                 row = Instantiate(toastPrefab, stackContainer);
-                // Best-effort wire: find an Image and a TMP_Text child by type.
                 var img = row.GetComponentInChildren<Image>(true);
                 var tmp = row.GetComponentInChildren<TMP_Text>(true);
                 if (img != null) img.sprite = icon;
@@ -89,7 +82,6 @@ namespace DarkSpire
 
         private IEnumerator LifecycleAndDestroy(GameObject row)
         {
-            // Hold full opacity for the bulk of the lifetime, then fade.
             float hold = Mathf.Max(0.05f, lifeSeconds - fadeOutSeconds);
             yield return new WaitForSeconds(hold);
 
@@ -106,16 +98,12 @@ namespace DarkSpire
             Destroy(row);
         }
 
-        // ─── Runtime fallback (no Resources prefab) ──────────────────────────
-
         private static GameObject BuildRuntimeFallback()
         {
             var go = new GameObject("PickupNotifications");
 
             var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            // Below the scene-transition overlay (1000) and pause menu (800),
-            // above the standard combat HUD.
             canvas.sortingOrder = 700;
 
             var scaler = go.AddComponent<CanvasScaler>();
@@ -124,7 +112,6 @@ namespace DarkSpire
             scaler.matchWidthOrHeight = 0.5f;
             go.AddComponent<GraphicRaycaster>();
 
-            // Stack container — top-right of the screen, grows downward.
             var stack = new GameObject("Stack");
             stack.transform.SetParent(go.transform, false);
             var stackRT = stack.AddComponent<RectTransform>();
@@ -169,7 +156,6 @@ namespace DarkSpire
             hlg.childControlHeight = true;
             hlg.childForceExpandWidth = false;
 
-            // Icon (optional)
             if (icon != null)
             {
                 var iconGO = new GameObject("Icon");

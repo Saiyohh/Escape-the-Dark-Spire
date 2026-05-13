@@ -28,28 +28,23 @@ namespace DarkSpire
             int oldRank = mover.currentRank;
             if (clamped == oldRank) return oldRank;
 
-            // Direction of travel (-1 = toward front, +1 = toward back)
             int step = clamped > oldRank ? 1 : -1;
 
             foreach (var u in sideLineup)
             {
                 if (u == null || u == mover) continue;
                 int r = u.currentRank;
-                // Is this unit strictly between old and new rank?
                 bool between =
                     (step > 0 && r > oldRank && r <= clamped) ||
                     (step < 0 && r < oldRank && r >= clamped);
                 if (!between) continue;
 
-                // Shift this unit TOWARD the mover's old position (opposite step).
                 u.SetRank(r - step);
             }
 
             mover.SetRank(clamped);
             return clamped;
         }
-
-        // ── Convenience wrappers matching the GDD's movement keywords ──────────
 
         public static int Advance(List<Unit> sideLineup, Unit mover, int steps)
             => MoveUnit(sideLineup, mover, mover.currentRank - Mathf.Max(0, steps));

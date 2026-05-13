@@ -3,10 +3,6 @@ using UnityEngine.InputSystem;
 
 namespace DarkSpire
 {
-    // Toggle with F9. Shows the active floor's seed, the EncounterManager
-    // sub-manager queue depths, and the DungeonManager's annotation list.
-    // Reads exclusively via DungeonManager.PeekRoadmap / PeekSub — gameplay
-    // code is never queried directly. Render is IMGUI for editor-debug speed.
     public class DungeonDebugOverlay : MonoBehaviour
     {
         [SerializeField] private bool showOnStart = false;

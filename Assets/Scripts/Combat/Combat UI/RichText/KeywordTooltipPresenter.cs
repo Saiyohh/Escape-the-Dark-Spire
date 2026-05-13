@@ -73,11 +73,6 @@ namespace DarkSpire
                 Debug.Log($"[KeywordTooltip] Show key='{entry.key}' isRefresh={isRefresh} " +
                           $"hasActiveView={(activeView != null)} sameOwnerKey={(activeOwner == owner && activeKey == key)}", this);
 
-            // Same owner + same key: refresh content + reposition without
-            // restarting the delay. Crucial — LateUpdate calls Show() every
-            // frame the cursor stays on the same link, and resetting the
-            // pending-show coroutine each frame would prevent the tooltip from
-            // ever materializing.
             if (activeOwner == owner && activeKey == key)
             {
                 if (activeView != null)
@@ -95,11 +90,8 @@ namespace DarkSpire
                 return;
             }
 
-            // New target: cancel any pending hide; cancel any pending show that
-            // was for a different anchor.
             CancelPendingHide();
 
-            // If a popup is already visible, swap content + position instantly.
             if (activeView != null)
             {
                 CancelPendingShow();
@@ -110,7 +102,6 @@ namespace DarkSpire
                 return;
             }
 
-            // Nothing visible yet — schedule a delayed show, or instant if delay is 0.
             float delay = ShowDelay;
             CancelPendingShow();
             pendingText = anchorText;
@@ -131,7 +122,6 @@ namespace DarkSpire
 
             if (activeView == null)
             {
-                // Pending show was cancelled before it materialized.
                 activeOwner = null;
                 activeKey = -1;
                 return;
@@ -234,10 +224,6 @@ namespace DarkSpire
             string body = glossary != null ? glossary.GetDescription(entry) : entry.description;
             Sprite icon = glossary != null ? glossary.GetIcon(entry) : entry.icon;
 
-            // Condition-linked entries: resolve {X}/{stacks}/{total} placeholders
-            // in the body via the SO data. Skill-description hovers have no live
-            // unit context, so stacks defaults to 0 — {X} still substitutes
-            // correctly for "Increases DEF by 1 for this round."-style rule text.
             if (entry.isConditionLinked && ConditionLibrary.Instance != null)
             {
                 var data = ConditionLibrary.Instance.Get(entry.linkedCondition);
@@ -253,11 +239,9 @@ namespace DarkSpire
             if (view == null || text == null) return;
             if (linkIdx < 0 || linkIdx >= text.textInfo.linkInfo.Length) return;
 
-            // Compute the link's screen-space mid-top point.
             if (!LinkRectMath.TryGetLinkScreenMidTop(text, linkIdx, out Vector2 screenMidTop))
                 return;
 
-            // Force a layout pass so PanelRoot.rect.height is accurate.
             Canvas.ForceUpdateCanvases();
             float halfH = view.PanelRoot != null ? view.PanelRoot.rect.height * 0.5f : 32f;
 
