@@ -62,7 +62,16 @@ namespace DarkSpire
                 return;
             }
 
-            switch (intent.intentType)
+            // Authored type wins, but auto-resolve when it doesn't match the
+            // effects (e.g. a buff-style intent left at the default Attack
+            // enum value would otherwise show an attack icon with an empty
+            // label — confusing). InferTypeFromEffects scans the effect list
+            // and picks the best category.
+            var displayType = intent.intentType;
+            if (!TypeMatchesEffects(displayType, intent.effects))
+                displayType = InferTypeFromEffects(intent.effects);
+
+            switch (displayType)
             {
                 case EnemyIntentType.Attack:
                     SetIcon(attackIcon);
@@ -89,6 +98,91 @@ namespace DarkSpire
                     if (label != null) label.text = "?";
                     break;
             }
+        }
+
+        /// <summary>
+        /// True if the authored intent type produces a meaningful label for
+        /// the given effect chain — i.e. Attack has at least one Attack effect,
+        /// Guard has a Shields apply, Buff/Debuff have any condition applies.
+        /// When this returns false we fall back to InferTypeFromEffects so the
+        /// icon and label stay in sync.
+        /// </summary>
+        private static bool TypeMatchesEffects(EnemyIntentType type, SkillEffectData[] effects)
+        {
+            if (effects == null || effects.Length == 0) return true; // nothing to check
+
+            switch (type)
+            {
+                case EnemyIntentType.Attack:
+                    for (int i = 0; i < effects.Length; i++)
+                        if (effects[i] != null && effects[i].effectType == SkillEffectType.Attack)
+                            return true;
+                    return false;
+
+                case EnemyIntentType.Guard:
+                    for (int i = 0; i < effects.Length; i++)
+                    {
+                        var e = effects[i];
+                        if (e == null) continue;
+                        bool isShields = e.conditionID == ConditionID.Shields
+                            && (e.effectType == SkillEffectType.Apply
+                                || e.effectType == SkillEffectType.ApplyCondition);
+                        if (isShields) return true;
+                    }
+                    return false;
+
+                case EnemyIntentType.Buff:
+                case EnemyIntentType.Debuff:
+                    for (int i = 0; i < effects.Length; i++)
+                        if (effects[i] != null && effects[i].AppliesCondition)
+                            return true;
+                    return false;
+
+                default:
+                    return true; // Unknown / Skill / Stunned: accept whatever
+            }
+        }
+
+        /// <summary>
+        /// Pick the most appropriate display type by inspecting the effects.
+        /// Priority: Attack &gt; Guard (shields) &gt; Debuff (condition on enemy
+        /// of source) &gt; Buff (condition on ally/self).
+        /// </summary>
+        private static EnemyIntentType InferTypeFromEffects(SkillEffectData[] effects)
+        {
+            if (effects == null || effects.Length == 0) return EnemyIntentType.Unknown;
+
+            bool hasAttack = false;
+            bool hasShieldsSelf = false;
+            bool hasAllyCondition = false;
+            bool hasEnemyCondition = false;
+
+            for (int i = 0; i < effects.Length; i++)
+            {
+                var e = effects[i];
+                if (e == null) continue;
+
+                if (e.effectType == SkillEffectType.Attack) { hasAttack = true; continue; }
+
+                if (e.AppliesCondition)
+                {
+                    bool selfOrAlly = e.targetMode == TargetMode.Self
+                                   || e.targetMode == TargetMode.SingleAlly
+                                   || e.targetMode == TargetMode.AllAllies;
+                    if (e.conditionID == ConditionID.Shields && selfOrAlly)
+                        hasShieldsSelf = true;
+                    else if (selfOrAlly)
+                        hasAllyCondition = true;
+                    else
+                        hasEnemyCondition = true;
+                }
+            }
+
+            if (hasAttack)          return EnemyIntentType.Attack;
+            if (hasShieldsSelf)     return EnemyIntentType.Guard;
+            if (hasEnemyCondition)  return EnemyIntentType.Debuff;
+            if (hasAllyCondition)   return EnemyIntentType.Buff;
+            return EnemyIntentType.Unknown;
         }
 
         /// <summary>

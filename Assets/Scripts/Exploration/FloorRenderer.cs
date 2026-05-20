@@ -117,6 +117,16 @@ namespace DarkSpire
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sortingOrder = sortingOrder;
             ApplySprite(sr, type);
+
+            // Stairway gets a hover tooltip explaining the win condition. The
+            // boss-gate-on-stairway overlap is hidden by the gate's own sprite
+            // (Z+1), so the underlying tile's hover doesn't fight the gate's.
+            if (type == TileType.Stairway)
+            {
+                var info = MapTooltipCatalog.Stairway;
+                var hover = go.AddComponent<MapEntityHoverTrigger>();
+                hover.Setup(info.Name, info.Description, info.Icon);
+            }
         }
 
         private void ApplySprite(SpriteRenderer sr, TileType type)
@@ -188,12 +198,32 @@ namespace DarkSpire
             {
                 sr.sprite = campsiteSprite;
                 sr.color = Color.white;
+                // Apply the per-icon scale from the library if set.
+                float scale = lib != null ? lib.scales.campsite : 1f;
+                if (scale != 1f) go.transform.localScale = new Vector3(scale, scale, 1f);
             }
             else
             {
                 sr.sprite = whiteSprite;
                 sr.color = RestTint;
             }
+
+            // "[E] Rest" prompt that shows only while the party is standing on
+            // this tile (rest is consumed from the party's own position, not
+            // from an adjacent neighbour). The overlay GameObject is destroyed
+            // by MarkRestUsed when the rest is used, so the indicator dies
+            // with it automatically.
+            InteractPromptIndicator.AttachTo(
+                go.transform,
+                pos,
+                () => "[E] Rest",
+                InteractPromptIndicator.Range.OwnTile,
+                sortingOrder + 3);
+
+            // Hover tooltip explaining what the campsite does.
+            var info = MapTooltipCatalog.Rest;
+            var hover = go.AddComponent<MapEntityHoverTrigger>();
+            hover.Setup(info.Name, info.Description, info.Icon);
 
             restOverlays[pos] = go;
         }

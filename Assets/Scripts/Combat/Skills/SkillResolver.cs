@@ -203,6 +203,17 @@ namespace DarkSpire
             // condition, the next iteration finds nothing to fire.
             var gateState = new Dictionary<Unit, GateState>();
 
+            // Random-target lock per skill cast. Without this, a skill that
+            // authors multiple Attack effects with TargetMode.RandomEnemy
+            // (e.g. "Hit 3 random times for 4") would roll a NEW target for
+            // each effect. The intended semantics is "pick once, hit N times" —
+            // matching what a single Attack effect with hitCount = N already
+            // does naturally. We hold onto the first random pick and reuse it
+            // for every subsequent RandomEnemy effect in this cast. If the
+            // cached target dies mid-skill, the next RandomEnemy effect falls
+            // back to a fresh roll.
+            Unit cachedRandomEnemy = null;
+
             int effectIdx = 0;
             int loopIters = 0;
             while (effectIdx < skill.effects.Length && loopIters <= MaxLoopIterations)
@@ -217,9 +228,13 @@ namespace DarkSpire
                     gateState.Clear();
                 }
 
-                // Resolve the target set for this effect.
-                List<Unit> effectTargets = BuildEffectTargets(
-                    effect, caster, targets, allPlayerUnits, allEnemyUnits, gateState);
+                // Resolve the target set for this effect. RandomEnemy is
+                // routed through a cache so multiple RandomEnemy effects in
+                // the same cast lock onto the same target — see
+                // cachedRandomEnemy above.
+                List<Unit> effectTargets = BuildEffectTargetsWithRandomLock(
+                    effect, caster, targets, allPlayerUnits, allEnemyUnits,
+                    gateState, ref cachedRandomEnemy);
 
                 int producedBefore = results.Count;
 
@@ -380,6 +395,43 @@ namespace DarkSpire
         ///     gate acts as a global "did this outcome happen anywhere?" check
         ///     ("OnKill: Attack another enemy").
         /// </summary>
+        /// <summary>
+        /// Wraps BuildEffectTargets with a per-cast lock on RandomEnemy picks.
+        /// Skills with multiple TargetMode.RandomEnemy effects should hit one
+        /// target across all of them (e.g. "Strike a random enemy three times")
+        /// — without this, each effect rolls its own random target. The lock
+        /// is cleared if the cached target dies mid-cast so a follow-up effect
+        /// after a kill can still resolve.
+        /// </summary>
+        private static List<Unit> BuildEffectTargetsWithRandomLock(
+            SkillEffectData effect, Unit caster,
+            List<Unit> selectedTargets, List<Unit> allPlayers, List<Unit> allEnemies,
+            Dictionary<Unit, GateState> gateState, ref Unit cachedRandomEnemy)
+        {
+            // sameTargetAsGate routes through gateState explicitly — the cache
+            // shouldn't bypass that contract.
+            bool gateRouted = effect.gate != ConditionalGate.Always && effect.sameTargetAsGate;
+            if (effect.targetMode == TargetMode.RandomEnemy && !gateRouted)
+            {
+                if (cachedRandomEnemy != null && cachedRandomEnemy.IsAlive)
+                    return new List<Unit> { cachedRandomEnemy };
+
+                // First random-pick in this cast (or the previous pick died).
+                // Roll fresh and cache.
+                bool casterIsPlayer = caster.isPlayerControlled;
+                var pool = casterIsPlayer ? allEnemies : allPlayers;
+                var alive = new List<Unit>();
+                for (int i = 0; i < pool.Count; i++)
+                    if (pool[i] != null && pool[i].IsAlive) alive.Add(pool[i]);
+                if (alive.Count == 0) return new List<Unit>();
+
+                cachedRandomEnemy = alive[Random.Range(0, alive.Count)];
+                return new List<Unit> { cachedRandomEnemy };
+            }
+
+            return BuildEffectTargets(effect, caster, selectedTargets, allPlayers, allEnemies, gateState);
+        }
+
         private static List<Unit> BuildEffectTargets(
             SkillEffectData effect, Unit caster,
             List<Unit> selectedTargets, List<Unit> allPlayers, List<Unit> allEnemies,
@@ -1075,6 +1127,12 @@ namespace DarkSpire
 
             var gateState = new Dictionary<Unit, GateState>();
 
+            // Lock the random pick across all RandomEnemy effects in this
+            // single intent — same contract as ResolveSkill (see comments
+            // there). Without this, an enemy authored as
+            // "Attack random target ×3" would hit three different players.
+            Unit cachedRandomEnemy = null;
+
             int effectIdx = 0;
             int loopIters = 0;
             while (effectIdx < intent.effects.Length && loopIters <= MaxLoopIterations)
@@ -1089,8 +1147,9 @@ namespace DarkSpire
                     gateState.Clear();
                 }
 
-                List<Unit> effectTargets = BuildEffectTargets(
-                    effect, caster, baseTargets, allPlayerUnits, allEnemyUnits, gateState);
+                List<Unit> effectTargets = BuildEffectTargetsWithRandomLock(
+                    effect, caster, baseTargets, allPlayerUnits, allEnemyUnits,
+                    gateState, ref cachedRandomEnemy);
 
                 int producedBefore = results.Count;
 

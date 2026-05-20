@@ -15,7 +15,7 @@ MonoBehaviour:
   enemyName: Vantom
   combatSprite: {fileID: 21300000, guid: 22fdb6087f8ad914185b860961fe9ac9, type: 3}
   enemyType: 2
-  mapIcon: {fileID: 21300000, guid: e3b9ded3fc5580a458b3faae518dbc11, type: 3}
+  mapIcon: {fileID: 21300000, guid: 8c7f4484f78ef17429228153bbbc5837, type: 3}
   displayPrefab: {fileID: 0}
   minHP: 145
   maxHP: 145

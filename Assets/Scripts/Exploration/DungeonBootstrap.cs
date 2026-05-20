@@ -83,11 +83,18 @@ namespace DarkSpire
             // safe whether or not the user has authored Resources prefabs.
             FlashMessageController.GetOrCreate();
             RestMenu.GetOrCreate();
+            MapHoverTooltip.GetOrCreate();
+            IconLegendModal.GetOrCreate();
 
             EnsureRenderers();
             EnsureRegistry();
             BuildFloor();
             BindDungeonUI();
+
+            // First-time-user intro card. Self-gates on PlayerPrefs so it
+            // shows once per install. Triggered last so the dungeon is fully
+            // built and visible behind the modal.
+            FirstRunIntroCard.ShowIfFirstRun();
         }
 
         // Scene-scoped HUD + Minimap. MUST be authored in DungeonFloor.unity.
@@ -119,12 +126,9 @@ namespace DarkSpire
                 minimap.Bind(ActiveFloor, fogOfWar, partyToken);
         }
 
-        private void Update()
-        {
-            // unscaledDeltaTime so the rest-menu pause (Time.timeScale = 0)
-            // doesn't stop the wall-clock run timer used by the Victory screen.
-            RunContext.runTime += Time.unscaledDeltaTime;
-        }
+        // Run-timer increment moved to FloorHUD.Update so the wall-clock keeps
+        // ticking during combat (FloorHUD persists across scenes; DungeonBootstrap
+        // doesn't).
 
         private void OnDestroy()
         {
@@ -258,22 +262,27 @@ namespace DarkSpire
 
         private void ConfigureEncounterManager(GeneratedFloorData floor)
         {
-            // Encounter Manager
+            // Encounter Manager — MUST be created at scene root so its Awake
+            // can DontDestroyOnLoad itself (the Awake guard is gated on
+            // transform.parent == null). If parented under DungeonBootstrap,
+            // the EM gets destroyed alongside the dungeon scene on every
+            // combat transition, the post-combat dungeon load creates a fresh
+            // empty EM, and SetupForFloor is skipped on resume — so every Sub-
+            // Manager returns a null encounter and combat falls through to the
+            // mock-destroy path. Root-level creation lets DDOL fire.
             if (encounterManager == null) encounterManager = EncounterManager.Instance;
             if (encounterManager == null)
             {
                 var go = new GameObject("EncounterManager");
-                go.transform.SetParent(transform, false);
+                // Intentionally unparented — see comment above.
                 encounterManager = go.AddComponent<EncounterManager>();
             }
 
-            // Dungeon Manager (must exist before EM dispatches anything, since
-            // EM.Apply calls DungeonManager.ApplyAnnotations).
+            // Dungeon Manager — same DDOL contract as EM. Author at scene root.
             if (dungeonManager == null) dungeonManager = DungeonManager.Instance;
             if (dungeonManager == null)
             {
                 var go = new GameObject("DungeonManager");
-                go.transform.SetParent(transform, false);
                 dungeonManager = go.AddComponent<DungeonManager>();
             }
 

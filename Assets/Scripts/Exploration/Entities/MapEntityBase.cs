@@ -30,6 +30,22 @@ namespace DarkSpire
             this._library = library;
             GridPos = placement.position;
             DungeonRegistry.Instance?.Register(this);
+
+            // Spawn an above-tile "[E] ..." indicator for interactables so the
+            // player learns the E-key affordance organically. The indicator
+            // reads PromptText every frame via a delegate so state changes
+            // (chest opened, gate keys collected, shrine used) are reflected
+            // live without an explicit refresh API.
+            if (this is IInteractable interactable)
+            {
+                int promptOrder = sr != null ? sr.sortingOrder + 2 : 9;
+                InteractPromptIndicator.AttachTo(
+                    transform,
+                    GridPos,
+                    () => interactable.PromptText,
+                    InteractPromptIndicator.Range.Adjacency,
+                    promptOrder);
+            }
         }
 
         protected virtual void OnDestroy()

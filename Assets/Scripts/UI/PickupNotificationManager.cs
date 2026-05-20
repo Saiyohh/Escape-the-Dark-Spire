@@ -212,6 +212,7 @@ namespace DarkSpire
             tmp.fontSize = 24f;
             tmp.alignment = TextAlignmentOptions.MidlineLeft;
             tmp.color = Color.white;
+            UIFonts.Apply(tmp);
 
             return row;
         }

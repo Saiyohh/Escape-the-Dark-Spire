@@ -175,6 +175,7 @@ namespace DarkSpire
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
+            UIFonts.Apply(tmp);
 
             var cg = flashGO.AddComponent<CanvasGroup>();
             cg.alpha = 0f;

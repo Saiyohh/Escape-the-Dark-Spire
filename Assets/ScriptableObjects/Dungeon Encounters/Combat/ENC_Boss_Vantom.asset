@@ -16,7 +16,7 @@ MonoBehaviour:
   fixedEnemies:
   - {fileID: 11400000, guid: e99eaab12b4585e45adc96fe0b904ae6, type: 2}
   possibleEnemies: []
-  minEnemies: 0
-  maxEnemies: 0
+  minEnemies: 1
+  maxEnemies: 1
   floorNumber: 1
   backgroundSprite: {fileID: 0}

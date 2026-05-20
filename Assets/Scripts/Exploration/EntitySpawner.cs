@@ -147,7 +147,16 @@ namespace DarkSpire
                 };
             }
 
-            if (authored != null) { sr.sprite = authored; sr.color = Color.white; }
+            if (authored != null)
+            {
+                sr.sprite = authored;
+                sr.color = Color.white;
+                // Apply the per-entity scale override from the sprite library so
+                // designers can shrink/grow individual icons without re-importing
+                // the source art. 1.0 = native sprite size (one tile wide).
+                float libScale = lib != null ? lib.GetEntityScale(e.kind) : 1f;
+                go.transform.localScale = new Vector3(libScale, libScale, 1f);
+            }
             else
             {
                 sr.sprite = whiteSprite;
@@ -175,6 +184,16 @@ namespace DarkSpire
                 _ => null,
             };
             entity?.Initialize(e, sr, Library);
+
+            // Attach a hover tooltip so the player can mouse over the icon to
+            // see what it does. Catalog-driven so name + description live in
+            // one place ([[MapTooltipCatalog]]).
+            var info = MapTooltipCatalog.ForEntityKind(e.kind);
+            if (!string.IsNullOrEmpty(info.Name))
+            {
+                var hover = go.AddComponent<MapEntityHoverTrigger>();
+                hover.Setup(info.Name, info.Description, info.Icon);
+            }
         }
 
         private void SpawnMonster(MonsterSpawn m, GeneratedFloorData floor, PartyToken party, float detectionRadius)
@@ -204,7 +223,15 @@ namespace DarkSpire
                 };
             }
 
-            if (authored != null) { sr.sprite = authored; sr.color = Color.white; }
+            if (authored != null)
+            {
+                sr.sprite = authored;
+                sr.color = Color.white;
+                // Per-tier scale override from the sprite library — the user
+                // dials this in if the authored monster art comes in oversized.
+                float libScale = lib != null ? lib.GetMonsterScale(m.tier) : 1f;
+                go.transform.localScale = new Vector3(libScale, libScale, 1f);
+            }
             else
             {
                 sr.sprite = whiteSprite;
@@ -221,6 +248,15 @@ namespace DarkSpire
 
             var monster = go.AddComponent<MapMonsterEntity>();
             monster.InitializeMonster(m, floor, party, Library, sr, detectionRadius, alertIndicatorSortingOrder);
+
+            // Hover tooltip on the monster sprite so the player learns what
+            // each tier is and that contact triggers combat.
+            var info = MapTooltipCatalog.ForMonsterTier(m.tier);
+            if (!string.IsNullOrEmpty(info.Name))
+            {
+                var hover = go.AddComponent<MapEntityHoverTrigger>();
+                hover.Setup(info.Name, info.Description, info.Icon);
+            }
         }
 
         /// <summary>
@@ -237,7 +273,16 @@ namespace DarkSpire
             var sub = em.PeekSub(EncounterType.Boss);
             var peeked = sub?.Peek(0);
             var encounter = peeked?.encounter;
-            if (encounter == null || encounter.possibleEnemies == null) return null;
+            if (encounter == null) return null;
+
+            // Boss encounters typically declare the boss in fixedEnemies (the
+            // guaranteed spawn), with possibleEnemies left empty or used for
+            // bonus minions. Check fixedEnemies first so a single-enemy boss
+            // encounter resolves correctly.
+            var fixedIcon = FindBossIcon(encounter.fixedEnemies);
+            if (fixedIcon != null) return fixedIcon;
+
+            if (encounter.possibleEnemies == null) return null;
 
             // Prefer the icon from a boss-flagged enemy first.
             for (int i = 0; i < encounter.possibleEnemies.Length; i++)
@@ -256,6 +301,29 @@ namespace DarkSpire
                 if (e?.mapIcon != null) return e.mapIcon;
             }
 
+            return null;
+        }
+
+        /// <summary>
+        /// Scan an EnemyData[] for the best map icon to use on the boss tile.
+        /// Prefers a Boss-flagged entry, then falls back to the first authored
+        /// mapIcon. Returns null if the array is null/empty or none have an
+        /// icon wired.
+        /// </summary>
+        private static Sprite FindBossIcon(EnemyData[] enemies)
+        {
+            if (enemies == null) return null;
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                var e = enemies[i];
+                if (e == null) continue;
+                if (e.enemyType == EnemyType.Boss && e.mapIcon != null) return e.mapIcon;
+            }
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                var e = enemies[i];
+                if (e?.mapIcon != null) return e.mapIcon;
+            }
             return null;
         }
 

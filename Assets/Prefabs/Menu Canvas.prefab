@@ -113,13 +113,14 @@ GameObject:
   m_Component:
   - component: {fileID: 7020951488997808584}
   - component: {fileID: 3868930538779294024}
+  - component: {fileID: 2822283995401259381}
   m_Layer: 0
   m_Name: Menu Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7020951488997808584
 Transform:
   m_ObjectHideFlags: 0
@@ -149,9 +150,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.MenuCanvasController
   pauseMenu: {fileID: 957689888975047910}
-  pickups: {fileID: 0}
+  pickups: {fileID: 2822283995401259381}
   listenForEsc: 1
   forceClosedOnAwake: 1
+--- !u!114 &2822283995401259381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1423983987768441268}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e238248ed881e4a8384b131742e197, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DarkSpire.PickupNotificationManager
+  stackContainer: {fileID: 0}
+  toastPrefab: {fileID: 0}
+  lifeSeconds: 2.6
+  fadeOutSeconds: 0.5
 --- !u!1 &1713261066087227894
 GameObject:
   m_ObjectHideFlags: 0
@@ -631,7 +648,7 @@ MonoBehaviour:
   m_text: Quit
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 15467e1a7172fc64199f29c0dbc8e57b, type: 2}
-  m_sharedMaterial: {fileID: 6498269268568601118, guid: 15467e1a7172fc64199f29c0dbc8e57b, type: 2}
+  m_sharedMaterial: {fileID: 0}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -787,7 +804,7 @@ MonoBehaviour:
   m_text: Resume
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 15467e1a7172fc64199f29c0dbc8e57b, type: 2}
-  m_sharedMaterial: {fileID: 6498269268568601118, guid: 15467e1a7172fc64199f29c0dbc8e57b, type: 2}
+  m_sharedMaterial: {fileID: 0}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

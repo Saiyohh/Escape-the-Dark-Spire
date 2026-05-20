@@ -13,7 +13,10 @@ namespace DarkSpire
     //
     // FloorHUD.cs has NO runtime fallback — the HUD must exist in the scene
     // with its serialized refs wired or it logs a warning and renders nothing.
-    // Re-running this menu item prompts before overwriting.
+    // Re-running the full Scaffold prompts before overwriting. The "Add Legend
+    // Button" companion adds just the ? button to an existing HUD without
+    // touching the rest of the hierarchy — use it when you've customized the
+    // HUD and don't want to start over.
     public static class FloorHUDSceneScaffolder
     {
         [MenuItem("Tools/DarkSpire/Scenes/Scaffold FloorHUD into open scene")]
@@ -50,12 +53,69 @@ namespace DarkSpire
                 $"Created FloorHUD in '{scene.name}'.\n\n" +
                 "Tweak in the Inspector:\n" +
                 " • TopBar > the 4 TMP labels (Floor / Keys / Gold / Timer)\n" +
+                " • LegendButton (?) at the right edge of the top bar\n" +
                 " • TopBar Image — background color/alpha\n" +
                 " • HPBars container — spacing, padding, position\n" +
                 " • Each PartyHpBar — portrait, bar colors, name label\n" +
                 " • Canvas sortingOrder if it overlaps another UI layer\n\n" +
                 "Save the scene to lock changes in. Don't remove the FloorHUD " +
                 "component from the root — DungeonBootstrap finds it by type.",
+                "OK");
+        }
+
+        [MenuItem("Tools/DarkSpire/Scenes/Add Legend Button to FloorHUD")]
+        public static void AddLegendButtonToExisting()
+        {
+            var hud = Object.FindAnyObjectByType<FloorHUD>(FindObjectsInactive.Include);
+            if (hud == null)
+            {
+                EditorUtility.DisplayDialog("No FloorHUD found",
+                    "Open the scene with your FloorHUD (typically DungeonFloor.unity) " +
+                    "and run this menu again. If you haven't scaffolded one yet, " +
+                    "use 'Scaffold FloorHUD into open scene' instead.",
+                    "OK");
+                return;
+            }
+
+            var so = new SerializedObject(hud);
+            var legendProp = so.FindProperty("legendButton");
+            if (legendProp == null)
+            {
+                EditorUtility.DisplayDialog("Field missing",
+                    "FloorHUD has no 'legendButton' field. Pull the latest changes " +
+                    "and recompile.",
+                    "OK");
+                return;
+            }
+
+            if (legendProp.objectReferenceValue != null)
+            {
+                if (!EditorUtility.DisplayDialog("Legend button already wired",
+                    $"FloorHUD already references a legend button ('{legendProp.objectReferenceValue.name}'). " +
+                    "Add another one anyway? The existing reference will be replaced.",
+                    "Replace", "Cancel"))
+                {
+                    return;
+                }
+            }
+
+            // Find the top bar so the button slots into the existing horizontal
+            // layout. Falls back to the HUD root if no TopBar child is found
+            // — the button still functions, just positioned arbitrarily.
+            Transform topBar = hud.transform.Find("TopBar");
+            if (topBar == null) topBar = hud.transform;
+
+            var btn = BuildLegendButton(topBar);
+            legendProp.objectReferenceValue = btn;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+            Selection.activeGameObject = btn.gameObject;
+
+            EditorUtility.DisplayDialog("Legend button added",
+                $"Wired a ? button into FloorHUD.legendButton ('{btn.gameObject.name}').\n\n" +
+                "Tweak position, color, label in the Inspector. Saving the scene " +
+                "persists the change.",
                 "OK");
         }
 
@@ -109,6 +169,10 @@ namespace DarkSpire
 
             var timerLabel = BuildBarLabel(bar.transform, "TimerLabel", "00:00");
 
+            // ? button at the right edge of the top bar — last child so the
+            // HorizontalLayoutGroup positions it after the timer.
+            var legendBtn = BuildLegendButton(bar.transform);
+
             // HP row.
             var hpRow = new GameObject("HPBars");
             hpRow.transform.SetParent(root.transform, false);
@@ -140,6 +204,7 @@ namespace DarkSpire
             so.FindProperty("goldLabel").objectReferenceValue  = goldLabel;
             so.FindProperty("timerLabel").objectReferenceValue = timerLabel;
             so.FindProperty("hpBarContainer").objectReferenceValue = hprt;
+            so.FindProperty("legendButton").objectReferenceValue  = legendBtn;
 
             var hpBarsProp = so.FindProperty("hpBars");
             hpBarsProp.arraySize = bars.Length;
@@ -162,10 +227,61 @@ namespace DarkSpire
             tmp.alignment = TextAlignmentOptions.MidlineLeft;
             tmp.color = Color.white;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
+            UIFonts.Apply(tmp);
             var le = go.AddComponent<LayoutElement>();
             le.minWidth = 130f;
             le.preferredWidth = 180f;
             return tmp;
+        }
+
+        /// <summary>
+        /// Build the ? icon button and return it. Used by both the full
+        /// scaffolder and the "Add Legend Button to FloorHUD" entry point.
+        /// </summary>
+        private static Button BuildLegendButton(Transform parent)
+        {
+            var go = new GameObject("LegendButton");
+            go.transform.SetParent(parent, false);
+            var rt = go.AddComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(48f, 48f);
+
+            var img = go.AddComponent<Image>();
+            img.color = new Color(0.10f, 0.10f, 0.12f, 0.85f);
+            img.raycastTarget = true;
+
+            var btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
+            btn.interactable = true;
+            var colors = btn.colors;
+            colors.normalColor      = new Color(0.10f, 0.10f, 0.12f, 0.85f);
+            colors.highlightedColor = new Color(0.22f, 0.22f, 0.26f, 0.95f);
+            colors.pressedColor     = new Color(0.06f, 0.06f, 0.08f, 1f);
+            colors.selectedColor    = new Color(0.22f, 0.22f, 0.26f, 0.95f);
+            colors.disabledColor    = new Color(0.10f, 0.10f, 0.12f, 0.6f);
+            btn.colors = colors;
+
+            var le = go.AddComponent<LayoutElement>();
+            le.preferredWidth = 48f;
+            le.preferredHeight = 48f;
+            le.flexibleWidth = 0f;
+
+            var lblGO = new GameObject("Label");
+            lblGO.transform.SetParent(go.transform, false);
+            var lrt = lblGO.AddComponent<RectTransform>();
+            lrt.anchorMin = Vector2.zero;
+            lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = Vector2.zero;
+            lrt.offsetMax = Vector2.zero;
+            var tmp = lblGO.AddComponent<TextMeshProUGUI>();
+            tmp.text = "?";
+            tmp.fontSize = 28f;
+            tmp.fontStyle = FontStyles.Bold;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = new Color(1f, 0.92f, 0.45f);
+            tmp.raycastTarget = false;
+            UIFonts.Apply(tmp);
+
+            return btn;
         }
     }
 }

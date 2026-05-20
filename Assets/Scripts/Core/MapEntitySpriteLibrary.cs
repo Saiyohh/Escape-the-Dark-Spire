@@ -132,6 +132,49 @@ namespace DarkSpire
                  "PartyToken reads this when its own override field is null.")]
         public Sprite partyToken;
 
+        [Header("Sprite scale overrides")]
+        [Tooltip("Per-entity scale multiplier applied when the authored sprite " +
+                 "is spawned. Raise to make an icon larger, lower to shrink. " +
+                 "1.0 = use the sprite's native size (one tile wide). Affects " +
+                 "authored sprites only — the fallback placeholders ignore this " +
+                 "since they already use a runtime scale.")]
+        public IconScales scales = new IconScales();
+
+        [System.Serializable]
+        public class IconScales
+        {
+            [Range(0.1f, 3f)] public float standardMonster = 1f;
+            [Range(0.1f, 3f)] public float eliteMonster    = 1f;
+            [Range(0.1f, 3f)] public float boss            = 1f;
+            [Range(0.1f, 3f)] public float key             = 1f;
+            [Range(0.1f, 3f)] public float chest           = 1f;
+            [Range(0.1f, 3f)] public float chestOpen       = 1f;
+            [Range(0.1f, 3f)] public float goldPile        = 1f;
+            [Range(0.1f, 3f)] public float shrine          = 1f;
+            [Range(0.1f, 3f)] public float bossGate        = 1f;
+            [Range(0.1f, 3f)] public float campsite        = 1f;
+            [Range(0.1f, 3f)] public float eventTile       = 1f;
+            [Range(0.1f, 3f)] public float partyToken      = 1f;
+        }
+
+        public float GetEntityScale(EntityKind kind) => kind switch
+        {
+            EntityKind.Key      => scales.key,
+            EntityKind.Chest    => scales.chest,
+            EntityKind.GoldPile => scales.goldPile,
+            EntityKind.Shrine   => scales.shrine,
+            EntityKind.BossGate => scales.bossGate,
+            _ => 1f,
+        };
+
+        public float GetMonsterScale(MonsterTier tier) => tier switch
+        {
+            MonsterTier.Standard => scales.standardMonster,
+            MonsterTier.Elite    => scales.eliteMonster,
+            MonsterTier.Boss     => scales.boss,
+            _ => 1f,
+        };
+
         public Sprite GetByKey(MapSpriteKey spriteKey) => spriteKey switch
         {
             MapSpriteKey.StandardMonster  => standardMonster,

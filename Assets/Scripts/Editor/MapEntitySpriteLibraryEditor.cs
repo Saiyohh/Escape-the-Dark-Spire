@@ -90,7 +90,54 @@ namespace DarkSpire.EditorTools
                 EditorGUILayout.Space(2);
             }
 
+            // Sprite scale overrides — drawn directly via PropertyField so each
+            // float on IconScales picks up its [Range] attribute. Lives outside
+            // the Categories array because it isn't a Sprite list.
+            DrawScales();
+
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawScales()
+        {
+            const string key = FoldoutKeyPrefix + "Sprite scale overrides";
+            bool expanded = SessionState.GetBool(key, true);
+            bool next = EditorGUILayout.BeginFoldoutHeaderGroup(expanded, "Sprite scale overrides");
+            if (next != expanded)
+            {
+                expanded = next;
+                SessionState.SetBool(key, expanded);
+            }
+
+            if (expanded)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.LabelField(
+                    "Per-entity scale multiplier applied when the authored " +
+                    "sprite is spawned. 1.0 = native sprite size.",
+                    EditorStyles.wordWrappedMiniLabel);
+
+                var scalesProp = serializedObject.FindProperty("scales");
+                if (scalesProp == null)
+                {
+                    EditorGUILayout.HelpBox("Missing field: scales", MessageType.Warning);
+                }
+                else
+                {
+                    // Iterate the IconScales class's children so each Range
+                    // attribute renders as a slider.
+                    var iter = scalesProp.Copy();
+                    var end = scalesProp.GetEndProperty();
+                    iter.NextVisible(enterChildren: true);
+                    while (!SerializedProperty.EqualContents(iter, end))
+                    {
+                        EditorGUILayout.PropertyField(iter, true);
+                        if (!iter.NextVisible(enterChildren: false)) break;
+                    }
+                }
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
         private void DrawCategory(string title, (string Field, string Label)[] fields)

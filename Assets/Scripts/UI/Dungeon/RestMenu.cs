@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace DarkSpire
@@ -28,6 +29,8 @@ namespace DarkSpire
     public class RestMenu : MonoBehaviour
     {
         public static RestMenu Instance { get; private set; }
+
+        public bool IsOpen => panelRoot != null && panelRoot.activeSelf;
 
         [Header("Panel root")]
         [SerializeField] private GameObject panelRoot;
@@ -49,7 +52,8 @@ namespace DarkSpire
         public static RestMenu GetOrCreate()
         {
             if (Instance != null) return Instance;
-            var prefab = Resources.Load<GameObject>("RestMenu");
+            var lib = ClarityUIPrefabLibrary.Instance;
+            var prefab = lib != null ? lib.restMenu : null;
             GameObject go = prefab != null ? Instantiate(prefab) : BuildRuntimeFallback();
             return go.GetComponent<RestMenu>();
         }
@@ -61,6 +65,22 @@ namespace DarkSpire
 
             prevTimeScale = Time.timeScale;
             Time.timeScale = 0f;
+            Debug.Log("[RestMenu] Opened.");
+        }
+
+        private void Update()
+        {
+            // Esc closes the rest menu. Polled here (not via InputAction) so the
+            // panel still responds when Time.timeScale = 0 — InputSystem device
+            // polling uses unscaled time, so wasPressedThisFrame still fires.
+            if (!IsOpen) return;
+            var kb = Keyboard.current;
+            if (kb == null) return;
+            if (kb.escapeKey.wasPressedThisFrame)
+            {
+                Debug.Log("[RestMenu] Esc pressed → Close.");
+                Close();
+            }
         }
 
         public void Close()
@@ -84,10 +104,10 @@ namespace DarkSpire
             if (panelRoot != null) panelRoot.SetActive(false);
             if (statsRoot != null) statsRoot.SetActive(false);
 
-            if (restoreButton  != null) restoreButton.onClick.AddListener(OnRestore);
-            if (reviveButton   != null) reviveButton.onClick.AddListener(OnRevive);
-            if (viewStatsButton != null) viewStatsButton.onClick.AddListener(OnViewStats);
-            if (leaveButton    != null) leaveButton.onClick.AddListener(OnLeave);
+            if (restoreButton  != null) restoreButton.onClick.AddListener(() => { Debug.Log("[RestMenu] Restore clicked."); OnRestore(); });
+            if (reviveButton   != null) reviveButton.onClick.AddListener(() => { Debug.Log("[RestMenu] Revive clicked."); OnRevive(); });
+            if (viewStatsButton != null) viewStatsButton.onClick.AddListener(() => { Debug.Log("[RestMenu] View Stats clicked."); OnViewStats(); });
+            if (leaveButton    != null) leaveButton.onClick.AddListener(() => { Debug.Log("[RestMenu] Leave clicked."); OnLeave(); });
         }
 
         private void OnDestroy()
@@ -269,6 +289,7 @@ namespace DarkSpire
             tmp.fontSize = size;
             tmp.alignment = align;
             tmp.color = Color.white;
+            UIFonts.Apply(tmp);
             if (preferredHeight > 0f)
             {
                 var le = go.AddComponent<LayoutElement>();

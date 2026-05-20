@@ -586,6 +586,12 @@ namespace DarkSpire
 
                 if (move != null && move.intents != null && move.intents.Length > 0)
                 {
+                    // Mark resolving so a killing blow during the enemy's
+                    // animations defers the public OnCombatEnd event until
+                    // after this block (see LatchCombatEnd /
+                    // AnnouncePendingCombatEnd).
+                    isResolving = true;
+
                     // Does this move attack any player? Used to decide whether
                     // to muzzle player-side flash/death/UI updates upfront.
                     bool hasAttackIntent = false;
@@ -811,6 +817,12 @@ namespace DarkSpire
 
                 yield return new WaitForSeconds(enemyActionDelay);
 
+                // End of this enemy's animation block — flush any pending
+                // combat-end announcement queued by OnUnitDied during the
+                // playback above.
+                isResolving = false;
+                AnnouncePendingCombatEnd();
+
                 // Unhighlight target after the action + delay resolves
                 targetDisplay?.SetHighlighted(false);
 
@@ -931,8 +943,20 @@ namespace DarkSpire
             // End combat the moment the killing blow lands rather than waiting
             // for the next turn boundary. Idempotent: subsequent CheckCombatEnd
             // calls (from turn-end coroutines) early-return once combat is over.
+            // When fired mid-action-resolution the public OnCombatEnd event is
+            // deferred until the action coroutine finishes — see
+            // AnnouncePendingCombatEnd. This keeps the killing-blow animation,
+            // HP-bar drain, and death sequence on screen before the scene
+            // transitions out.
             CheckCombatEnd();
         }
+
+        // Latched between CheckCombatEnd firing during an action resolve and
+        // the coroutine completing. Holds the win/lose outcome so the
+        // post-coroutine announcement can emit the right event payload.
+        private bool combatEndLatched;
+        private bool combatEndLatchedVictory;
+        private bool combatEndAnnounced;
 
         private bool CheckCombatEnd()
         {
@@ -945,29 +969,58 @@ namespace DarkSpire
 
             if (allEnemiesDead)
             {
-                combatActive = false;
-                // Unblock any phase coroutine that's waiting on player input
-                // so it can yield-break cleanly instead of stalling.
-                waitingForPlayerInput = false;
-                CurrentPhase = CombatPhase.Victory;
-                CombatEvents.InvokePhaseChanged(CurrentPhase);
-                FireCombatEndOnAllUnits();
-                CombatEvents.InvokeCombatEnd(true);
+                LatchCombatEnd(victory: true);
                 return true;
             }
 
             if (allPlayersDead)
             {
-                combatActive = false;
-                waitingForPlayerInput = false;
-                CurrentPhase = CombatPhase.Defeat;
-                CombatEvents.InvokePhaseChanged(CurrentPhase);
-                FireCombatEndOnAllUnits();
-                CombatEvents.InvokeCombatEnd(false);
+                LatchCombatEnd(victory: false);
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Latch the combat-end outcome and broadcast the phase change so
+        /// internal systems (turn coroutines, input gates) can stand down. The
+        /// public OnCombatEnd event is deferred when an action resolve coroutine
+        /// is mid-flight — otherwise the scene swaps out before the killing
+        /// blow's animation, HP-bar drain, and death sequence finish playing.
+        /// AnnouncePendingCombatEnd flushes the deferred event once the
+        /// coroutine clears <see cref="isResolving"/>.
+        /// </summary>
+        private void LatchCombatEnd(bool victory)
+        {
+            if (combatEndLatched) return;
+            combatEndLatched = true;
+            combatEndLatchedVictory = victory;
+
+            combatActive = false;
+            // Unblock any phase coroutine that's waiting on player input so
+            // it can yield-break cleanly instead of stalling.
+            waitingForPlayerInput = false;
+            CurrentPhase = victory ? CombatPhase.Victory : CombatPhase.Defeat;
+            CombatEvents.InvokePhaseChanged(CurrentPhase);
+
+            // Fire the public event immediately UNLESS an action coroutine is
+            // currently driving animations — that coroutine will call
+            // AnnouncePendingCombatEnd when its visuals finish.
+            if (!isResolving) AnnouncePendingCombatEnd();
+        }
+
+        /// <summary>
+        /// Called by action coroutines (and the turn boundary) after all
+        /// animations have played out. Fires the public OnCombatEnd event if
+        /// LatchCombatEnd previously deferred it. Idempotent.
+        /// </summary>
+        private void AnnouncePendingCombatEnd()
+        {
+            if (!combatEndLatched || combatEndAnnounced) return;
+            combatEndAnnounced = true;
+            FireCombatEndOnAllUnits();
+            CombatEvents.InvokeCombatEnd(combatEndLatchedVictory);
         }
 
         private void FireCombatEndOnAllUnits()
@@ -1722,6 +1775,11 @@ namespace DarkSpire
             pendingItem  = null;
             CombatEvents.InvokeActionStateChanged(ActiveUnit);
             isResolving = false;
+
+            // If a killing blow during this action latched combat-end, the
+            // public OnCombatEnd event was deferred so the death animation
+            // and HP drain could finish on screen. Fire it now.
+            AnnouncePendingCombatEnd();
             // Turn does NOT end here — player must click End Turn
         }
 

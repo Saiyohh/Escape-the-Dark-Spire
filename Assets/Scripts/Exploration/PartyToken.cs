@@ -10,6 +10,11 @@ namespace DarkSpire
     // TryMove(dir) and respects the bool result.
     public class PartyToken : MonoBehaviour
     {
+        // Scene-scoped singleton. Set in Awake, cleared in OnDestroy.
+        // Indicator widgets and tooltips spawned before the bootstrap places
+        // the party use this to find the live token lazily.
+        public static PartyToken Instance { get; private set; }
+
         [SerializeField] private float lerpDuration = 0.08f;
         [SerializeField] private int sortingOrder = 7;
 
@@ -30,7 +35,18 @@ namespace DarkSpire
 
         private void Awake()
         {
+            // Multiple PartyTokens shouldn't exist per scene — the last one in
+            // wins to match Bootstrap's late-create pattern, but log a warning
+            // so a duplicate scene wiring doesn't go unnoticed.
+            if (Instance != null && Instance != this)
+                Debug.LogWarning("[PartyToken] Replacing previous Instance.", this);
+            Instance = this;
             EnsureRenderer();
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         public void Bind(GeneratedFloorData floor)
@@ -78,11 +94,17 @@ namespace DarkSpire
             if (floor.tiles[p.x, p.y].IsImpassable()) return false;
 
             // Locked Boss Gate (and any future IBlocker) refuses passage.
+            // Surface the reason to the player via the flash-message bus —
+            // the de-dupe in FlashMessageController.Enqueue keeps holding a
+            // direction into the gate from spamming.
             var registry = DungeonRegistry.Instance;
             if (registry != null && registry.IsBlocked(p, out var reason))
             {
                 if (!string.IsNullOrEmpty(reason))
+                {
                     Debug.Log($"[PartyToken] Blocked: {reason}");
+                    DungeonEvents.InvokeFlashMessage(reason);
+                }
                 return false;
             }
             return true;
@@ -129,6 +151,14 @@ namespace DarkSpire
             {
                 sr.sprite = resolved;
                 sr.color = Color.white;
+                // Apply the partyToken scale override from the sprite library
+                // if the user dialed one in. Default 1.0 leaves localScale alone.
+                var lib = MapEntitySpriteLibrary.Instance;
+                if (lib != null && lib.scales != null && lib.scales.partyToken != 1f)
+                {
+                    float s = lib.scales.partyToken;
+                    transform.localScale = new Vector3(s, s, 1f);
+                }
             }
             else
             {
